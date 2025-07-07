@@ -1,26 +1,64 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
 }
 
-<div class="text-center mt-5">
-    <h1 class="display-4 mb-4">Welcome</h1>
-    <p>
-        Learn about
-        <a href="https://learn.microsoft.com/aspnet/core" target="_blank" rel="noopener noreferrer">
-            building Web apps with ASP.NET Core
-        </a>
-    </p>
 
-    <div class="mt-4">
-        <div class="mb-3">
-            <a class="btn btn-primary px-4" asp-area="ProjectManagement" asp-controller="ProjectManagementHome" asp-action="Index">
-                مدیریت پروژه
-            </a>
+<div class="mt-4">
+
+    <!-- ردیف اول: مدیریت پروژه + انبارداری -->
+    <div class="subsystems-row">
+        <div class="subsystem-card projects">
+            <div class="card-icon">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <div class="card-content">
+                <h2>مدیریت پروژه‌ها</h2>
+                <p>پیگیری پیشرفت، مدیریت منابع، زمان‌بندی</p>
+                <a class="access-btn px-4" asp-area="ProjectManagement" asp-controller="ProjectManagementHome" asp-action="Index">
+                    <i class="fas fa-arrow-left"></i> ورود به سیستم
+                </a>
+            </div>
         </div>
-        <div>
-            <a class="btn btn-success px-4" asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index">
-                انبار
-            </a>
+
+        <div class="subsystem-card inventory">
+            <div class="card-icon">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div class="card-content">
+                <h2>سیستم انبارداری</h2>
+                <p>مدیریت موجودی، ورود و خروج کالا، گزارشات انبار</p>
+                <a class="access-btn px-4" asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index">
+                    <i class="fas fa-arrow-left"></i> ورود به سیستم
+                </a>
+            </div>
         </div>
     </div>
+
+    <!-- ردیف دوم: حسابداری + تدارکات -->
+    <div class="subsystems-row">
+        <div class="subsystem-card accounting">
+            <div class="card-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="card-content">
+                <h2>سیستم حسابداری</h2>
+                <p>دفتر کل، حساب‌های تفضیلی، گزارشات مالی</p>
+                <button class="access-btn">ورود به سیستم <i class="fas fa-arrow-left"></i></button>
+            </div>
+        </div>
+
+        <div class="subsystem-card procurement">
+            <div class="card-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="card-content">
+                <h2>سیستم تدارکات</h2>
+                <p>خرید، سفارشات، مدیریت تامین کنندگان</p>
+                <button class="access-btn">ورود به سیستم <i class="fas fa-arrow-left"></i></button>
+            </div>
+        </div>
+    </div>
+
 </div>
+
