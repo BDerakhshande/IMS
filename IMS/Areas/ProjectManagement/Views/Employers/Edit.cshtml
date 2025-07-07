@@ -1,0 +1,105 @@
+﻿@model IMS.Application.ProjectManagement.DTOs.EmployerDto
+
+@{
+    ViewData["Title"] = "ویرایش کارفرما";
+}
+
+<h2 class="mb-4">ویرایش کارفرما</h2>
+
+<form asp-action="Edit" method="post" class="form-horizontal">
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label asp-for="CompanyName" class="form-label">نام شرکت</label>
+        <input asp-for="CompanyName" class="form-control" />
+        <span asp-validation-for="CompanyName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="NationalId" class="form-label">شناسه ملی</label>
+        <input asp-for="NationalId" class="form-control" />
+        <span asp-validation-for="NationalId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RegistrationNumber" class="form-label">شماره ثبت</label>
+        <input asp-for="RegistrationNumber" class="form-control" />
+        <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="LegalPersonType" class="form-label">نوع شخصیت حقوقی</label>
+        <select asp-for="LegalPersonType" class="form-control" asp-items="ViewBag.LegalPersonTypes"></select>
+        <span asp-validation-for="LegalPersonType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Address" class="form-label">آدرس</label>
+        <input asp-for="Address" class="form-control" />
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="PhoneNumber" class="form-label">شماره تماس</label>
+        <input asp-for="PhoneNumber" class="form-control" />
+        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Website" class="form-label">وب‌سایت</label>
+        <input asp-for="Website" class="form-control" />
+        <span asp-validation-for="Website" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RepresentativeName" class="form-label">نام نماینده</label>
+        <input asp-for="RepresentativeName" class="form-control" />
+        <span asp-validation-for="RepresentativeName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RepresentativePosition" class="form-label">سمت نماینده</label>
+        <input asp-for="RepresentativePosition" class="form-control" />
+        <span asp-validation-for="RepresentativePosition" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RepresentativeMobile" class="form-label">موبایل نماینده</label>
+        <input asp-for="RepresentativeMobile" class="form-control" />
+        <span asp-validation-for="RepresentativeMobile" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="RepresentativeEmail" class="form-label">ایمیل نماینده</label>
+        <input asp-for="RepresentativeEmail" class="form-control" />
+        <span asp-validation-for="RepresentativeEmail" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="CooperationType" class="form-label">نوع همکاری</label>
+        <select asp-for="CooperationType" class="form-control" asp-items="ViewBag.CooperationType"></select>
+        <span asp-validation-for="CooperationType" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="CooperationStartDate" class="form-label">تاریخ شروع همکاری</label>
+        <input asp-for="CooperationStartDate" type="date" class="form-control" />
+        <span asp-validation-for="CooperationStartDate" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-4">
+        <label asp-for="AdditionalDescription" class="form-label">توضیحات تکمیلی</label>
+        <textarea asp-for="AdditionalDescription" class="form-control"></textarea>
+        <span asp-validation-for="AdditionalDescription" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">ذخیره تغییرات</button>
+    <a asp-action="Index" class="btn btn-secondary">بازگشت</a>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,182 @@
+﻿@model IMS.Application.WarehouseManagement.DTOs.WarehouseDto
+
+@{
+    ViewData["Title"] = "ویرایش انبار";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary border-0 shadow">
+                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
+                    </h4>
+                    <a asp-action="Index" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
+                </div>
+
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        <input type="hidden" asp-for="Id" />
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="Code" class="form-label fw-bold">
+                                        <i class="fas fa-barcode me-1 text-muted"></i> کد انبار
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
+                                        <input asp-for="Code" class="form-control form-control-lg" placeholder="کد منحصر به فرد انبار" />
+                                    </div>
+                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="Name" class="form-label fw-bold">
+                                        <i class="fas fa-tag me-1 text-muted"></i> نام انبار
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-building text-primary"></i></span>
+                                        <input asp-for="Name" class="form-control form-control-lg" placeholder="نام کامل انبار را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="Location" class="form-label fw-bold">
+                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i> موقعیت مکانی
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-location-arrow text-primary"></i></span>
+                                        <input asp-for="Location" class="form-control form-control-lg" placeholder="موقعیت فیزیکی انبار" />
+                                    </div>
+                                    <span asp-validation-for="Location" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label asp-for="Manager" class="form-label fw-bold">
+                                        <i class="fas fa-user-tie me-1 text-muted"></i> مدیر انبار
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-user text-primary"></i></span>
+                                        <input asp-for="Manager" class="form-control form-control-lg" placeholder="نام و نام خانوادگی مدیر" />
+                                    </div>
+                                    <span asp-validation-for="Manager" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-bold d-block">
+                                        <i class="fas fa-power-off me-1 text-muted"></i> وضعیت انبار
+                                    </label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" asp-for="IsActive" id="IsActiveCheckbox" style="width: 3em; height: 1.5em;" />
+                                        <label class="form-check-label fw-normal ms-2" for="IsActiveCheckbox">
+                                            @(Model.IsActive ? "انبار فعال است" : "انبار غیرفعال است")
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">با تغییر این وضعیت، دسترسی به انبار کنترل می‌شود</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-footer border-top pt-4 mt-3">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                <i class="fas fa-save me-2"></i> ذخیره تغییرات
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg me-2">
+                                <i class="fas fa-times me-2"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <style>
+        .form-control-lg {
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border-radius: 0.375rem;
+        }
+
+        .input-group-text {
+            min-width: 45px;
+            justify-content: center;
+        }
+
+        .form-footer {
+            display: flex;
+            justify-content: flex-start;
+            gap: 1rem;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .card-header {
+            border-bottom: none;
+        }
+
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+
+        .form-switch .form-check-input {
+            cursor: pointer;
+        }
+    </style>
+
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // فعال سازی اعتبارسکنی فرم
+        (function () {
+            'use strict'
+
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+
+        // تغییر متن وضعیت انبار هنگام تغییر سوئیچ
+        document.getElementById('IsActiveCheckbox').addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            label.textContent = this.checked ? "انبار فعال است" : "انبار غیرفعال است";
+        });
+    </script>
+}

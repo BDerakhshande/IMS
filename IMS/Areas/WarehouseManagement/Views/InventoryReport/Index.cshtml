@@ -1,0 +1,180 @@
+﻿@model IMS.Application.WarehouseManagement.DTOs.InventoryReportFilterDto
+
+@{
+    ViewData["Title"] = "گزارش موجودی انبار";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h2 class="mb-4">📦 گزارش موجودی انبار</h2>
+
+<div class="card shadow-sm border rounded-4 p-4 mb-4">
+    <form method="get" asp-action="Index" class="row gy-4">
+        <!-- گروه انبار -->
+        <fieldset class="border rounded-3 p-3">
+            <legend class="float-none w-auto px-2 text-primary fs-5 fw-bold">📍 اطلاعات موقعیت</legend>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">انبار</label>
+                    <select id="WarehouseId" name="WarehouseId" class="form-select">
+                        <option value="">-- انتخاب انبار --</option>
+                        @foreach (var item in ViewBag.Warehouses as SelectList)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == (Model.WarehouseId?.ToString() ?? "") ? "selected" : null)">
+                                @item.Text
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">منطقه</label>
+                    <select id="ZoneId" name="ZoneId" class="form-select" data-selected="@Model.ZoneId">
+                        <option value="">-- انتخاب منطقه --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">بخش</label>
+                    <select id="SectionId" name="SectionId" class="form-select" data-selected="@Model.SectionId">
+                        <option value="">-- انتخاب بخش --</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- گروه کالا -->
+        <fieldset class="border rounded-3 p-3 mt-4">
+            <legend class="float-none w-auto px-2 text-primary fs-5 fw-bold">📦 اطلاعات کالا</legend>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">دسته‌بندی</label>
+                    <select id="CategoryId" name="CategoryId" class="form-select">
+                        <option value="">-- انتخاب دسته‌بندی --</option>
+                        @foreach (var item in ViewBag.Categories as SelectList)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == (Model.CategoryId?.ToString() ?? "") ? "selected" : null)">
+                                @item.Text
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">گروه</label>
+                    <select id="GroupId" name="GroupId" class="form-select" data-selected="@Model.GroupId">
+                        <option value="">-- انتخاب گروه --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">وضعیت</label>
+                    <select id="StatusId" name="StatusId" class="form-select" data-selected="@Model.StatusId">
+                        <option value="">-- انتخاب وضعیت --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">محصول</label>
+                    <select id="ProductId" name="ProductId" class="form-select" data-selected="@Model.ProductId">
+                        <option value="">-- انتخاب محصول --</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+        <div class="col-md-3">
+            <label class="form-label">حداقل موجودی</label>
+            <input type="number" class="form-control" name="MinQuantity" value="@Model.MinQuantity" placeholder="مثلاً 10" />
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label">حداکثر موجودی</label>
+            <input type="number" class="form-control" name="MaxQuantity" value="@Model.MaxQuantity" placeholder="مثلاً 100" />
+        </div>
+        <div class="col-md-12 text-end mt-4">
+            <button type="submit" class="btn btn-lg btn-success px-5 shadow">🔍 جستجو</button>
+        </div>
+    </form>
+</div>
+
+
+<hr />
+
+@if (Model.Items != null && Model.Items.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle text-center shadow-sm">
+            <thead class="table-light fw-bold">
+                <tr class="align-middle">
+                    <th>دسته‌بندی</th>
+                    <th>گروه</th>
+                    <th>وضعیت</th>
+                    <th>نام کالا</th>
+                    <th>انبار</th>
+                    <th>منطقه</th>
+                    <th>بخش</th>
+                    <th>تعداد موجودی</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.CategoryName</td>
+                        <td>@item.GroupName</td>
+                        <td>@item.StatusName</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.WarehouseName</td>
+                        <td>@item.ZoneName</td>
+                        <td>@item.SectionName</td>
+                        <td>@item.Quantity</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center mt-4" role="alert">
+        🔍 موردی برای نمایش یافت نشد.
+    </div>
+}
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // بارگذاری اولیه DropDownهای مستقل
+            function loadDropdown(url, dropdownId, defaultText) {
+                $.ajax({
+                    url: url,
+                    success: function (items) {
+                        let $dropdown = $(dropdownId);
+                        $dropdown.empty().append($('<option>', {
+                            value: '',
+                            text: defaultText
+                        }));
+
+                        $.each(items, function (i, item) {
+                            $dropdown.append($('<option>', {
+                                value: item.value,
+                                text: item.text
+                            }));
+                        });
+
+                        // انتخاب مقدار قبلی اگر وجود دارد
+                        let selectedValue = $dropdown.data('selected');
+                        if (selectedValue) {
+                            $dropdown.val(selectedValue);
+                        }
+                    }
+                });
+            }
+
+            // لیست‌هایی که مستقل هستند
+            loadDropdown('@Url.Action("GetAllZones", "InventoryReport", new { area = "WarehouseManagement" })', '#ZoneId', '-- انتخاب منطقه --');
+            loadDropdown('@Url.Action("GetAllSections", "InventoryReport", new { area = "WarehouseManagement" })', '#SectionId', '-- انتخاب بخش --');
+            loadDropdown('@Url.Action("GetAllGroups", "InventoryReport", new { area = "WarehouseManagement" })', '#GroupId', '-- انتخاب گروه --');
+            loadDropdown('@Url.Action("GetAllStatuses", "InventoryReport", new { area = "WarehouseManagement" })', '#StatusId', '-- انتخاب وضعیت --');
+            loadDropdown('@Url.Action("GetAllProducts", "InventoryReport", new { area = "WarehouseManagement" })', '#ProductId', '-- انتخاب محصول --');
+        });
+    </script>
+}
+

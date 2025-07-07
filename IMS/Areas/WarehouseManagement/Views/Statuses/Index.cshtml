@@ -1,0 +1,197 @@
+﻿@model List<IMS.Application.WarehouseManagement.DTOs.StatusDto>
+@{
+    var groupName = ViewBag.GroupName as string;
+    ViewData["Title"] = "مدیریت طبقه‌ها";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var groupId = ViewBag.GroupId;
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary border-0 shadow">
+                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="mb-0 text-white">مدیریت طبقه‌ها</h4>
+                    </div>
+                    <div>
+                        <a asp-action="Index" asp-controller="Groups" class="btn btn-light btn-sm me-2">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به گروه‌ها
+                        </a>
+                        <a asp-action="Create" asp-route-groupId="@groupId" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> طبقه جدید
+                        </a>
+
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th class="text-center">کد</th>
+                                    <th class="text-center">نام </th>
+                                    <th class="text-center">کالاها</th>
+                                    <th class="text-center">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            <i class="fas fa-info-circle fa-2x mb-3"></i>
+                                            <h5 class="fw-bold">هیچ طبقه ای ثبت نشده است</h5>
+                                            <p class="mb-0">برای افزودن طبقه جدید روی دکمه "طبقه جدید" کلیک کنید</p>
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    @foreach (var status in Model)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold">@status.FullCode</td>
+                                            <td class="text-center">@status.Name</td>
+                                            <td class="text-center">
+                                                <a asp-controller="Products"
+                                                   asp-action="Index"
+                                                   asp-route-statusId="@status.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-boxes me-1"></i> کالاها
+                                                </a>
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <a asp-action="Edit"
+                                                       asp-route-id="@status.Id"
+                                                       class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit me-1"></i> ویرایش
+                                                    </a>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal-@status.Id">
+                                                        <i class="fas fa-trash-alt me-1"></i> حذف
+                                                    </button>
+                                                </div>
+
+                                                <!-- Modal for Delete Confirmation -->
+                                                <div class="modal fade" id="deleteModal-@status.Id" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-danger text-white">
+                                                                <h5 class="modal-title">
+                                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                    تایید حذف وضعیت
+                                                                </h5>
+                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <div class="alert alert-warning">
+                                                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                                                    آیا از حذف طبقه <strong>@status.Name</strong> با کد <strong>@status.FullCode</strong> مطمئن هستید؟
+                                                                </div>
+                                                                <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام کالاهای این طبقه نیز حذف خواهند شد.</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                    <i class="fas fa-times me-1"></i> انصراف
+                                                                </button>
+                                                                <form asp-action="Delete" method="post">
+                                                                    <input type="hidden" name="id" value="@status.Id" />
+                                                                    <button type="submit" class="btn btn-danger">
+                                                                        <i class="fas fa-trash-alt me-1"></i> تایید حذف
+                                                                    </button>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            تعداد وضعیت‌ها: @Model.Count
+                        </div>
+                        <div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">بعدی</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <style>
+        .table {
+            font-size: 0.9rem;
+        }
+
+            .table th {
+                font-weight: 600;
+                white-space: nowrap;
+                background-color: #f8f9fa;
+            }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .badge {
+            padding: 0.5em 0.75em;
+            font-weight: 500;
+        }
+
+        .modal-header {
+            border-bottom: none;
+        }
+
+        .modal-footer {
+            border-top: none;
+            justify-content: flex-start;
+        }
+
+        .card-footer {
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+    </style>
+
+
+@section Scripts {
+    <script>
+            // فعال سازی tooltip برای دکمه‌ها
+        $(document).ready(function(){
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+}

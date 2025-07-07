@@ -1,0 +1,48 @@
+﻿@model List<IMS.Application.ProjectManagement.DTOs.EmployerDto>
+
+@{
+    ViewData["Title"] = "لیست کارفرماها";
+}
+
+<h2 class="mb-4">لیست کارفرماها</h2>
+
+<a class="btn btn-primary mb-3" asp-action="Create">افزودن کارفرمای جدید</a>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>نام شرکت</th>
+            <th>شناسه ملی</th>
+            <th>شماره ثبت</th>
+            <th>شماره تماس</th>
+            <th>نماینده</th>
+            <th>عملیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Any())
+        {
+            foreach (var employer in Model)
+            {
+                <tr>
+                    <td>@employer.CompanyName</td>
+                    <td>@employer.NationalId</td>
+                    <td>@employer.RegistrationNumber</td>
+                    <td>@employer.PhoneNumber</td>
+                    <td>@employer.RepresentativeName</td>
+                    <td>
+                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@employer.Id">ویرایش</a>
+                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@employer.Id"
+                           onclick="return confirm('آیا از حذف این کارفرما مطمئن هستید؟');">حذف</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center">هیچ کارفرمایی یافت نشد.</td>
+            </tr>
+        }
+    </tbody>
+</table>

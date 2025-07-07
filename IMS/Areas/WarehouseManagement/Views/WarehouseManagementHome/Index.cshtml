@@ -1,0 +1,282 @@
+﻿@{
+    ViewData["Title"] = "صفحه اصلی انبار";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="warehouse-dashboard">
+    <!-- هدر صفحه -->
+    <div class="dashboard-header text-center mb-5">
+        <h1 class="fw-bold text-primary mb-3">
+            <i class="fas fa-warehouse me-2"></i> مدیریت هوشمند انبار
+        </h1>
+        <p class="text-muted">سیستم یکپارچه مدیریت موجودی و تراکنش‌های انبار</p>
+    </div>
+
+    <!-- کارت‌های اصلی -->
+    <div class="dashboard-grid">
+        <!-- کارت داشبورد -->
+        <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="dashboard-card card-dashboard">
+            <div class="card-icon">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3>داشبورد</h3>
+            <p>نمای کلی عملکرد انبار</p>
+            <div class="card-hover-effect">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+        </a>
+
+        <!-- کارت تعاریف پایه -->
+        <div class="dashboard-card card-definitions">
+            <div class="card-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+            <h3>تعاریف پایه</h3>
+            <p>مدیریت ساختار انبار</p>
+            <div class="sub-items">
+                <a href="/WarehouseManagement/Warehouses/Index" class="sub-item">
+                    <i class="fas fa-building"></i>
+                    <span>مدیریت انبارها</span>
+                </a>
+                <a href="/WarehouseManagement/Categories/Index" class="sub-item">
+                    <i class="fas fa-boxes"></i>
+                    <span>دسته‌بندی کالاها</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- کارت عملیات انبار -->
+        <div class="dashboard-card card-operations">
+            <div class="card-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h3>عملیات انبار</h3>
+            <p>تراکنش‌های روزانه</p>
+            <div class="sub-items">
+                <a asp-area="WarehouseManagement" asp-controller="ReceiptOrIssue" asp-action="Index" class="sub-item">
+                    <i class="fas fa-arrow-circle-down"></i>
+                    <span>رسید / حواله / انتقال</span>
+                </a>
+                <div class="sub-item-group">
+                    <div class="sub-sub-items">
+                        <a asp-area="WarehouseManagement" asp-controller="Inventory" asp-action="LoadInventory" class="sub-sub-item">
+                            <i class="fas fa-edit"></i>
+                            <span>اصلاح موجودی</span>
+                        </a>
+                    </div>
+                </div>
+                <a asp-area="WarehouseManagement" asp-controller="Conversion" asp-action="Index" class="sub-item">
+                    <i class="fas fa-retweet"></i>
+                    <span>تبدیل کالا</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- کارت گزارشات -->
+        <a asp-area="WarehouseManagement" asp-controller="InventoryReport" asp-action="Index" class="dashboard-card card-reports">
+            <div class="card-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>گزارشات و آمار</h3>
+            <p>تحلیل عملکرد انبار</p>
+            <div class="card-hover-effect">
+                <i class="fas fa-arrow-left"></i>
+            </div>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* تنظیمات اصلی */
+    .warehouse-dashboard {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: #f9fafb;
+        border-radius: 15px;
+    }
+
+    .dashboard-header h1 {
+        font-size: 2.2rem;
+        position: relative;
+        display: inline-block;
+        color: #1e3a8a;
+    }
+
+    .dashboard-header h1:after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, #2563eb, #1e3a8a);
+        border-radius: 4px;
+    }
+
+    /* شبکه کارت‌ها */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        margin-top: 40px;
+    }
+
+    /* استایل عمومی کارت‌ها */
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.4s ease, box-shadow 0.4s ease;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.02);
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .dashboard-card h3 {
+        font-size: 1.5rem;
+        margin: 15px 0 10px;
+        color: #111827;
+    }
+
+    .dashboard-card p {
+        color: #6b7280;
+        margin-bottom: 20px;
+        font-size: 0.95rem;
+    }
+
+    .card-icon {
+        width: 65px;
+        height: 65px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+    }
+
+    .dashboard-card:hover .card-icon {
+        transform: scale(1.1);
+    }
+
+    .card-hover-effect {
+        position: absolute;
+        right: 25px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        transition: all 0.3s ease;
+        color: rgba(0, 0, 0, 0.2);
+        font-size: 1.5rem;
+    }
+
+    .dashboard-card:hover .card-hover-effect {
+        opacity: 1;
+        right: 20px;
+    }
+
+    /* استایل‌های اختصاصی هر کارت با پالت رنگی جدید */
+    .card-dashboard {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bfdbfe 100%);
+    }
+
+    .card-dashboard .card-icon {
+        background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    }
+
+    .card-definitions {
+        background: linear-gradient(135deg, #ecfdf5 0%, #bbf7d0 100%);
+    }
+
+    .card-definitions .card-icon {
+        background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+    }
+
+    .card-operations {
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    }
+
+    .card-operations .card-icon {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0369a1 100%);
+    }
+
+    .card-reports {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    }
+
+    .card-reports .card-icon {
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    }
+
+    /* آیتم‌های زیرمجموعه */
+    .sub-items {
+        margin-top: 20px;
+    }
+
+    .sub-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 15px;
+        margin: 5px -15px;
+        border-radius: 10px;
+        color: #374151;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .sub-item:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111827;
+        transform: translateX(6px);
+    }
+
+    .sub-item i {
+        margin-left: 12px;
+        font-size: 1.1rem;
+        width: 22px;
+        text-align: center;
+    }
+
+    .sub-item-group {
+        margin: 5px -15px;
+    }
+
+    .sub-sub-items {
+        padding-right: 25px;
+        margin-top: 5px;
+    }
+
+    .sub-sub-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px 10px 40px;
+        margin: 3px -15px;
+        border-radius: 8px;
+        color: #374151;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .sub-sub-item:hover {
+        background: rgba(0, 0, 0, 0.06);
+        color: #111827;
+    }
+
+    .sub-sub-item i {
+        margin-left: 12px;
+        font-size: 0.95rem;
+        width: 20px;
+        text-align: center;
+    }
+</style>

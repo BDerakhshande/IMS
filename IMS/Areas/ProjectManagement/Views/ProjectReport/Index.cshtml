@@ -1,0 +1,74 @@
+﻿@model IMS.Application.ProjectManagement.DTOs.ProjectReportRequestDto
+
+<form asp-action="Index" method="post" class="mb-4 border rounded p-3 bg-light">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label">تاریخ شروع از</label>
+            <input asp-for="Filter.StartDateFrom" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">تاریخ شروع تا</label>
+            <input asp-for="Filter.StartDateTo" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">تاریخ پایان از</label>
+            <input asp-for="Filter.EndDateFrom" type="date" class="form-control" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">تاریخ پایان تا</label>
+            <input asp-for="Filter.EndDateTo" type="date" class="form-control" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">کارفرما</label>
+            <select asp-for="Filter.EmployerId" asp-items="ViewBag.Employers" class="form-select">
+                <option value="">-- انتخاب کنید --</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">نوع پروژه</label>
+            <select asp-for="Filter.ProjectTypeId" asp-items="ViewBag.ProjectTypes" class="form-select">
+                <option value="">-- انتخاب کنید --</option>
+            </select>
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">نمایش گزارش</button>
+        </div>
+    </div>
+</form>
+
+@if (Model.ReportItems.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped text-center align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>نام پروژه</th>
+                    <th>کارفرما</th>
+                    <th>نوع پروژه</th>
+                    <th>تاریخ شروع</th>
+                    <th>تاریخ پایان</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ReportItems)
+                {
+                    <tr>
+                        <td>@item.ProjectName</td>
+                        <td>@item.EmployerName</td>
+                        <td>@item.ProjectTypeName</td>
+                        <td>@item.StartDate.ToString("yyyy/MM/dd")</td>
+                        <td>@item.EndDate.ToString("yyyy/MM/dd")</td>
+                        <td>@item.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning text-center">
+        هیچ داده‌ای برای نمایش وجود ندارد.
+    </div>
+}

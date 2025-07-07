@@ -1,0 +1,47 @@
+﻿@{
+    ViewData["Title"] = "صفحه اصلی مدیریت پروژه";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // اگر از Layout استفاده می‌کنی
+}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">مدیریت پروژه</h2>
+
+    <div class="row justify-content-center gap-4">
+        <div class="col-md-3">
+            <a href="/ProjectManagement/Dashboard" class="card text-center shadow-lg p-4 border-0 rounded-4 text-decoration-none bg-primary text-white hover-shadow-lg transition">
+                <h4>داشبورد</h4>
+                <i class="bi bi-speedometer2 fs-1 mt-3"></i>
+            </a>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-lg p-4 border-0 rounded-4 bg-success text-white">
+                <h4>تعاریف</h4>
+                <i class="bi bi-gear fs-1 mt-3 mb-3"></i>
+
+                <a href="/ProjectManagement/Project/Index" class="btn btn-light w-100 mb-2 text-success fw-bold">پروژه</a>
+                <a href="/ProjectManagement/ProjectType/Index" class="btn btn-light w-100 mb-2 text-success fw-bold">نوع پروژه </a>
+                <a href="/ProjectManagement/Employers/Index" class="btn btn-light w-100 text-success fw-bold">کارفرما</a>
+
+            </div>
+        </div>
+
+
+        <div class="col-md-3">
+            <a asp-area="ProjectManagement" asp-controller="ProjectReport" asp-action="Index"
+               class="card text-center shadow-lg p-4 border-0 rounded-4 text-decoration-none bg-warning text-dark hover-shadow-lg transition">
+                <h4>گزارش‌ها</h4>
+                <i class="bi bi-bar-chart-line fs-1 mt-3"></i>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-shadow-lg:hover {
+        box-shadow: 0 0 20px rgba(0,0,0,0.3) !important;
+        transform: translateY(-5px);
+        transition: all 0.3s ease-in-out;
+    }
+</style>
