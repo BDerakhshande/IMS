@@ -7,6 +7,7 @@ using IMS.Domain.WarehouseManagement.Validator;
 using IMS.Infrastructure.Persistence.ProjectManagement;
 using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,5 +87,9 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+app.UseRotativa();
+
 
 app.Run();

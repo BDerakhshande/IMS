@@ -1,4 +1,20 @@
-﻿.card {
+﻿
+/* برای Chrome، Safari، Edge */
+input.no-spinner::-webkit-inner-spin-button,
+input.no-spinner::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* برای Firefox */
+input.no-spinner {
+    -moz-appearance: textfield;
+}
+
+
+
+
+.card {
     border-radius: 10px;
     border: none;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
@@ -63,17 +79,80 @@
     }
 
 
-
 @media print {
-    .hide-on-print {
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        padding: 10mm;
+        font-size: 12px !important;
+        background: white !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        overflow: visible !important;
+    }
+
+    header, footer,
+    .hide-on-print,
+    .save-item,
+    .remove-item,
+    .btn[title="ثبت"],
+    .btn[title="حذف"] {
         display: none !important;
     }
 
-    .accordion-button::after {
-        display: none; /* فلش آکاردئون‌ها نمایش داده نشه */
+    /* فقط آکاردئون‌هایی که باز هستند چاپ شوند */
+    .accordion-collapse {
+        display: block !important;
     }
 
-    .accordion-collapse {
-        display: block !important; /* اگر به هر دلیلی باز نشد، اجباراً نشون بده */
+        .accordion-collapse:not(.show) {
+            display: none !important;
+        }
+
+    .accordion-button::after {
+        display: none !important;
+    }
+
+    /* پنهان کردن select2 در چاپ */
+    .select2-container {
+        display: none !important;
+    }
+
+    .select2-hidden-accessible {
+        display: inline !important;
+    }
+
+    table {
+        width: 100% !important;
+        table-layout: fixed;
+        border-collapse: collapse !important;
+    }
+
+    td, th {
+        border: 1px solid #ccc !important;
+        padding: 4px !important;
+    }
+
+    .shadow-sm {
+        box-shadow: none !important;
+    }
+
+    input, select, textarea {
+        border: 1px solid #ccc !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    tr {
+        page-break-inside: avoid !important;
     }
 }
+
+
+

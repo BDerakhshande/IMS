@@ -62,8 +62,8 @@
             <hr class="my-4" />
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h4 class="mb-0 text-dark fw-bold">آیتم‌ها</h4>
-                <button type="button" id="addItemBtn" class="btn btn-primary rounded-pill">
-                    <i class="bi bi-plus-circle me-2"></i>افزودن آیتم
+                <button type="button" id="addItemBtn" class="btn btn-primary rounded-pill hide-on-print">
+                    <i class="bi bi-plus-circle me-2 "></i>افزودن آیتم
                 </button>
             </div>
             <div class="table-responsive border rounded-3">
@@ -125,7 +125,7 @@
                                     </div>
                                 </td>
                                 <td style="width: 120px;">
-                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner"/>
                                     <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1"></span>
                                 </td>
                                 <td>
@@ -226,10 +226,10 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
-                                        <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                        <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle hide-on-print" title="ثبت">
                                             <i class="bi bi-check-lg">ثبت</i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle hide-on-print" title="حذف">
                                             <i class="bi bi-trash">حذف</i>
                                         </button>
                                     </div>
@@ -246,10 +246,10 @@
             <hr class="my-4" />
 
             <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary px-4">
+                <a asp-action="Index" class="btn btn-secondary px-4 hide-on-print">
                     <i class="bi bi-arrow-right-circle"></i> بازگشت
                 </a>
-                <button type="submit" class="btn btn-success px-4">
+                <button type="submit" class="btn btn-success px-4 hide-on-print">
                     <i class="bi bi-check-circle"></i> ثبت
                 </button>
             </div>
@@ -342,7 +342,7 @@
                             </div>
                         </td>
                         <td style="width: 120px;">
-                            <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                            <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner" />
                             <span class="text-danger small d-block mt-1"></span>
                         </td>
                         <td>
@@ -425,10 +425,10 @@
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle hide-on-print" title="ثبت">
                                     <i class="bi bi-check-lg">ثبت</i>
                                 </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle hide-on-print" title="حذف">
                                     <i class="bi bi-trash">حذف</i>
                                 </button>
                             </div>
@@ -842,11 +842,10 @@
         });
 
 
-            $(document).on('click', '.save-item', function () {
+                  $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr');
             const index = $row.data('index');
 
-            // Retrieve values from the form fields
             const productId = $row.find(`select[name="Items[${index}].ProductId"]`).val();
             const quantity = $row.find(`input[name="Items[${index}].Quantity"]`).val();
             const sourceSectionId = $row.find(`select[name="Items[${index}].SourceSectionId"]`).val();
@@ -854,21 +853,11 @@
 
             let errorMessages = [];
 
-            // Validation checks
-            if (!productId) {
-                errorMessages.push("کالا انتخاب نشده است.");
-            }
-            if (!quantity || parseInt(quantity) <= 0) {
-                errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
-            }
-            if (!sourceSectionId) {
-                errorMessages.push("بخش مبدا انتخاب نشده است.");
-            }
-            if (!destinationSectionId) {
-                errorMessages.push("بخش مقصد انتخاب نشده است.");
-            }
+            if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+            if (!quantity || parseInt(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+            if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
+            if (!destinationSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
 
-            // Display errors in the validation row
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
 
@@ -881,30 +870,48 @@
                 $errorRow.hide();
             }
 
-            // Get selected text for display
+            // دریافت متن‌های انتخاب شده برای کالا
             const productText = $row.find(`select[name="Items[${index}].ProductId"] option:selected`).text();
-            const sourceSectionText = $row.find(`select[name="Items[${index}].SourceSectionId"] option:selected`).text();
-            const destinationSectionText = $row.find(`select[name="Items[${index}].DestinationSectionId"] option:selected`).text();
+            const groupText = $row.find(`select[name="Items[${index}].GroupId"] option:selected`).text();
+            const categoryText = $row.find(`select[name="Items[${index}].CategoryId"] option:selected`).text();
+            const statusText = $row.find(`select[name="Items[${index}].StatusId"] option:selected`).text();
 
-            // Update accordion headers and collapse them
+            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
+
+            // 🟩 دریافت متن‌های انتخاب شده برای مبدا
+            const sourceWarehouseText = $row.find(`select[name="Items[${index}].SourceWarehouseId"] option:selected`).text();
+            const sourceZoneText = $row.find(`select[name="Items[${index}].SourceZoneId"] option:selected`).text();
+            const sourceSectionText = $row.find(`select[name="Items[${index}].SourceSectionId"] option:selected`).text();
+
+            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+            // 🟩 دریافت متن‌های انتخاب شده برای مقصد
+            const destWarehouseText = $row.find(`select[name="Items[${index}].DestinationWarehouseId"] option:selected`).text();
+            const destZoneText = $row.find(`select[name="Items[${index}].DestinationZoneId"] option:selected`).text();
+            const destSectionText = $row.find(`select[name="Items[${index}].DestinationSectionId"] option:selected`).text();
+
+            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+            // 🟦 بستن آکاردئون و نمایش اطلاعات خلاصه
             const $productHeader = $row.find(`#productCollapse_${index}`).prev('.accordion-header');
             const $productCollapse = $row.find(`#productCollapse_${index}`);
-            $productHeader.find('.accordion-button').html(`${productText} <span class="float-end">▼</span>`);
+            $productHeader.find('.accordion-button').html(`${productSummary}`);
             bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
 
             const $sourceHeader = $row.find(`#sourceCollapse_${index}`).prev('.accordion-header');
             const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-            $sourceHeader.find('.accordion-button').html(`${sourceSectionText} <span class="float-end">▼</span>`);
+            $sourceHeader.find('.accordion-button').html(`${sourceSummary}`);
             bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
 
             const $destHeader = $row.find(`#destCollapse_${index}`).prev('.accordion-header');
             const $destCollapse = $row.find(`#destCollapse_${index}`);
-            $destHeader.find('.accordion-button').html(`${destinationSectionText} <span class="float-end">▼</span>`);
+            $destHeader.find('.accordion-button').html(`${destSummary}`);
             bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
         });
 
 
-                $('#receiptIssueForm').submit(function (e) {
+
+                     $('#receiptIssueForm').submit(function (e) {
             e.preventDefault();
             const form = this;
             const formData = new FormData(form);
@@ -917,30 +924,16 @@
                 contentType: false,
                 success: function (response) {
                     if (response.success) {
-                        if (confirm("سند با موفقیت ذخیره شد. آیا می‌خواهید از همین صفحه پرینت بگیرید؟")) {
-                            // حذف دکمه‌ها یا اجزایی که نمی‌خوای تو پرینت باشن
-                            $('.hide-on-print').hide();
 
-                            // باز کردن همه آکاردئون‌هایی که فرم قابل ذخیره دارند
-                            $('.accordion-collapse').each(function () {
-                                if ($(this).closest('tr').find('.save-item').length === 0) return;
-                                bootstrap.Collapse.getOrCreateInstance(this).show();
-                            });
-
-                            // کمی تأخیر برای اطمینان از اینکه آکاردئون‌ها باز شدن
-                            setTimeout(() => {
-                                window.print();
-
-                                // نمایش دوباره دکمه‌ها یا اجزای مخفی‌شده
-                                setTimeout(() => {
-                                    $('.hide-on-print').show();
-                                }, 500);
-                            }, 500);
+                        // ✅ جایگزین window.print()
+                        if (confirm("سند با موفقیت ذخیره شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
+                            // فرض: سرور response.documentId را برمی‌گرداند
+                           window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
 
                         } else {
-                            // اگر پرینت نمی‌خواهد، برو به صفحه لیست
                             window.location.href = '/ReceiptOrIssue/Index';
                         }
+
                     } else {
                         alert("خطا:\n" + (response.errors || []).join('\n'));
                     }
@@ -950,6 +943,7 @@
                 }
             });
         });
+
 
 
 

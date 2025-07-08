@@ -6,6 +6,8 @@ using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore.Options;
+using Rotativa.AspNetCore;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -82,13 +84,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 var dto = MapViewModelToDto(model);
                 var createdDto = await _service.CreateAsync(dto);
 
-                return Json(new { success = true });
+                // اینجا ID سند جدید را برمی‌گردونی
+                return Json(new { success = true, documentId = createdDto.Id });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, errors = new[] { "خطا در ایجاد رکورد: " + ex.Message } });
             }
         }
+
 
 
         private async Task<string> GetNextDocumentNumberAsync()
@@ -544,7 +548,47 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-   
+
+
+        [HttpGet]
+        public IActionResult Print(int id)
+        {
+            var receipt = _context.ReceiptOrIssues
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Product)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Category)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Group)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Status)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceWarehouse)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceZone)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceSection)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationWarehouse)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationZone)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationSection)
+                .FirstOrDefault(r => r.Id == id);
+
+            if (receipt == null)
+                return NotFound();
+
+            return new ViewAsPdf("Print", receipt)
+            {
+                FileName = $"Receipt_{id}.pdf",
+                PageSize = Size.A4,
+                PageOrientation = Orientation.Portrait,
+                // اگر نیاز به تنظیمات اضافه دارید اینجا اضافه کنید
+                // مثلا: CustomSwitches = "--disable-smart-shrinking"
+            };
+        }
+
 
 
     }
