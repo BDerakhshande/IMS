@@ -17,79 +17,98 @@ namespace IMS.Application.WarehouseManagement.Services
             _dbContext = dbContext;
         }
 
-        public async Task<List<InventoryReportItemDto>> GetInventoryReportAsync(
-    InventoryReportFilterDto? filter = null,
-    CancellationToken cancellationToken = default)
+        public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
             var query = _dbContext.Inventories
-                .Where(i => i.Quantity > 0)
+                .Include(i => i.Warehouse)
+                .Include(i => i.Zone)
+                .Include(i => i.Section)
+                .Include(i => i.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
                 .AsQueryable();
 
-            if (filter != null)
+            if (filter.Warehouses?.Any() == true)
             {
-                if (filter.CategoryId.HasValue)
-                    query = query.Where(i =>
-                        i.Product != null &&
-                        i.Product.Status != null &&
-                        i.Product.Status.Group != null &&
-                        i.Product.Status.Group.CategoryId == filter.CategoryId.Value);
-
-                if (filter.GroupId.HasValue)
-                    query = query.Where(i =>
-                        i.Product != null &&
-                        i.Product.Status != null &&
-                        i.Product.Status.GroupId == filter.GroupId.Value);
-
-                if (filter.StatusId.HasValue)
-                    query = query.Where(i =>
-                        i.Product != null &&
-                        i.Product.StatusId == filter.StatusId.Value);
-
-                if (filter.ProductId.HasValue)
-                    query = query.Where(i =>
-                        i.ProductId == filter.ProductId.Value);
-
-                if (filter.WarehouseId.HasValue)
-                    query = query.Where(i =>
-                        i.WarehouseId == filter.WarehouseId.Value);
-
-                if (filter.ZoneId.HasValue)
-                    query = query.Where(i =>
-                        i.ZoneId == filter.ZoneId.Value);
-
-                if (filter.SectionId.HasValue)
-                    query = query.Where(i =>
-                        i.SectionId == filter.SectionId.Value);
-
-                if (filter.MinQuantity.HasValue)
-                    query = query.Where(i => i.Quantity >= filter.MinQuantity.Value);
-
-                if (filter.MaxQuantity.HasValue)
-                    query = query.Where(i => i.Quantity <= filter.MaxQuantity.Value);
+                var warehouseIds = filter.Warehouses.Select(w => w.WarehouseId).ToList();
+                query = query.Where(i => warehouseIds.Contains(i.WarehouseId));
             }
 
-            var reportItems = await query
-                .Select(i => new InventoryReportItemDto
+            if (filter.CategoryId.HasValue)
+                query = query.Where(i => i.Product.Status.Group.CategoryId == filter.CategoryId.Value);
+
+            if (filter.GroupId.HasValue)
+                query = query.Where(i => i.Product.Status.GroupId == filter.GroupId.Value);
+
+            if (filter.StatusId.HasValue)
+                query = query.Where(i => i.Product.StatusId == filter.StatusId.Value);
+
+            if (filter.ProductId.HasValue)
+                query = query.Where(i => i.ProductId == filter.ProductId.Value);
+
+            if (filter.MinQuantity.HasValue)
+                query = query.Where(i => i.Quantity >= filter.MinQuantity.Value);
+
+            if (filter.MaxQuantity.HasValue)
+                query = query.Where(i => i.Quantity <= filter.MaxQuantity.Value);
+
+            if (!string.IsNullOrWhiteSpace(filter.ProductSearch))
+            {
+                query = query.Where(i => i.Product.Name.Contains(filter.ProductSearch));
+            }
+
+            var list = await query.ToListAsync();
+
+            // فیلتر نهایی براساس Zone و Section در حافظه
+            if (filter.Warehouses?.Any() == true)
+            {
+                list = list.Where(i =>
+                    filter.Warehouses.Any(w =>
+                        w.WarehouseId == i.WarehouseId &&
+                        (w.ZoneIds == null || w.ZoneIds.Count == 0 || (i.ZoneId != null && w.ZoneIds.Contains(i.ZoneId.Value))) &&
+                        (w.SectionIds == null || w.SectionIds.Count == 0 || (i.SectionId != null && w.SectionIds.Contains(i.SectionId.Value)))
+                    )).ToList();
+            }
+
+            // حالا گروه‌بندی و جمع مقدار Quantity
+            var groupedResults = list
+                .GroupBy(i => new
                 {
-                    CategoryName = i.Product.Status.Group.Category.Name,
-                    GroupName = i.Product.Status.Group.Name,
-                    StatusName = i.Product.Status.Name,
-                    ProductName = i.Product.Name,
-
+                    i.WarehouseId,
                     WarehouseName = i.Warehouse.Name,
-                    ZoneName = i.Zone != null ? i.Zone.Name : null,
-                    SectionName = i.Section != null ? i.Section.Name : null,
-
-                    Quantity = i.Quantity
+                    ZoneId = i.ZoneId,
+                    ZoneName = i.Zone?.Name,
+                    SectionId = i.SectionId,
+                    SectionName = i.Section?.Name,
+                    CategoryId = i.Product.Status.Group.CategoryId,
+                    CategoryName = i.Product.Status.Group.Category.Name,
+                    GroupId = i.Product.Status.GroupId,
+                    GroupName = i.Product.Status.Group.Name,
+                    StatusId = i.Product.StatusId,
+                    StatusName = i.Product.Status.Name,
+                    ProductId = i.ProductId,
+                    ProductName = i.Product.Name
                 })
-                .OrderBy(x => x.CategoryName)
-                .ThenBy(x => x.GroupName)
-                .ThenBy(x => x.StatusName)
-                .ThenBy(x => x.ProductName)
-                .ToListAsync(cancellationToken);
+                .Select(g => new InventoryReportResultDto
+                {
+                    WarehouseName = g.Key.WarehouseName,
+                    ZoneName = g.Key.ZoneName,
+                    SectionName = g.Key.SectionName,
+                    CategoryName = g.Key.CategoryName,
+                    GroupName = g.Key.GroupName,
+                    StatusName = g.Key.StatusName,
+                    ProductName = g.Key.ProductName,
+                    Quantity = g.Sum(x => x.Quantity)
+                })
+                .ToList();
 
-            return reportItems;
+            return groupedResults;
         }
+
+
+
+
 
 
         public async Task<List<SelectListItem>> GetZonesByWarehouseIdAsync(int warehouseId)
@@ -167,7 +186,57 @@ namespace IMS.Application.WarehouseManagement.Services
                 .ToListAsync();
         }
 
+        public async Task<List<SelectListItem>> GetSectionsByZoneIdsAsync(List<int> zoneIds)
+        {
+            if (zoneIds == null || zoneIds.Count == 0)
+                return new List<SelectListItem>();
 
+            return await _dbContext.StorageSections
+                .Where(s => zoneIds.Contains(s.ZoneId))
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToListAsync();
+        }
+
+        public async Task<List<SelectListItem>> GetGroupsByCategoryIdAsync(int categoryId)
+        {
+            return await _dbContext.Groups
+                .Where(g => g.CategoryId == categoryId)
+                .OrderBy(g => g.Name)
+                .Select(g => new SelectListItem
+                {
+                    Value = g.Id.ToString(),
+                    Text = g.Name
+                }).ToListAsync();
+        }
+
+        public async Task<List<SelectListItem>> GetStatusesByGroupIdAsync(int groupId)
+        {
+            return await _dbContext.Statuses
+                .Where(s => s.GroupId == groupId)
+                .OrderBy(s => s.Name)
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                }).ToListAsync();
+        }
+
+        public async Task<List<SelectListItem>> GetProductsByStatusIdAsync(int statusId)
+        {
+            return await _dbContext.Products
+                .Where(p => p.StatusId == statusId)
+                .OrderBy(p => p.Name)
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                }).ToListAsync();
+        }
 
 
     }

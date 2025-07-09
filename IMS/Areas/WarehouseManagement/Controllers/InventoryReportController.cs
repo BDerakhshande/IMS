@@ -21,80 +21,102 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             _categoryService = categoryService;
         }
 
-        [HttpGet]
+        [AcceptVerbs("GET", "POST")]
         public async Task<IActionResult> Index(InventoryReportFilterDto filter)
         {
-            var items = await _inventoryReportService.GetInventoryReportAsync(filter);
-            filter.Items = items;
+            if (filter.Warehouses == null || filter.Warehouses.Count == 0)
+            {
+                filter.Warehouses = new List<WarehouseFilter> { new WarehouseFilter() };
+            }
 
-            await PopulateSelectLists(filter); 
+            filter.Items = await _inventoryReportService.GetInventoryReportAsync(filter);
+
+            // اگر می‌خواهی مجموع کل را محاسبه و ارسال کنی:
+            ViewBag.TotalQuantity = filter.Items?.Sum(i => i.Quantity) ?? 0;
+
+            await PopulateSelectLists(filter);
 
             return View(filter);
         }
 
-        private async Task PopulateSelectLists(InventoryReportFilterDto filter)
+
+
+
+
+
+        private async Task PopulateSelectLists(InventoryReportFilterDto filter = null)
         {
-            // دریافت همه انبارها و دسته‌بندی‌ها
             var warehouses = await _warehouseService.GetAllWarehousesAsync();
             var categories = await _categoryService.GetAllAsync();
-            ViewBag.Warehouses = new SelectList(warehouses, "Id", "Name", filter.WarehouseId);
-            ViewBag.Categories = new SelectList(categories, "Id", "Name", filter.CategoryId);
-
-            // دریافت همه مناطق بدون توجه به انبار
-            var zones = await _inventoryReportService.GetAllZonesAsync();
-            ViewBag.Zones = new SelectList(zones, "Value", "Text", filter.ZoneId);
-
-            // دریافت همه بخش‌ها بدون توجه به منطقه
-            var sections = await _inventoryReportService.GetAllSectionsAsync();
-            ViewBag.Sections = new SelectList(sections, "Value", "Text", filter.SectionId);
-
-            // دریافت همه گروه‌ها
             var groups = await _inventoryReportService.GetAllGroupsAsync();
-            ViewBag.Groups = new SelectList(groups, "Value", "Text", filter.GroupId);
-
-            // دریافت همه وضعیت‌ها
             var statuses = await _inventoryReportService.GetAllStatusesAsync();
-            ViewBag.Statuses = new SelectList(statuses, "Value", "Text", filter.StatusId);
-
-            // دریافت همه کالاها
             var products = await _inventoryReportService.GetAllProductsAsync();
-            ViewBag.Products = new SelectList(products, "Value", "Text", filter.ProductId);
+
+            ViewBag.Warehouses = new SelectList(warehouses, "Id", "Name");
+            ViewBag.Categories = new SelectList(categories, "Id", "Name");
+            ViewBag.Groups = new SelectList(groups, "Value", "Text");
+            ViewBag.Statuses = new SelectList(statuses, "Value", "Text");
+            ViewBag.Products = new SelectList(products, "Value", "Text");
+
+            var zones = new List<SelectListItem>();
+            var sections = new List<SelectListItem>();
+
+            if (filter?.Warehouses != null)
+            {
+                foreach (var warehouse in filter.Warehouses)
+                {
+                    if (warehouse.WarehouseId > 0)
+                    {
+                        var zoneList = await _inventoryReportService.GetZonesByWarehouseIdAsync(warehouse.WarehouseId);
+                        zones.AddRange(zoneList.Select(z => new SelectListItem { Value = z.Value, Text = z.Text }));
+                    }
+
+                    if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
+                    {
+                        var sectionList = await _inventoryReportService.GetSectionsByZoneIdsAsync(warehouse.ZoneIds);
+                        sections.AddRange(sectionList.Select(s => new SelectListItem { Value = s.Value, Text = s.Text }));
+                    }
+                }
+            }
+
+            ViewBag.Zones = new SelectList(zones.DistinctBy(z => z.Value), "Value", "Text");
+            ViewBag.Sections = new SelectList(sections.DistinctBy(s => s.Value), "Value", "Text");
         }
 
 
 
+        // اکشن‌های API برای بارگذاری مناطق و بخش‌ها
         [HttpGet]
-        public async Task<JsonResult> GetAllZones()
+        public async Task<JsonResult> GetZonesByWarehouseId(int warehouseId)
         {
-            var zones = await _inventoryReportService.GetAllZonesAsync();
+            var zones = await _inventoryReportService.GetZonesByWarehouseIdAsync(warehouseId);
             return Json(zones);
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetAllSections()
+        public async Task<JsonResult> GetSectionsByZoneIds([FromQuery] List<int> zoneIds)
         {
-            var sections = await _inventoryReportService.GetAllSectionsAsync();
+            var sections = await _inventoryReportService.GetSectionsByZoneIdsAsync(zoneIds);
             return Json(sections);
         }
-
         [HttpGet]
-        public async Task<JsonResult> GetAllGroups()
+        public async Task<JsonResult> GetGroupsByCategoryId(int categoryId)
         {
-            var groups = await _inventoryReportService.GetAllGroupsAsync();
+            var groups = await _inventoryReportService.GetGroupsByCategoryIdAsync(categoryId);
             return Json(groups);
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetAllStatuses()
+        public async Task<JsonResult> GetStatusesByGroupId(int groupId)
         {
-            var statuses = await _inventoryReportService.GetAllStatusesAsync();
+            var statuses = await _inventoryReportService.GetStatusesByGroupIdAsync(groupId);
             return Json(statuses);
         }
 
         [HttpGet]
-        public async Task<JsonResult> GetAllProducts()
+        public async Task<JsonResult> GetProductsByStatusId(int statusId)
         {
-            var products = await _inventoryReportService.GetAllProductsAsync();
+            var products = await _inventoryReportService.GetProductsByStatusIdAsync(statusId);
             return Json(products);
         }
 

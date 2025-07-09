@@ -1,180 +1,657 @@
-﻿@model IMS.Application.WarehouseManagement.DTOs.InventoryReportFilterDto
+﻿@using System.Text.Json
+@model IMS.Application.WarehouseManagement.DTOs.InventoryReportFilterDto
 
 @{
-    ViewData["Title"] = "گزارش موجودی انبار";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "گزارش موجودی انبارها";
 }
 
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">گزارش موجودی انبارها</h5>
+    </div>
 
-<h2 class="mb-4">📦 گزارش موجودی انبار</h2>
-
-<div class="card shadow-sm border rounded-4 p-4 mb-4">
-    <form method="get" asp-action="Index" class="row gy-4">
-        <!-- گروه انبار -->
-        <fieldset class="border rounded-3 p-3">
-            <legend class="float-none w-auto px-2 text-primary fs-5 fw-bold">📍 اطلاعات موقعیت</legend>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">انبار</label>
-                    <select id="WarehouseId" name="WarehouseId" class="form-select">
-                        <option value="">-- انتخاب انبار --</option>
-                        @foreach (var item in ViewBag.Warehouses as SelectList)
-                        {
-                            <option value="@item.Value" selected="@(item.Value == (Model.WarehouseId?.ToString() ?? "") ? "selected" : null)">
-                                @item.Text
-                            </option>
-                        }
-                    </select>
+    <div class="card-body">
+      
+        <form method="post" asp-action="Index" id="inventoryReportForm">
+ 
+        <!-- فیلترهای انبار -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-light-success text-success">
+        <h6 class="mb-0"><i class="fas fa-warehouse me-2"></i>فیلتر بر اساس انبار</h6>
+    </div>
+    <div class="card-body">
+        <div id="warehouseFiltersContainer">
+            @for (int i = 0; i < Model.Warehouses.Count; i++)
+            {
+                var warehouse = Model.Warehouses[i];
+                <div class="warehouse-filter-group p-3 border rounded mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">انبار</label>
+                            <select name="Warehouses[@i].WarehouseId" class="form-select select2-dropdown" data-index="@i" onchange="loadZones(this)">
+                                <option value="">انتخاب انبار</option>
+                                @foreach (var wh in (SelectList)ViewBag.Warehouses)
+                                {
+                                    <option value="@wh.Value" selected="@(wh.Value == warehouse.WarehouseId.ToString())">@wh.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">قسمت</label>
+                            <select name="Warehouses[@i].ZoneIds" class="form-select select2-dropdown" data-index="@i" onchange="loadSections(this)" disabled>
+                                @if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
+                                {
+                                    @foreach (var zone in (SelectList)ViewBag.Zones)
+                                    {
+                                        <option value="@zone.Value" selected="@(warehouse.ZoneIds.Contains(int.Parse(zone.Value)))">@zone.Text</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="">ابتدا انبار را انتخاب کنید</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">بخش‌ها</label>
+                            <select name="Warehouses[@i].SectionIds" class="form-select select2-dropdown" data-index="@i" disabled>
+                                @if (warehouse.SectionIds != null && warehouse.SectionIds.Any())
+                                {
+                                    @foreach (var section in (SelectList)ViewBag.Sections)
+                                    {
+                                        <option value="@(section.Value)" selected="@(warehouse.SectionIds.Contains(int.Parse(section.Value)))">@(section.Text)</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="">ابتدا منطقه را انتخاب کنید</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWarehouseFilter(this)">
+                            <i class="fas fa-times me-1"></i> حذف
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">منطقه</label>
-                    <select id="ZoneId" name="ZoneId" class="form-select" data-selected="@Model.ZoneId">
-                        <option value="">-- انتخاب منطقه --</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">بخش</label>
-                    <select id="SectionId" name="SectionId" class="form-select" data-selected="@Model.SectionId">
-                        <option value="">-- انتخاب بخش --</option>
-                    </select>
-                </div>
-            </div>
-        </fieldset>
-
-        <!-- گروه کالا -->
-        <fieldset class="border rounded-3 p-3 mt-4">
-            <legend class="float-none w-auto px-2 text-primary fs-5 fw-bold">📦 اطلاعات کالا</legend>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">دسته‌بندی</label>
-                    <select id="CategoryId" name="CategoryId" class="form-select">
-                        <option value="">-- انتخاب دسته‌بندی --</option>
-                        @foreach (var item in ViewBag.Categories as SelectList)
-                        {
-                            <option value="@item.Value" selected="@(item.Value == (Model.CategoryId?.ToString() ?? "") ? "selected" : null)">
-                                @item.Text
-                            </option>
-                        }
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">گروه</label>
-                    <select id="GroupId" name="GroupId" class="form-select" data-selected="@Model.GroupId">
-                        <option value="">-- انتخاب گروه --</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">وضعیت</label>
-                    <select id="StatusId" name="StatusId" class="form-select" data-selected="@Model.StatusId">
-                        <option value="">-- انتخاب وضعیت --</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">محصول</label>
-                    <select id="ProductId" name="ProductId" class="form-select" data-selected="@Model.ProductId">
-                        <option value="">-- انتخاب محصول --</option>
-                    </select>
-                </div>
-            </div>
-        </fieldset>
-        <div class="col-md-3">
-            <label class="form-label">حداقل موجودی</label>
-            <input type="number" class="form-control" name="MinQuantity" value="@Model.MinQuantity" placeholder="مثلاً 10" />
+            }
         </div>
 
-        <div class="col-md-3">
-            <label class="form-label">حداکثر موجودی</label>
-            <input type="number" class="form-control" name="MaxQuantity" value="@Model.MaxQuantity" placeholder="مثلاً 100" />
+        <!-- دکمه اضافه کردن انبار جدید -->
+        <div class="text-end mt-3">
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addWarehouseFilter()">
+                <i class="fas fa-plus me-1"></i> افزودن انبار دیگر
+            </button>
         </div>
-        <div class="col-md-12 text-end mt-4">
-            <button type="submit" class="btn btn-lg btn-success px-5 shadow">🔍 جستجو</button>
-        </div>
-    </form>
+    </div>
 </div>
 
 
-<hr />
 
+            <!-- فیلترهای محصول -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-light-success text-success">
+                    <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>فیلتر بر اساس کالا</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">دسته‌بندی</label>
+                            <select id="CategoryId" name="CategoryId" class="form-select select2-dropdown" onchange="loadGroups(this.value)">
+                                <option value="">انتخاب دسته‌بندی</option>
+                                @foreach (var category in (SelectList)ViewBag.Categories)
+                                {
+                                    <option value="@category.Value" selected="@(category.Value == Model.CategoryId?.ToString() ? "selected" : null)">@category.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">گروه</label>
+                            <select id="GroupId" name="GroupId" class="form-select select2-dropdown" onchange="loadStatuses(this.value)">
+                                <option value="">انتخاب گروه</option>
+                                @foreach (var group in (SelectList)ViewBag.Groups)
+                                {
+                                    <option value="@group.Value" selected="@(group.Value == Model.GroupId?.ToString() ? "selected" : null)">@group.Text</option>
+                                }
+                            </select>
+
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">وضعیت</label>
+                            <select id="StatusId" name="StatusId" class="form-select select2-dropdown" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
+                                <option value="">انتخاب وضعیت</option>
+                                @if (ViewBag.Statuses != null)
+                                {
+                                    foreach (var status in (SelectList)ViewBag.Statuses)
+                                    {
+                                        <option value="@status.Value" selected="@(status.Value == Model.StatusId?.ToString() ? "selected" : null)">@status.Text</option>
+                                    }
+                                }
+                            </select>
+
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">کالا</label>
+                            <select id="ProductId" name="ProductId" class="form-select select2-dropdown" @(ViewBag.Products != null ? "" : "disabled")>
+                                <option value="">ابتدا وضعیت را انتخاب کنید</option>
+                                @if (ViewBag.Products != null)
+                                {
+                                    foreach (var product in (SelectList)ViewBag.Products)
+                                    {
+                                        <option value="@product.Value" selected="@(product.Value == Model.ProductId?.ToString() ? "selected" : null)">@product.Text</option>
+                                    }
+                                }
+                            </select>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فیلترهای موجودی -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-light-info text-info">
+                    <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>فیلتر بر اساس موجودی</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">حداقل موجودی</label>
+                            <input type="number" name="MinQuantity" class="form-control"
+                                   value="@Model.MinQuantity" placeholder="حداقل تعداد">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">حداکثر موجودی</label>
+                            <input type="number" name="MaxQuantity" class="form-control"
+                                   value="@Model.MaxQuantity" placeholder="حداکثر تعداد">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <button type="submit" class="btn btn-primary px-5">
+                        <i class="fas fa-search me-2"></i> جستجو
+                    </button>
+                    <button type="reset" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                        <i class="fas fa-undo me-2"></i> بازنشانی
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 @if (Model.Items != null && Model.Items.Any())
 {
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle text-center shadow-sm">
-            <thead class="table-light fw-bold">
-                <tr class="align-middle">
-                    <th>دسته‌بندی</th>
-                    <th>گروه</th>
-                    <th>وضعیت</th>
-                    <th>نام کالا</th>
-                    <th>انبار</th>
-                    <th>منطقه</th>
-                    <th>بخش</th>
-                    <th>تعداد موجودی</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model.Items)
-                {
-                    <tr>
-                        <td>@item.CategoryName</td>
-                        <td>@item.GroupName</td>
-                        <td>@item.StatusName</td>
-                        <td>@item.ProductName</td>
-                        <td>@item.WarehouseName</td>
-                        <td>@item.ZoneName</td>
-                        <td>@item.SectionName</td>
-                        <td>@item.Quantity</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div id="reportResults">
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">نتایج گزارش</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr class="table-primary">
+                                <th>انبار</th>
+                                <th>منطقه</th>
+                                <th>بخش</th>
+                                <th>دسته‌بندی</th>
+                                <th>گروه</th>
+                                <th>وضعیت</th>
+                                <th>کالا</th>
+                                <th class="text-end">موجودی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>@item.WarehouseName</td>
+                                    <td>@(item.ZoneName ?? "-")</td>
+                                    <td>@(item.SectionName ?? "-")</td>
+                                    <td>@item.CategoryName</td>
+                                    <td>@item.GroupName</td>
+                                    <td>@item.StatusName</td>
+                                    <td>@item.ProductName</td>
+                                    <td class="text-end">@item.Quantity.ToString("N0")</td>
+                                </tr>
+                            }
+
+                            <tr class="table-primary fw-bold">
+                                <td colspan="7" class="text-end">مجموع کل موجودی</td>
+                                <td class="text-end">@ViewBag.TotalQuantity.ToString("N0")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 }
-else
+else if (Model.Items != null)
 {
-    <div class="alert alert-warning text-center mt-4" role="alert">
-        🔍 موردی برای نمایش یافت نشد.
+    <div class="alert alert-info mt-4 text-center">
+        <i class="fas fa-info-circle me-2"></i> هیچ موردی برای نمایش وجود ندارد.
     </div>
 }
 
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        const warehousesList = @Html.Raw(JsonSerializer.Serialize(
+            ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
+                .Select(w => new { value = w.Value, text = w.Text })
+        ));
+
+        function getWarehouseOptions() {
+            if (!Array.isArray(warehousesList)) return '';
+            return warehousesList.map(w => `<option value="${w.value}">${w.text}</option>`).join('');
+        }
+
         $(document).ready(function () {
-            // بارگذاری اولیه DropDownهای مستقل
-            function loadDropdown(url, dropdownId, defaultText) {
-                $.ajax({
-                    url: url,
-                    success: function (items) {
-                        let $dropdown = $(dropdownId);
-                        $dropdown.empty().append($('<option>', {
-                            value: '',
-                            text: defaultText
-                        }));
 
-                        $.each(items, function (i, item) {
-                            $dropdown.append($('<option>', {
-                                value: item.value,
-                                text: item.text
-                            }));
-                        });
+               if ($('#reportResults').length) {
+            // اسکرول به div نتایج با انیمیشن نرم
+            $('html, body').animate({
+                scrollTop: $('#reportResults').offset().top - 100 // فاصله از بالا
+            }, 500);
+        }
+            // فعال‌سازی Select2 برای تمام dropdownها
+            initializeSelect2();
 
-                        // انتخاب مقدار قبلی اگر وجود دارد
-                        let selectedValue = $dropdown.data('selected');
-                        if (selectedValue) {
-                            $dropdown.val(selectedValue);
-                        }
-                    }
-                });
+            // بارگذاری گروه‌ها اگر دسته‌بندی انتخاب شده باشد
+            if ($('#CategoryId').val()) {
+                loadGroups($('#CategoryId').val());
             }
 
-            // لیست‌هایی که مستقل هستند
-            loadDropdown('@Url.Action("GetAllZones", "InventoryReport", new { area = "WarehouseManagement" })', '#ZoneId', '-- انتخاب منطقه --');
-            loadDropdown('@Url.Action("GetAllSections", "InventoryReport", new { area = "WarehouseManagement" })', '#SectionId', '-- انتخاب بخش --');
-            loadDropdown('@Url.Action("GetAllGroups", "InventoryReport", new { area = "WarehouseManagement" })', '#GroupId', '-- انتخاب گروه --');
-            loadDropdown('@Url.Action("GetAllStatuses", "InventoryReport", new { area = "WarehouseManagement" })', '#StatusId', '-- انتخاب وضعیت --');
-            loadDropdown('@Url.Action("GetAllProducts", "InventoryReport", new { area = "WarehouseManagement" })', '#ProductId', '-- انتخاب محصول --');
+            // بارگذاری مناطق و بخش‌ها برای انبارهای اولیه
+            $('select[name$="WarehouseId"]').each(function () {
+                if ($(this).val()) {
+                    loadZones(this);
+                }
+            });
         });
+
+        function initializeSelect2() {
+            $('.select2-dropdown:not(.select2-hidden-accessible)').each(function () {
+                const $this = $(this);
+                const selectedValue = $this.val(); // ذخیره مقدار فعلی
+                $this.select2({
+                    placeholder: $this.attr('placeholder') || 'انتخاب کنید',
+                    allowClear: true,
+                    width: '100%',
+                    dir: 'rtl'
+                });
+                // بازگرداندن مقدار انتخاب‌شده پس از مقداردهی Select2
+                if (selectedValue) {
+                    $this.val(selectedValue).trigger('change');
+                }
+            });
+        }
+
+        // بارگذاری مناطق برای انبار
+        function loadZones(selectElement) {
+            const warehouseId = selectElement.value;
+            const index = $(selectElement).data('index');
+            const zoneSelect = $(`select[name="Warehouses[${index}].ZoneIds"]`);
+            const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
+
+            zoneSelect.prop('disabled', true)
+                      .html('<option value="">در حال بارگذاری...</option>')
+                      .trigger('change');
+            sectionSelect.prop('disabled', true)
+                         .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
+                         .trigger('change');
+
+            if (!warehouseId) {
+                zoneSelect.prop('disabled', true)
+                          .html('<option value="">ابتدا انبار را انتخاب کنید</option>')
+                          .trigger('change');
+                return;
+            }
+
+            fetch(`/WarehouseManagement/InventoryReport/GetZonesByWarehouseId?warehouseId=${warehouseId}`)
+                .then(response => response.json())
+                .then(data => {
+                    zoneSelect.empty().append('<option value="">انتخاب مناطق</option>');
+                    data.forEach(zone => {
+                        zoneSelect.append(new Option(zone.text, zone.value));
+                    });
+                    zoneSelect.prop('disabled', false).trigger('change');
+                })
+                .catch(error => {
+                    console.error('Error loading zones:', error);
+                    zoneSelect.html('<option value="">خطا در بارگذاری</option>').trigger('change');
+                });
+        }
+
+        // بارگذاری بخش‌ها برای مناطق
+        function loadSections(selectElement) {
+            const zoneIds = Array.from(selectElement.selectedOptions).map(opt => opt.value);
+            const index = $(selectElement).data('index');
+            const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
+
+            sectionSelect.prop('disabled', true)
+                         .html('<option value="">در حال بارگذاری...</option>')
+                         .trigger('change');
+
+            if (!zoneIds.length) {
+                sectionSelect.prop('disabled', true)
+                             .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
+                             .trigger('change');
+                return;
+            }
+
+            fetch(`/WarehouseManagement/InventoryReport/GetSectionsByZoneIds?zoneIds=${zoneIds.join(',')}`)
+                .then(response => response.json())
+                .then(data => {
+                    sectionSelect.empty().append('<option value="">انتخاب بخش‌ها</option>');
+                    data.forEach(section => {
+                        sectionSelect.append(new Option(section.text, section.value));
+                    });
+                    sectionSelect.prop('disabled', false).trigger('change');
+                })
+                .catch(error => {
+                    console.error('Error loading sections:', error);
+                    sectionSelect.html('<option value="">خطا در بارگذاری</option>').trigger('change');
+                });
+        }
+
+        // افزودن فیلتر انبار جدید
+        function addWarehouseFilter() {
+            const container = $('#warehouseFiltersContainer');
+            const newIndex = container.children().length;
+            const optionsHtml = getWarehouseOptions();
+
+            const filterHtml = `
+                <div class="warehouse-filter-group p-3 border rounded mb-3">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">انبار</label>
+                            <select name="Warehouses[${newIndex}].WarehouseId" class="form-select select2-dropdown" data-index="${newIndex}" onchange="loadZones(this)">
+                    ${optionsHtml}
+                </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">مناطق</label>
+                            <select name="Warehouses[${newIndex}].ZoneIds"
+                                    class="form-select select2-dropdown"
+                                    data-index="${newIndex}"
+                                    onchange="loadSections(this)"
+                                    disabled>
+                                <option value="">ابتدا انبار را انتخاب کنید</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">بخش‌ها</label>
+                            <select name="Warehouses[${newIndex}].SectionIds"
+                                    class="form-select select2-dropdown"
+                                    data-index="${newIndex}"
+                                    disabled>
+                                <option value="">ابتدا منطقه را انتخاب کنید</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWarehouseFilter(this)">
+                            <i class="fas fa-times me-1"></i> حذف
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.append(filterHtml);
+            initializeSelect2();
+        }
+
+        function removeWarehouseFilter(button) {
+            const container = $('#warehouseFiltersContainer');
+
+            if (container.children('.warehouse-filter-group').length > 1) {
+                const filterGroup = $(button).closest('.warehouse-filter-group');
+
+                // Destroy all select2 instances in this filter group
+                filterGroup.find('select').each(function () {
+                    if ($(this).hasClass('select2-hidden-accessible')) {
+                        $(this).select2('destroy');
+                    }
+                });
+
+                filterGroup.remove();
+
+                // Re-index remaining filters
+                container.children('.warehouse-filter-group').each(function (index) {
+                    $(this).find('select[name$="WarehouseId"]')
+                           .attr('name', `Warehouses[${index}].WarehouseId`)
+                           .attr('data-index', index)
+                           .data('index', index);
+
+                    $(this).find('select[name$="ZoneIds"]')
+                           .attr('name', `Warehouses[${index}].ZoneIds`)
+                           .attr('data-index', index)
+                           .data('index', index);
+
+                    $(this).find('select[name$="SectionIds"]')
+                           .attr('name', `Warehouses[${index}].SectionIds`)
+                           .attr('data-index', index)
+                           .data('index', index);
+                });
+            } else {
+                alert('حداقل یک فیلتر انبار باید باقی بماند.');
+            }
+        }
+
+
+
+        function loadGroups(categoryId) {
+            console.log("loadGroups called with categoryId:", categoryId);
+
+            const groupSelect = $('#GroupId');
+            const statusSelect = $('#StatusId');
+            const productSelect = $('#ProductId');
+
+            groupSelect.prop('disabled', true)
+                       .empty()
+                       .append('<option value="">در حال بارگذاری...</option>')
+                       .trigger('change');
+            statusSelect.prop('disabled', true)
+                        .empty()
+                        .append('<option value="">ابتدا گروه را انتخاب کنید</option>')
+                        .trigger('change');
+            productSelect.prop('disabled', true)
+                         .empty()
+                         .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
+                         .trigger('change');
+
+            if (!categoryId) {
+                console.warn("هیچ دسته‌بندی انتخاب نشده است");
+                groupSelect.empty()
+                           .append('<option value="">انتخاب دسته‌بندی</option>')
+                           .trigger('change');
+                return;
+            }
+
+            const url = `/WarehouseManagement/InventoryReport/GetGroupsByCategoryId?categoryId=${categoryId}`;
+            console.log("Fetching groups from:", url);
+
+            fetch(url)
+                .then(response => {
+                    console.log("Fetch response status:", response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Groups fetched:", data);
+
+                    groupSelect.empty().append('<option value="">همه گروه‌ها</option>');
+
+                            data.forEach(group => {
+            groupSelect.append(new Option(group.text, group.value));
+        });
+
+
+                    groupSelect.prop('disabled', false).trigger('change');
+
+                   const selectedGroupId = "@(Model.GroupId?.ToString() ?? "")";
+
+
+                    console.log("Selected group ID from model:", selectedGroupId);
+
+                          if (selectedGroupId) {
+
+                        groupSelect.val(selectedGroupId).trigger('change');
+                        loadStatuses(selectedGroupId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading groups:', error.message, error.stack);
+                    groupSelect.html(`<option value="">خطا در بارگذاری: ${error.message}</option>`).trigger('change');
+                });
+        }
+        function loadStatuses(groupId) {
+            console.log("loadStatuses called with groupId:", groupId);
+
+            const statusSelect = $('#StatusId');
+            const productSelect = $('#ProductId');
+
+            statusSelect.prop('disabled', true)
+                        .empty()
+                        .append('<option value="">در حال بارگذاری...</option>')
+                        .trigger('change');
+            productSelect.prop('disabled', true)
+                         .empty()
+                         .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
+                         .trigger('change');
+
+            if (!groupId) {
+                console.warn("هیچ گروهی انتخاب نشده است");
+                statusSelect.empty()
+                            .append('<option value="">انتخاب گروه</option>')
+                            .trigger('change');
+                return;
+            }
+
+            const url = `/WarehouseManagement/InventoryReport/GetStatusesByGroupId?groupId=${groupId}`;
+            console.log("Fetching statuses from:", url);
+
+            fetch(url)
+                .then(response => {
+                    console.log("Fetch response status:", response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Statuses fetched:", data);
+
+                    statusSelect.empty().append('<option value="">همه وضعیت‌ها</option>');
+
+                            data.forEach(status => {
+            statusSelect.append(new Option(status.text, status.value));
+        });
+
+
+                    statusSelect.prop('disabled', false).trigger('change');
+
+                   const selectedStatusId = "@(Model.StatusId?.ToString() ?? "")";
+
+                    console.log("Selected status ID from model:", selectedStatusId);
+
+                           if (selectedStatusId) {
+                        statusSelect.val(selectedStatusId).trigger('change');
+                        loadProducts(selectedStatusId);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading statuses:', error.message, error.stack);
+                    statusSelect.html(`<option value="">خطا در بارگذاری: ${error.message}</option>`).trigger('change');
+                });
+        }
+
+        function loadProducts(statusId) {
+            console.log("loadProducts called with statusId:", statusId);
+
+            const productSelect = $('#ProductId');
+
+            productSelect.prop('disabled', true)
+                         .empty()
+                         .append('<option value="">در حال بارگذاری...</option>')
+                         .trigger('change');
+
+            if (!statusId) {
+                console.warn("هیچ وضعیتی انتخاب نشده است");
+                productSelect.empty()
+                             .append('<option value="">انتخاب وضعیت</option>')
+                             .trigger('change');
+                return;
+            }
+
+            const url = `/WarehouseManagement/InventoryReport/GetProductsByStatusId?statusId=${statusId}`;
+            console.log("Fetching products from:", url);
+
+            fetch(url)
+                .then(response => {
+                    console.log("Fetch response status:", response.status);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Products fetched:", data);
+
+                    productSelect.empty().append('<option value="">همه کالاها</option>');
+
+                    data.forEach(product => {
+                        console.log("Appending product:", product);
+                        // استفاده از text و value به جای name و id
+                        productSelect.append(new Option(product.text, product.value));
+                    });
+
+                    productSelect.prop('disabled', false).trigger('change');
+
+                    // مقداردهی Razor به شکل امن و رشته‌ای
+                    const selectedProductId = "@(Model.ProductId?.ToString() ?? "")";
+                    console.log("Selected product ID from model:", selectedProductId);
+
+                    if (selectedProductId) {
+                        productSelect.val(selectedProductId).trigger('change');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading products:', error.message, error.stack);
+                    productSelect.html(`<option value="">خطا در بارگذاری: ${error.message}</option>`).trigger('change');
+                });
+        }
+
+
+        function resetForm() {
+            const form = document.getElementById('inventoryReportForm');
+            form.reset();
+
+            // اگر از select2 استفاده می‌کنی، باید select2 رو هم ریست کنی
+            $('.select2-dropdown').each(function() {
+                $(this).val(null).trigger('change');
+            });
+
+            // اگر بخوای فیلترهای انبار رو هم به حالت اولیه برگردونی (مثلاً فقط یک فیلتر داشته باشی)
+            const container = $('#warehouseFiltersContainer');
+            if (container.children().length > 1) {
+                container.children('.warehouse-filter-group').not(':first').each(function() {
+                    $(this).find('.select2-dropdown').select2('destroy');
+                    $(this).remove();
+                });
+                // ریست select2 های باقی‌مانده
+                container.children().find('.select2-dropdown').val(null).trigger('change');
+            }
+        }
+
+
     </script>
 }
-
