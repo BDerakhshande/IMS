@@ -73,16 +73,28 @@
         </div>
 
         <!-- کارت گزارشات -->
-        <a asp-area="WarehouseManagement" asp-controller="InventoryReport" asp-action="Index" class="dashboard-card card-reports">
+        <div class="dashboard-card card-reports">
             <div class="card-icon">
                 <i class="fas fa-chart-line"></i>
             </div>
-            <h3>گزارشات و آمار</h3>
+            <h3>گزارشات</h3>
             <p>تحلیل عملکرد انبار</p>
-            <div class="card-hover-effect">
-                <i class="fas fa-arrow-left"></i>
+
+            <div class="sub-items">
+                <a href="/WarehouseManagement/InventoryReport/Index" class="sub-item">
+                    <i class="fas fa-warehouse"></i>
+                    <span>گزارش موجودی</span>
+                </a>
+                <a href="/WarehouseManagement/InventoryTransactionReport/Index" class="sub-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>گزارش تراکنش کالا</span>
+                </a>
+                <a href="/WarehouseManagement/InventoryMovementReport/Index" class="sub-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>گزارش گردش انبار</span>
+                </a>
             </div>
-        </a>
+        </div>
     </div>
 </div>
 

@@ -34,6 +34,7 @@ builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IProjectTypeService, ProjectTypeService>();
 
 builder.Services.AddScoped<IInventoryReportService, InventoryReportService>();
+builder.Services.AddScoped<IInventoryTransactionReportService, InventoryTransactionReportService>();
 
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();

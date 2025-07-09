@@ -924,8 +924,6 @@
                 contentType: false,
                 success: function (response) {
                     if (response.success) {
-
-                        // ✅ جایگزین window.print()
                         if (confirm("سند با موفقیت ذخیره شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
                             // فرض: سرور response.documentId را برمی‌گرداند
                            window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
