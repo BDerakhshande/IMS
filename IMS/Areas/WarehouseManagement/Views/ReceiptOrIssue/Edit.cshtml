@@ -5,6 +5,24 @@
     ViewData["Title"] = "ویرایش رسید / حواله";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@functions {
+    string FormatLocationSummary(IEnumerable<SelectListItem> warehouses, IEnumerable<SelectListItem> zones, IEnumerable<SelectListItem> sections, int? warehouseId, int? zoneId, int? sectionId)
+    {
+        var warehouse = warehouses?.FirstOrDefault(x => x.Value == warehouseId?.ToString())?.Text ?? "?";
+        var zone = zones?.FirstOrDefault(x => x.Value == zoneId?.ToString())?.Text ?? "?";
+        var section = sections?.FirstOrDefault(x => x.Value == sectionId?.ToString())?.Text ?? "?";
+        return $"{warehouse} / {zone} / {section}";
+    }
+
+    string FormatProductSummary(SelectList categories, IEnumerable<SelectListItem> groups, IEnumerable<SelectListItem> statuses, IEnumerable<SelectListItem> products, int? catId, int? groupId, int? statusId, int productId)
+    {
+        var cat = categories?.FirstOrDefault(x => x.Value == catId?.ToString())?.Text ?? "?";
+        var group = groups?.FirstOrDefault(x => x.Value == groupId?.ToString())?.Text ?? "?";
+        var status = statuses?.FirstOrDefault(x => x.Value == statusId?.ToString())?.Text ?? "?";
+        var product = products?.FirstOrDefault(x => x.Value == productId.ToString())?.Text ?? "?";
+        return $"{cat} / {group} / {status} / {product}";
+    }
+}
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
@@ -98,9 +116,21 @@
                                     <div class="accordion" id="productAccordion_@i">
                                         <div class="accordion-item border-0">
                                             <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_@i" aria-expanded="false">
-                                                    انتخاب کالا و مشخصات آن
+                                                <button class="accordion-button collapsed bg-light py-2" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#productCollapse_@i" aria-expanded="false">
+                                                    @(Model.Items[i].ProductId != 0
+                                                        ? FormatProductSummary(
+                                                        ViewBag.Categories as SelectList,
+                                                        Model.Items[i].AvailableGroups,
+                                                        Model.Items[i].AvailableStatuses,
+                                                        Model.Items[i].AvailableProducts,
+                                                        Model.Items[i].CategoryId,
+                                                        Model.Items[i].GroupId,
+                                                        Model.Items[i].StatusId,
+                                                        Model.Items[i].ProductId)
+                                                        : "انتخاب کالا و مشخصات آن")
                                                 </button>
+
                                             </h2>
                                             <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
                                                 <div class="accordion-body p-2">
@@ -110,7 +140,6 @@
                                                         {
                                                             <option value="@item.Value" selected="@(item.Value == Model.Items[i].CategoryId?.ToString())">@item.Text</option>
                                                         }
-
                                                     </select>
 
                                                     <select asp-for="Items[i].GroupId" class="form-select product-select select2 shadow-sm item-select mt-2" data-index="@i">
@@ -151,43 +180,42 @@
                                     <div class="accordion" id="sourceAccordion_@i">
                                         <div class="accordion-item border-0">
                                             <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_@i" aria-expanded="false">
-                                                    مشخصات مبدا
+                                                <button class="accordion-button collapsed bg-light py-2" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#sourceCollapse_@i" aria-expanded="false">
+                                                    @(Model.Items[i].SourceSectionId != 0
+                                                        ? FormatLocationSummary(
+                                                        Model.Items[i].AvailableSourceWarehouses,
+                                                        Model.Items[i].AvailableSourceZones,
+                                                        Model.Items[i].AvailableSourceSections,
+                                                        Model.Items[i].SourceWarehouseId,
+                                                        Model.Items[i].SourceZoneId,
+                                                        Model.Items[i].SourceSectionId)
+                                                        : "مشخصات مبدا")
                                                 </button>
+
                                             </h2>
                                             <div id="sourceCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_@i">
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1">انبار</label>
-                                                        <select asp-for="Items[i].SourceWarehouseId" asp-items="Model.Items[i].AvailableSourceWarehouses" class="form-select form-select-sm">
+                                                        <select asp-for="Items[i].SourceWarehouseId" asp-items="Model.Items[i].AvailableSourceWarehouses" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i" data-type="source">
                                                             <option value="">انتخاب انبار</option>
                                                         </select>
-
                                                         <span asp-validation-for="Items[i].SourceWarehouseId" class="text-danger small d-block mt-1"></span>
                                                     </div>
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1">قسمت</label>
-                                                        <select asp-for="Items[@i].SourceZoneId"
-                                                                asp-items="Model.Items[@i].AvailableSourceZones"
-                                                                class="form-select form-select-sm zone-select"
-                                                                data-type="source"
-                                                                data-index="@i">
+                                                        <select asp-for="Items[i].SourceZoneId" asp-items="Model.Items[i].AvailableSourceZones" class="form-select form-select-sm zone-select shadow-sm" data-type="source" data-index="@i">
                                                             <option value="">انتخاب قسمت</option>
                                                         </select>
-
-                                                        <span asp-validation-for="Items[@i].SourceZoneId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].SourceZoneId" class="text-danger small d-block mt-1"></span>
                                                     </div>
-
                                                     <div>
                                                         <label class="form-label small text-muted mb-1">بخش</label>
-                                                        <select asp-for="Items[@i].SourceSectionId"
-                                                                asp-items="Model.Items[@i].AvailableSourceSections"
-                                                                class="form-select form-select-sm section-select shadow-sm"
-                                                                data-type="source"
-                                                                data-index="@i">
+                                                        <select asp-for="Items[i].SourceSectionId" asp-items="Model.Items[i].AvailableSourceSections" class="form-select form-select-sm section-select shadow-sm" data-type="source" data-index="@i">
                                                             <option value="">انتخاب بخش</option>
                                                         </select>
-                                                        <span asp-validation-for="Items[@i].SourceSectionId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].SourceSectionId" class="text-danger small d-block mt-1"></span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -199,29 +227,39 @@
                                     <div class="accordion" id="destAccordion_@i">
                                         <div class="accordion-item border-0">
                                             <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_@i" aria-expanded="false">
-                                                    مشخصات مقصد
+                                                <button class="accordion-button collapsed bg-light py-2" type="button"
+                                                        data-bs-toggle="collapse" data-bs-target="#destCollapse_@i" aria-expanded="false">
+                                                    @(Model.Items[i].DestinationSectionId != 0
+                                                        ? FormatLocationSummary(
+                                                        Model.Items[i].AvailableDestinationWarehouses,
+                                                        Model.Items[i].AvailableDestinationZones,
+                                                        Model.Items[i].AvailableDestinationSections,
+                                                        Model.Items[i].DestinationWarehouseId,
+                                                        Model.Items[i].DestinationZoneId,
+                                                        Model.Items[i].DestinationSectionId)
+                                                        : "مشخصات مقصد")
                                                 </button>
+
                                             </h2>
                                             <div id="destCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#destAccordion_@i">
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1">انبار</label>
-                                                        <select asp-for="Items[i].DestinationWarehouseId" asp-items="Model.Items[i].AvailableDestinationWarehouses" class="form-select form-select-sm">
+                                                        <select asp-for="Items[i].DestinationWarehouseId" asp-items="Model.Items[i].AvailableDestinationWarehouses" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب انبار</option>
                                                         </select>
                                                         <span asp-validation-for="Items[i].DestinationWarehouseId" class="text-danger small d-block mt-1"></span>
                                                     </div>
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1">قسمت</label>
-                                                        <select asp-for="Items[i].DestinationZoneId" asp-items="Model.Items[i].AvailableDestinationZones" class="form-select form-select-sm" >
+                                                        <select asp-for="Items[i].DestinationZoneId" asp-items="Model.Items[i].AvailableDestinationZones" class="form-select form-select-sm zone-select shadow-sm" data-type="destination" data-index="@i">
                                                             <option value="">انتخاب قسمت</option>
                                                         </select>
                                                         <span asp-validation-for="Items[i].DestinationZoneId" class="text-danger small d-block mt-1"></span>
                                                     </div>
                                                     <div>
                                                         <label class="form-label small text-muted mb-1">بخش</label>
-                                                        <select asp-for="Items[i].DestinationSectionId" asp-items="Model.Items[i].AvailableDestinationSections" class="form-select form-select-sm">
+                                                        <select asp-for="Items[i].DestinationSectionId" asp-items="Model.Items[i].AvailableDestinationSections" class="form-select form-select-sm section-select shadow-sm" data-type="destination" data-index="@i">
                                                             <option value="">انتخاب بخش</option>
                                                         </select>
                                                         <span asp-validation-for="Items[i].DestinationSectionId" class="text-danger small d-block mt-1"></span>
@@ -231,7 +269,6 @@
                                         </div>
                                     </div>
                                 </td>
-
 
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-2">
@@ -245,6 +282,7 @@
                                 </td>
                             </tr>
                         }
+
                     </tbody>
 
                 </table>
@@ -350,6 +388,8 @@
 
 @section Scripts {
     <script>
+    
+
 
          const categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories));
         const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
@@ -647,11 +687,10 @@
 
 
 
-            $(document).on('click', '.save-item', function () {
+         $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr');
             const index = $row.data('index');
 
-            // Retrieve values from the form fields
             const productId = $row.find(`select[name="Items[${index}].ProductId"]`).val();
             const quantity = $row.find(`input[name="Items[${index}].Quantity"]`).val();
             const sourceSectionId = $row.find(`select[name="Items[${index}].SourceSectionId"]`).val();
@@ -659,21 +698,11 @@
 
             let errorMessages = [];
 
-            // Validation checks
-            if (!productId) {
-                errorMessages.push("کالا انتخاب نشده است.");
-            }
-            if (!quantity || parseInt(quantity) <= 0) {
-                errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
-            }
-            if (!sourceSectionId) {
-                errorMessages.push("بخش مبدا انتخاب نشده است.");
-            }
-            if (!destinationSectionId) {
-                errorMessages.push("بخش مقصد انتخاب نشده است.");
-            }
+            if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+            if (!quantity || parseInt(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+            if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
+            if (!destinationSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
 
-            // Display errors in the validation row
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
 
@@ -686,29 +715,75 @@
                 $errorRow.hide();
             }
 
-            // Get selected text for display
+            // دریافت متن‌های انتخاب شده برای کالا
             const productText = $row.find(`select[name="Items[${index}].ProductId"] option:selected`).text();
-            const sourceSectionText = $row.find(`select[name="Items[${index}].SourceSectionId"] option:selected`).text();
-            const destinationSectionText = $row.find(`select[name="Items[${index}].DestinationSectionId"] option:selected`).text();
+            const groupText = $row.find(`select[name="Items[${index}].GroupId"] option:selected`).text();
+            const categoryText = $row.find(`select[name="Items[${index}].CategoryId"] option:selected`).text();
+            const statusText = $row.find(`select[name="Items[${index}].StatusId"] option:selected`).text();
 
-            // Update accordion headers and collapse them
+            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
+
+            // 🟩 دریافت متن‌های انتخاب شده برای مبدا
+            const sourceWarehouseText = $row.find(`select[name="Items[${index}].SourceWarehouseId"] option:selected`).text();
+            const sourceZoneText = $row.find(`select[name="Items[${index}].SourceZoneId"] option:selected`).text();
+            const sourceSectionText = $row.find(`select[name="Items[${index}].SourceSectionId"] option:selected`).text();
+
+            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+            // 🟩 دریافت متن‌های انتخاب شده برای مقصد
+            const destWarehouseText = $row.find(`select[name="Items[${index}].DestinationWarehouseId"] option:selected`).text();
+            const destZoneText = $row.find(`select[name="Items[${index}].DestinationZoneId"] option:selected`).text();
+            const destSectionText = $row.find(`select[name="Items[${index}].DestinationSectionId"] option:selected`).text();
+
+            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+            // 🟦 بستن آکاردئون و نمایش اطلاعات خلاصه
             const $productHeader = $row.find(`#productCollapse_${index}`).prev('.accordion-header');
             const $productCollapse = $row.find(`#productCollapse_${index}`);
-            $productHeader.find('.accordion-button').html(`${productText} <span class="float-end">▼</span>`);
+            $productHeader.find('.accordion-button').html(`${productSummary}`);
             bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
 
             const $sourceHeader = $row.find(`#sourceCollapse_${index}`).prev('.accordion-header');
             const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-            $sourceHeader.find('.accordion-button').html(`${sourceSectionText} <span class="float-end">▼</span>`);
+            $sourceHeader.find('.accordion-button').html(`${sourceSummary}`);
             bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
 
             const $destHeader = $row.find(`#destCollapse_${index}`).prev('.accordion-header');
             const $destCollapse = $row.find(`#destCollapse_${index}`);
-            $destHeader.find('.accordion-button').html(`${destinationSectionText} <span class="float-end">▼</span>`);
+            $destHeader.find('.accordion-button').html(`${destSummary}`);
             bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
         });
 
-            
+                $('#receiptIssueForm').submit(function (e) {
+            e.preventDefault();
+            console.log("فرم ارسال شد");
+
+            const form = this;
+            const formData = new FormData(form);
+
+            $.ajax({
+                url: $(form).attr('action'),  // استفاده از آدرس فرم
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+                    if (response.success) {
+                        if (confirm("ذخیره موفق! آیا مایل به چاپ سند هستید؟")) {
+                            window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
+                        } else {
+                            window.location.href = '/ReceiptOrIssue/Index';
+                        }
+                    } else {
+                        alert("خطا:\n" + (response.errors || []).join('\n') || 'خطایی رخ داده است.');
+                    }
+                },
+                error: function () {
+                    alert('خطا در ارسال اطلاعات به سرور.');
+                }
+            });
+        });
+
 
     </script>
 }

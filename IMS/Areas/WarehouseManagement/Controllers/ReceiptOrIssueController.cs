@@ -488,37 +488,32 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             if (!ModelState.IsValid)
             {
-                await PopulateSelectLists();
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                foreach (var item in model.Items)
-                {
-                    await PopulateItemDependencies(item);
-                }
-
-                return View(model);
+                return Json(new { success = false, errors });
             }
-
 
             try
             {
                 var dto = MapViewModelToDto(model);
                 var updatedDto = await _service.UpdateAsync(dto.Id, dto);
+
                 if (updatedDto == null)
                 {
-                    ModelState.AddModelError("", "سند مورد نظر یافت نشد یا ویرایش نشد.");
-                    await PopulateSelectLists();
-                    return View(model);
+                    return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
                 }
 
-                return RedirectToAction("Index");
+                return Json(new { success = true, documentId = dto.Id });
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", "خطا در ویرایش رکورد: " + ex.Message);
-                await PopulateSelectLists();
-                return View(model);
+                return Json(new { success = false, errors = new[] { "خطا در ویرایش رکورد: " + ex.Message } });
             }
         }
+
 
 
 
