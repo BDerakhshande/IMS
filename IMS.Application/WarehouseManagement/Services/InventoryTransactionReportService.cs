@@ -20,95 +20,80 @@ namespace IMS.Application.WarehouseManagement.Services
             _dbContext = dbContext;
         }
 
-        public async Task<List<InventoryTransactionReportDto>> GetReportAsync(
-            string? warehouseName = null,
-            string? departmentName = null,
-            string? sectionName = null,
-            string? categoryName = null,
-            string? groupName = null,
-            string? statusName = null,
-            string? productName = null,
-            DateTime? fromDate = null,
-            DateTime? toDate = null,
-            string? documentType = null)
+        public async Task<List<InventoryTransactionReportDto>> GetReportAsync(InventoryTransactionReportItemDto filter)
         {
-            var query = _dbContext.ReceiptOrIssues.
-                Include(r => r.Items)
-                    .ThenInclude(i => i.Category)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Group)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Status)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Product)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceWarehouse)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceZone)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceSection)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationWarehouse)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationZone)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationSection)
+            var query = _dbContext.ReceiptOrIssueItems
+                .Include(i => i.ReceiptOrIssue)
+                .Include(i => i.Category)
+                .Include(i => i.Group)
+                .Include(i => i.Status)
+                .Include(i => i.Product)
+                .Include(i => i.SourceWarehouse)
+                .Include(i => i.SourceZone)
+                .Include(i => i.SourceSection)
+                .Include(i => i.DestinationWarehouse)
+                .Include(i => i.DestinationZone)
+                .Include(i => i.DestinationSection)
                 .AsQueryable();
 
-            // فیلتر تاریخ
-            if (fromDate.HasValue)
-                query = query.Where(r => r.Date >= fromDate.Value);
+            if (filter.FromDate.HasValue)
+                query = query.Where(i => i.ReceiptOrIssue.Date >= filter.FromDate.Value);
 
-            if (toDate.HasValue)
-                query = query.Where(r => r.Date <= toDate.Value);
+            if (filter.ToDate.HasValue)
+                query = query.Where(i => i.ReceiptOrIssue.Date <= filter.ToDate.Value);
 
-            // فیلتر نوع سند
-            if (!string.IsNullOrEmpty(documentType))
+            if (!string.IsNullOrEmpty(filter.DocumentType))
             {
-                // تبدیل رشته به Enum (فرض می‌کنیم نام‌ها مطابق Enum است)
-                if (Enum.TryParse<ReceiptOrIssueType>(documentType, out var docTypeEnum))
-                    query = query.Where(r => r.Type == docTypeEnum);
+                if (Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out var docTypeEnum))
+                {
+                    query = query.Where(i => i.ReceiptOrIssue.Type == docTypeEnum);
+                }
+                else
+                {
+                   
+                    return new List<InventoryTransactionReportDto>();
+                }
             }
 
-            // فیلترهای آیتم‌ها
-            if (!string.IsNullOrEmpty(categoryName))
-                query = query.Where(r => r.Items.Any(i => i.Category != null && i.Category.Name == categoryName));
+            if (filter.CategoryId.HasValue)
+                query = query.Where(i => i.CategoryId == filter.CategoryId);
 
-            if (!string.IsNullOrEmpty(groupName))
-                query = query.Where(r => r.Items.Any(i => i.Group != null && i.Group.Name == groupName));
+            if (filter.GroupId.HasValue)
+                query = query.Where(i => i.GroupId == filter.GroupId);
 
-            if (!string.IsNullOrEmpty(statusName))
-                query = query.Where(r => r.Items.Any(i => i.Status != null && i.Status.Name == statusName));
+            if (filter.StatusId.HasValue)
+                query = query.Where(i => i.StatusId == filter.StatusId);
 
-            if (!string.IsNullOrEmpty(productName))
-                query = query.Where(r => r.Items.Any(i => i.Product != null && i.Product.Name == productName));
+            if (filter.ProductId.HasValue)
+                query = query.Where(i => i.ProductId == filter.ProductId);
 
-            if (!string.IsNullOrEmpty(warehouseName))
-                query = query.Where(r => r.Items.Any(i =>
-                    (i.SourceWarehouse != null && i.SourceWarehouse.Name == warehouseName) ||
-                    (i.DestinationWarehouse != null && i.DestinationWarehouse.Name == warehouseName)));
+            if (filter.WarehouseId.HasValue)
+                query = query.Where(i =>
+                    i.SourceWarehouseId == filter.WarehouseId ||
+                    i.DestinationWarehouseId == filter.WarehouseId);
 
-            if (!string.IsNullOrEmpty(departmentName))
-                query = query.Where(r => r.Items.Any(i =>
-                    (i.SourceZone != null && i.SourceZone.Name == departmentName) ||
-                    (i.DestinationZone != null && i.DestinationZone.Name == departmentName)));
+            if (filter.ZoneId.HasValue)
+                query = query.Where(i =>
+                    i.SourceZoneId == filter.ZoneId ||
+                    i.DestinationZoneId == filter.ZoneId);
 
-            if (!string.IsNullOrEmpty(sectionName))
-                query = query.Where(r => r.Items.Any(i =>
-                    (i.SourceSection != null && i.SourceSection.Name == sectionName) ||
-                    (i.DestinationSection != null && i.DestinationSection.Name == sectionName)));
+            if (filter.SectionId.HasValue)
+                query = query.Where(i =>
+                    i.SourceSectionId == filter.SectionId ||
+                    i.DestinationSectionId == filter.SectionId);
 
             var result = await query
-                .SelectMany(r => r.Items.Select(i => new InventoryTransactionReportDto
+                .OrderBy(i => i.ReceiptOrIssue.Date)
+                .Select(i => new InventoryTransactionReportDto
                 {
-                    Date = r.Date.ToString("yyyy/MM/dd"),
-                    DocumentNumber = r.DocumentNumber,
-                    DocumentType = r.Type.ToString(),
+                    Date = i.ReceiptOrIssue.Date.ToString("yyyy/MM/dd"),
+                    DocumentNumber = i.ReceiptOrIssue.DocumentNumber,
+                    DocumentType = i.ReceiptOrIssue.Type.ToString(),
 
                     CategoryName = i.Category != null ? i.Category.Name : "",
                     GroupName = i.Group != null ? i.Group.Name : "",
                     StatusName = i.Status != null ? i.Status.Name : "",
-                    ProductName = i.Product.Name,
+                    ProductName = i.Product != null ? i.Product.Name : "",
 
                     SourceWarehouseName = i.SourceWarehouse != null ? i.SourceWarehouse.Name : "",
                     SourceDepartmentName = i.SourceZone != null ? i.SourceZone.Name : "",
@@ -119,12 +104,12 @@ namespace IMS.Application.WarehouseManagement.Services
                     DestinationSectionName = i.DestinationSection != null ? i.DestinationSection.Name : "",
 
                     Quantity = i.Quantity
-                }))
-                .OrderBy(r => r.Date)
+                })
                 .ToListAsync();
 
             return result;
         }
+
 
 
 
@@ -205,13 +190,10 @@ namespace IMS.Application.WarehouseManagement.Services
                 .ToListAsync();
         }
 
-        public async Task<List<SelectListItem>> GetSectionsByZoneIdsAsync(List<int> zoneIds)
+        public async Task<List<SelectListItem>> GetSectionsByZoneIdAsync(int zoneId)
         {
-            if (zoneIds == null || zoneIds.Count == 0)
-                return new List<SelectListItem>();
-
             return await _dbContext.StorageSections
-                .Where(s => zoneIds.Contains(s.ZoneId))
+                .Where(s => s.ZoneId == zoneId)
                 .OrderBy(s => s.Name)
                 .Select(s => new SelectListItem
                 {
@@ -220,6 +202,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 })
                 .ToListAsync();
         }
+
 
         public async Task<List<SelectListItem>> GetGroupsByCategoryIdAsync(int categoryId)
         {

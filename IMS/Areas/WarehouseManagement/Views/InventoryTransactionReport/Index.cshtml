@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "گزارش تراکنش‌های انبار";
+    ViewData["Title"] = "گزارش تراکنش‌های کالا";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var warehouses = ViewBag.Warehouses as SelectList;
     var categories = ViewBag.Categories as SelectList;
@@ -8,6 +8,7 @@
     var products = ViewBag.Products as SelectList;
     var documentTypes = new List<string> { "رسید", "حواله", "انتقال" };
 }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <div class="inventory-report-container">
     <h1>@ViewData["Title"]</h1>
@@ -74,11 +75,9 @@
         </div>
 
         <div class="filter-box">
-            <label for="fromDate">از تاریخ</label>
-            <input type="date" id="fromDate" class="form-control" />
+            <input type="text" id="fromDate" class="form-control" placeholder="yyyy/MM/dd" />
+            <input type="text" id="toDate" class="form-control" placeholder="yyyy/MM/dd" />
 
-            <label for="toDate">تا تاریخ</label>
-            <input type="date" id="toDate" class="form-control" />
 
             <label for="docType">نوع سند</label>
             <select id="docType" class="form-select">
@@ -211,25 +210,49 @@
 </style>
 
 <script>
-       $(document).ready(function () {
-        const messages = {
-            error: 'خطا در دریافت داده‌ها',
-            noData: 'هیچ داده‌ای برای نمایش وجود ندارد.'
-        };
+     function toPersianDateString(date) {
+        const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(date);
 
-        // Warehouse → Zone → Section
+        // خروجی بصورت ۱۴۰۳/۰۴/۲۳ است، تبدیل به 1403/04/23
+        return persian.replaceAll('۰','0').replaceAll('۱','1')
+                      .replaceAll('۲','2').replaceAll('۳','3')
+                      .replaceAll('۴','4').replaceAll('۵','5')
+                      .replaceAll('۶','6').replaceAll('۷','7')
+                      .replaceAll('۸','8').replaceAll('۹','9');
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const today = new Date();
+        const persianToday = toPersianDateString(today);
+
+        $('#fromDate').val(persianToday);
+        $('#toDate').val(persianToday);
+    });
+
+
+
+    $(document).ready(function () {
+
         $('#warehouse').on('change', function () {
             const warehouseId = $(this).val();
+            console.log('Selected warehouseId:', warehouseId);
+
             $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
             $('#section').empty().append('<option value="">انتخاب بخش</option>');
 
             if (warehouseId) {
                 fetch(`/WarehouseManagement/InventoryTransactionReport/GetZonesByWarehouseId?warehouseId=${warehouseId}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(messages.error);
+                        console.log('Response status for zones:', res.status);
+                        if (!res.ok) throw new Error('خطا در دریافت مناطق از سرور: ' + res.status);
                         return res.json();
                     })
                     .then(zones => {
+                        console.log('Received zones:', zones);
                         $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
                         if (zones.length === 0) {
                             alert('هیچ منطقه‌ای برای این انبار یافت نشد.');
@@ -240,8 +263,8 @@
                         }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert(messages.error);
+                        console.error('Error fetching zones:', err);
+                        alert('خطا در دریافت مناطق: ' + err.message);
                         $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
                     });
             }
@@ -249,15 +272,19 @@
 
         $('#zone').on('change', function () {
             const zoneId = $(this).val();
+            console.log('Selected zoneId:', zoneId);
+
             $('#section').empty().append('<option value="">انتخاب بخش</option>');
 
             if (zoneId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetSectionsByZoneIds?zoneIds=${zoneId}`)
+                fetch(`/WarehouseManagement/InventoryTransactionReport/GetSectionsByZoneId?zoneId=${zoneId}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(messages.error);
+                        console.log('Response status for sections:', res.status);
+                        if (!res.ok) throw new Error('خطا در دریافت بخش‌ها از سرور: ' + res.status);
                         return res.json();
                     })
                     .then(sections => {
+                        console.log('Received sections:', sections);
                         $('#section').empty().append('<option value="">انتخاب بخش</option>');
                         if (sections.length === 0) {
                             alert('هیچ بخشی برای این منطقه یافت نشد.');
@@ -268,8 +295,8 @@
                         }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert(messages.error);
+                        console.error('Error fetching sections:', err);
+                        alert('خطا در دریافت بخش‌ها: ' + err.message);
                         $('#section').empty().append('<option value="">انتخاب بخش</option>');
                     });
             }
@@ -285,7 +312,7 @@
             if (categoryId) {
                 fetch(`/WarehouseManagement/InventoryTransactionReport/GetGroupsByCategoryId?categoryId=${categoryId}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(messages.error);
+                        if (!res.ok) throw new Error('خطا در دریافت گروه‌ها از سرور: ' + res.status);
                         return res.json();
                     })
                     .then(groups => {
@@ -299,8 +326,8 @@
                         }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert(messages.error);
+                        console.error('Error fetching groups:', err);
+                        alert('خطا در دریافت گروه‌ها: ' + err.message);
                         $('#group').empty().append('<option value="">انتخاب گروه</option>');
                     });
             }
@@ -314,7 +341,7 @@
             if (groupId) {
                 fetch(`/WarehouseManagement/InventoryTransactionReport/GetStatusesByGroupId?groupId=${groupId}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(messages.error);
+                        if (!res.ok) throw new Error('خطا در دریافت وضعیت‌ها از سرور: ' + res.status);
                         return res.json();
                     })
                     .then(statuses => {
@@ -328,8 +355,8 @@
                         }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert(messages.error);
+                        console.error('Error fetching statuses:', err);
+                        alert('خطا در دریافت وضعیت‌ها: ' + err.message);
                         $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
                     });
             }
@@ -342,7 +369,7 @@
             if (statusId) {
                 fetch(`/WarehouseManagement/InventoryTransactionReport/GetProductsByStatusId?statusId=${statusId}`)
                     .then(res => {
-                        if (!res.ok) throw new Error(messages.error);
+                        if (!res.ok) throw new Error('خطا در دریافت کالاها از سرور: ' + res.status);
                         return res.json();
                     })
                     .then(products => {
@@ -356,46 +383,49 @@
                         }
                     })
                     .catch(err => {
-                        console.error(err);
-                        alert(messages.error);
+                        console.error('Error fetching products:', err);
+                        alert('خطا در دریافت کالاها: ' + err.message);
                         $('#product').empty().append('<option value="">انتخاب کالا</option>');
                     });
             }
         });
 
         // Search button click event
-        $('#searchBtn').on('click', function () {
-            const filter = {
-                WarehouseName: $('#warehouse option:selected').text(),
-                DepartmentName: $('#zone option:selected').text(),
-                SectionName: $('#section option:selected').text(),
-                CategoryName: $('#category option:selected').text(),
-                GroupName: $('#group option:selected').text(),
-                StatusName: $('#status option:selected').text(),
-                ProductName: $('#product option:selected').text(),
-                FromDate: $('#fromDate').val(),
-                ToDate: $('#toDate').val(),
-                DocumentType: $('#docType').val()
-            };
+           $('#searchBtn').on('click', function () {
+        const filter = {
+            WarehouseId: $('#warehouse').val() || null,
+            ZoneId: $('#zone').val() || null,
+            SectionId: $('#section').val() || null,
+            CategoryId: $('#category').val() || null,
+            GroupId: $('#group').val() || null,
+            StatusId: $('#status').val() || null,
+            ProductId: $('#product').val() || null,
+            FromDateString: $('#fromDate').val() || null,
+            ToDateString: $('#toDate').val() || null,
+            DocumentType: $('#docType').val() || null
+        };
+        console.log('Filter values:', filter); // بررسی مقادیر فیلتر
+        
 
-            fetch(`/WarehouseManagement/InventoryTransactionReport/GetReport?${$.param(filter)}`)
+           fetch(`/WarehouseManagement/InventoryTransactionReport/GetReport?${$.param(filter)}`)
+
                 .then(res => {
-                    if (!res.ok) throw new Error(messages.error);
+                    if (!res.ok) throw new Error('خطا در دریافت گزارش از سرور: ' + res.status);
                     return res.json();
                 })
                 .then(data => {
                     $('#reportBody').empty();
                     if (data.length === 0) {
                         $('#reportTable').hide();
-                        alert(messages.noData);
+                        alert('هیچ داده‌ای برای نمایش وجود ندارد.');
                     } else {
                         data.forEach(item => {
                             $('#reportBody').append(`
                                 <tr>
                                     <td>${item.date}</td>
                                     <td>${item.productName}</td>
-                                    <td>${item.sourceWarehouseName || ''} ${item.sourceDepartmentName || ''} ${item.sourceSectionName || ''}</td>
-                                    <td>${item.destinationWarehouseName || ''} ${item.destinationDepartmentName || ''} ${item.destinationSectionName || ''}</td>
+                                    <td>${item.sourceWarehouseName || ''} - ${item.sourceDepartmentName || ''} - ${item.sourceSectionName || ''}</td>
+                                    <td>${item.destinationWarehouseName || ''} - ${item.destinationDepartmentName || ''} - ${item.destinationSectionName || ''}</td>
                                     <td>${item.documentType}</td>
                                     <td>${item.documentNumber}</td>
                                     <td>${item.quantity}</td>
@@ -406,8 +436,8 @@
                     }
                 })
                 .catch(err => {
-                    console.error(err);
-                    alert(messages.error);
+                    console.error('Error fetching report:', err);
+                    alert('خطا در دریافت گزارش: ' + err.message);
                     $('#reportTable').hide();
                 });
         });

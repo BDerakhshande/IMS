@@ -8,15 +8,21 @@ namespace IMS.Application.WarehouseManagement.DTOs
 {
     public class InventoryTransactionReportItemDto
     {
-        public string? WarehouseName { get; set; }
-        public string? DepartmentName { get; set; }
-        public string? SectionName { get; set; }
-        public string? CategoryName { get; set; }
-        public string? GroupName { get; set; }
-        public string? StatusName { get; set; }
-        public string? ProductName { get; set; }
+        public int? WarehouseId { get; set; }          // ✅ اضافه شده
+        public int? ZoneId { get; set; }  
+
+        public int? SectionId { get; set; }
+
+        public int? CategoryId { get; set; }
+        public int? GroupId { get; set; }
+        public int? StatusId { get; set; }
+        public int? ProductId { get; set; }
+
+        public string? FromDateString { get; set; }  // تاریخ شمسی ورودی کاربر
+        public string? ToDateString { get; set; }
+
+        public DateTime? FromDate { get; set; }     // تاریخ میلادی تبدیل شده
+        public DateTime? ToDate { get; set; }
         public string? DocumentType { get; set; }
-        public string? FromDate { get; set; }
-        public string? ToDate { get; set; }
     }
 }
