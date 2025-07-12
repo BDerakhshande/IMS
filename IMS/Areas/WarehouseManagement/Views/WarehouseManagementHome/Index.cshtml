@@ -46,7 +46,7 @@
             <div class="submenu">
                 <a asp-area="WarehouseManagement" asp-controller="ReceiptOrIssue" asp-action="Index" class="submenu-item" ><i class="fas fa-file-import"></i> <span>رسید حواله</span></a>
                 <a asp-area="WarehouseManagement" asp-controller="Inventory" asp-action="LoadInventory" class="submenu-item"><i class="fas fa-sliders-h"></i> <span>اصلاح موجودی</span></a>
-                <a asp-area="WarehouseManagement" asp-controller="InventoryConversion" asp-action="Index" class="submenu-item"><i class="fas fa-sync-alt"></i> <span>تبدیل کالا</span></a>
+                <a asp-area="WarehouseManagement" asp-controller="Conversion" asp-action="Index" class="submenu-item"><i class="fas fa-sync-alt"></i> <span>تبدیل کالا</span></a>
             </div>
 
             <div class="menu-item has-submenu">
@@ -55,8 +55,8 @@
                 <i class="submenu-toggle fas fa-chevron-down"></i>
             </div>
             <div class="submenu">
-                <a class="submenu-item" href="#"><i class="fas fa-clipboard-list"></i> <span>گزارش موجودی</span></a>
-                <a class="submenu-item" href="#"><i class="fas fa-chart-line"></i> <span>گزارش تراکنش کالا</span></a>
+                <a asp-area="WarehouseManagement" asp-controller="InventoryReport" asp-action="Index" class="submenu-item"><i class="fas fa-clipboard-list"></i> <span>گزارش موجودی</span></a>
+                <a asp-area="WarehouseManagement" asp-controller="InventoryTransactionReport" asp-action="Index" class="submenu-item"><i class="fas fa-chart-line"></i> <span>گزارش تراکنش کالا</span></a>
                 <a class="submenu-item" href="#"><i class="fas fa-warehouse"></i> <span>گزارش گردش انبار</span></a>
             </div>
             <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
