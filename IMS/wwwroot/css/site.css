@@ -20,7 +20,12 @@
     --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.system-header, .system-footer {
+.system-header{
+    background-color: var(--primary-color);
+
+}
+
+.system-footer {
     background-color: var(--primary-color);
 }
 
@@ -83,6 +88,7 @@ body {
 
 .system-logo {
     height: 50px;
+    margin-right: 40px;
 }
 
 .system-header h1 {
@@ -231,6 +237,7 @@ body {
     color: var(--light-text);
     padding: 1rem 2rem;
     margin-top: 2rem;
+    position: sticky;
 }
 
 .footer-links {

@@ -145,6 +145,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 }
             }
 
+            // اعتبارسنجی شماره سند تکراری
+            bool exists = await _warehouseDbContext.ReceiptOrIssues
+                .AnyAsync(r => r.DocumentNumber == model.DocumentNumber);
+
+            if (exists)
+            {
+                ModelState.AddModelError(nameof(model.DocumentNumber), "شماره سند تکراری است. لطفا شماره دیگری وارد کنید.");
+            }
 
 
             // بررسی وجود اقلام مصرفی
@@ -190,8 +198,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
         private async Task<string> GetNextDocumentNumberAsync()
         {
-            var existingNumbers = await _warehouseDbContext.conversionDocuments
-                .Select(d => d.DocumentNumber)
+            // گرفتن شماره های موجود به صورت عددی (اگر رشته‌ای هستند ابتدا تبدیل می‌شوند)
+            var existingNumbers = await _warehouseDbContext.ReceiptOrIssues
+                .Select(r => r.DocumentNumber)
                 .ToListAsync();
 
             var existingInts = existingNumbers
@@ -200,6 +209,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 .OrderBy(n => n)
                 .ToList();
 
+            // پیدا کردن کوچک‌ترین عدد مثبت که استفاده نشده (برای پر کردن جای خالی‌ها)
             int nextNumber = 1;
             foreach (var number in existingInts)
             {
@@ -211,7 +221,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             return nextNumber.ToString();
         }
-
 
         private async Task PopulateSelectListsAsync(ConversionCreateViewModel model)
         {
