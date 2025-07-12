@@ -96,23 +96,27 @@
                                                                             <option value="@category.Value" selected="@(category.Value == Model.ConsumedItems[i].CategoryId.ToString())">@category.Text</option>
                                                                         }
                                                                     </select>
-                                                                    <select asp-for="ConsumedItems[i].GroupId" class="form-select group-select select2 shadow-sm" data-index="@i">
-                                                                        <option value="">انتخاب گروه</option>
-                                                                        @foreach (var group in Model.Groups)
-                                                                        {
-                                                                        <option value="@group.Id" selected="@(group.Id.ToString() == (Model.ProducedItems[i].GroupId.ToString() ?? ""))">@group.Name</option>
+                                                                <select asp-for="ConsumedItems[i].GroupId" class="form-select group-select select2 shadow-sm" data-index="@i">
+                                                                    <option value="">انتخاب گروه</option>
+                                                                    @foreach (var group in Model.Groups)
+                                                                    {
+                                                                        <option value="@group.Id" selected="@(group.Id == Model.ConsumedItems[i].GroupId)">
+                                                                            @group.Name
+                                                                        </option>
+                                                                    }
+                                                                </select>
 
 
+                                                                <select asp-for="ConsumedItems[i].StatusId" class="form-select status-select mb-2" data-index="@i">
+                                                                    <option value="">انتخاب وضعیت</option>
+                                                                    @foreach (var status in Model.Statuses)
+                                                                    {
+                                                                        <option value="@status.Id" selected="@(status.Id == Model.ConsumedItems[i].StatusId)">
+                                                                            @status.Name
+                                                                        </option>
+                                                                    }
+                                                                </select>
 
-                                                                        }
-                                                                    </select>
-                                                                    <select asp-for="ConsumedItems[i].StatusId" class="form-select status-select mb-2" data-index="@i">
-                                                                        <option value="">انتخاب وضعیت</option>
-                                                                        @foreach (var status in Model.Statuses)
-                                                                        {
-                                                                            <option value="@status.Id.ToString()" selected="@(status.Id.ToString() == (Model.ConsumedItems[i].StatusId.ToString() ?? ""))">@status.Name</option>
-                                                                        }
-                                                                    </select>
                                                                     <select asp-for="ConsumedItems[i].ProductId" class="form-select product-select select2 shadow-sm" data-index="@i">
                                                                         <option value="">انتخاب کالا</option>
                                                                         @foreach (var product in Model.Products)
@@ -233,36 +237,38 @@
                                                             </h2>
                                                             <div id="producedProductCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#producedProductAccordion_@i">
                                                                 <div class="accordion-body p-2">
-                                                                    <select asp-for="ProducedItems[i].CategoryId" class="form-select category-select select2 shadow-sm" data-index="produced_@i">
-                                                                        <option value="">انتخاب دسته‌بندی</option>
-                                                                        @foreach (var category in Model.Categories)
-                                                                        {
-                                                                            <option value="@category.Value" selected="@(category.Value == Model.ProducedItems[i].CategoryId.ToString())">@category.Text</option>
-                                                                        }
-                                                                    </select>
-                                                                    <select asp-for="ProducedItems[i].GroupId" class="form-select group-select select2 shadow-sm" data-index="produced_@i">
-                                                                        <option value="">انتخاب گروه</option>
-                                                                        @foreach (var group in Model.Groups)
-                                                                        {
+                                                                <select asp-for="ProducedItems[i].CategoryId" class="form-select category-select select2 shadow-sm" data-index="@i">
+                                                                    <option value="">انتخاب دسته‌بندی</option>
+                                                                    @foreach (var category in Model.Categories)
+                                                                    {
+                                                                        <option value="@category.Value" selected="@(category.Value == Model.ProducedItems[i].CategoryId.ToString())">@category.Text</option>
+                                                                    }
+                                                                </select>
+
+                                                                <select asp-for="ProducedItems[i].GroupId" class="form-select group-select select2 shadow-sm" data-index="@i">
+                                                                    <option value="">انتخاب گروه</option>
+                                                                    @foreach (var group in Model.Groups)
+                                                                    {
                                                                         <option value="@group.Id" selected="@(group.Id.ToString() == (Model.ProducedItems[i].GroupId.ToString() ?? ""))">@group.Name</option>
+                                                                    }
+                                                                </select>
 
+                                                                <select asp-for="ProducedItems[i].StatusId" class="form-select status-select mb-2" data-index="@i">
+                                                                    <option value="">انتخاب وضعیت</option>
+                                                                    @foreach (var status in Model.Statuses)
+                                                                    {
+                                                                        <option value="@status.Id" selected="@(status.Id.ToString() == (Model.ProducedItems[i].StatusId.ToString() ?? ""))">@status.Name</option>
+                                                                    }
+                                                                </select>
 
-                                                                        }
-                                                                    </select>
-                                                                    <select asp-for="ProducedItems[i].StatusId" class="form-select status-select mb-2" data-index="produced_@i">
-                                                                        <option value="">انتخاب وضعیت</option>
-                                                                        @foreach (var status in Model.Statuses)
-                                                                        {
-                                                                            <option value="@status.Id" selected="@(status.Id.ToString() == (Model.ProducedItems[i].StatusId.ToString() ?? ""))">@status.Name</option>
-                                                                        }
-                                                                    </select>
-                                                                    <select asp-for="ProducedItems[i].ProductId" class="form-select product-select select2 shadow-sm" data-index="produced_@i">
-                                                                        <option value="">انتخاب کالا</option>
-                                                                        @foreach (var product in Model.Products)
-                                                                        {
-                                                                            <option value="@product.Id" selected="@(product.Id == Model.ProducedItems[i].ProductId)">@product.Name</option>
-                                                                        }
-                                                                    </select>
+                                                                <select asp-for="@Model.ProducedItems[i].ProductId" class="form-select product-select select2 shadow-sm" data-index="@i">
+                                                                    <option value="">انتخاب کالا</option>
+                                                                    @foreach (var product in Model.Products)
+                                                                    {
+                                                                        <option value="@product.Id" selected="@(product.Id == Model.ProducedItems[i].ProductId)">@product.Name</option>
+                                                                    }
+                                                                </select>
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -411,158 +417,255 @@
                 return options;
             }
 
-            function addConsumedItemRow() {
-                     const tableBody = $('#consumedItemsTable tbody');
-        const rowCount = tableBody.find('tr[data-index]').filter(function () {
-            return !$(this).hasClass('validation-row');
-        }).length;
+                   function addConsumedItemRow() {
+            const tableBody = $('#consumedItemsTable tbody');
+            const rowCount = tableBody.find('tr[data-index]').filter(function () {
+                return !$(this).hasClass('validation-row');
+            }).length;
 
-                const newRow = $(`
-                    <tr class="validation-row" data-index="${rowCount}">
-                        <td colspan="4">
-                            <div class="text-danger error-message-list" style="display:none;"></div>
-                        </td>
-                    </tr>
-                    <tr data-index="${rowCount}">
-                        <td style="min-width: 300px;">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-primary text-white fw-bold p-2" style="cursor:pointer;"
-                                     data-bs-toggle="collapse" data-bs-target="#collapseForm${rowCount}" aria-expanded="true" aria-controls="collapseForm${rowCount}">
-                                    مشخصات کالا
-                                    <span class="float-end">▼</span>
-                                </div>
-                                <div id="collapseForm${rowCount}" class="collapse show card-body p-2">
-                                    <select class="form-select category-select mb-2" data-index="${rowCount}" name="ConsumedItems[${rowCount}].CategoryId">
-                                        ${buildOptions(normalizedData.categories)}
-                                    </select>
-                                    <select class="form-select group-select mb-2" data-index="${rowCount}" name="ConsumedItems[${rowCount}].GroupId">
-                                        <option value="">ابتدا دسته‌بندی را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select status-select mb-2" data-index="${rowCount}" name="ConsumedItems[${rowCount}].StatusId">
-                                        <option value="">ابتدا گروه را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select product-select" data-index="${rowCount}" name="ConsumedItems[${rowCount}].ProductId">
-                                        <option value="">ابتدا وضعیت را انتخاب کنید</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="number" min="1" name="ConsumedItems[${rowCount}].Quantity" class="form-control" />
-                        </td>
-                        <td style="min-width: 300px;">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-primary text-white fw-bold p-2" style="cursor:pointer;"
-                                     data-bs-toggle="collapse" data-bs-target="#collapseWarehouse${rowCount}" aria-expanded="true" aria-controls="collapseWarehouse${rowCount}">
-                                    محل نگهداری
-                                    <span class="float-end">▼</span>
-                                </div>
-                                <div id="collapseWarehouse${rowCount}" class="collapse show card-body p-2">
-                                    <select class="form-select warehouse-select mb-2" data-index="${rowCount}" name="ConsumedItems[${rowCount}].WarehouseId">
-                                        ${buildOptions(normalizedData.warehouses)}
-                                    </select>
-                                    <select class="form-select zone-select mb-2" data-index="${rowCount}" name="ConsumedItems[${rowCount}].ZoneId">
-                                        <option value="">ابتدا انبار را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select section-select" data-index="${rowCount}" name="ConsumedItems[${rowCount}].SectionId">
-                                        <option value="">ابتدا قسمت را انتخاب کنید</option>
-                                    </select>
+            const newRow = $(`
+                <tr class="validation-row" data-index="${rowCount}">
+                    <td colspan="4">
+                        <div class="text-danger error-message-list" style="display:none;"></div>
+                    </td>
+                </tr>
+                <tr class="align-middle" data-index="${rowCount}">
+                    <td style="min-width: 300px;">
+                        <div class="accordion" id="productAccordion_${rowCount}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}"
+                                            aria-expanded="false" aria-controls="productCollapse_${rowCount}">
+                                        انتخاب کالا و مشخصات آن
+                                    </button>
+                                </h2>
+                                <div id="productCollapse_${rowCount}" class="accordion-collapse collapse"
+                                     data-bs-parent="#productAccordion_${rowCount}">
+                                    <div class="accordion-body p-2">
+                                        <select class="form-select category-select select2 shadow-sm mb-2"
+                                                data-index="${rowCount}" name="ConsumedItems[${rowCount}].CategoryId">
+                                            ${buildOptions(normalizedData.categories)}
+                                        </select>
+                                        <select class="form-select group-select select2 shadow-sm mb-2"
+                                                data-index="${rowCount}" name="ConsumedItems[${rowCount}].GroupId">
+                                            <option value="">ابتدا دسته‌بندی را انتخاب کنید</option>
+                                        </select>
+                                        <select class="form-select status-select mb-2"
+                                                data-index="${rowCount}" name="ConsumedItems[${rowCount}].StatusId">
+                                            <option value="">ابتدا گروه را انتخاب کنید</option>
+                                        </select>
+                                        <select class="form-select product-select select2 shadow-sm"
+                                                data-index="${rowCount}" name="ConsumedItems[${rowCount}].ProductId">
+                                            <option value="">ابتدا وضعیت را انتخاب کنید</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                                    <i class="bi bi-check-lg">ثبت</i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                                    <i class="bi bi-trash">حذف</i>
-                                </button>
+                        </div>
+                    </td>
+                    <td style="width: 120px;">
+                        <input type="number" min="1" name="ConsumedItems[${rowCount}].Quantity"
+                               class="form-control shadow-sm" />
+                        <span class="text-danger small d-block mt-1"
+                              data-valmsg-for="ConsumedItems[${rowCount}].Quantity"></span>
+                    </td>
+                    <td style="min-width: 300px;">
+                        <div class="accordion" id="locationAccordion_${rowCount}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#locationCollapse_${rowCount}"
+                                            aria-expanded="false" aria-controls="locationCollapse_${rowCount}">
+                                        مشخصات محل نگهداری
+                                    </button>
+                                </h2>
+                                <div id="locationCollapse_${rowCount}" class="accordion-collapse collapse"
+                                     data-bs-parent="#locationAccordion_${rowCount}">
+                                    <div class="accordion-body p-2">
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">انبار</label>
+                                            <select class="form-select form-select-sm warehouse-select shadow-sm mb-2"
+                                                    data-index="${rowCount}" name="ConsumedItems[${rowCount}].WarehouseId">
+                                                ${buildOptions(normalizedData.warehouses)}
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ConsumedItems[${rowCount}].WarehouseId"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">قسمت</label>
+                                            <select class="form-select form-select-sm zone-select shadow-sm mb-2"
+                                                    data-index="${rowCount}" name="ConsumedItems[${rowCount}].ZoneId">
+                                                <option value="">ابتدا انبار را انتخاب کنید</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ConsumedItems[${rowCount}].ZoneId"></span>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">بخش</label>
+                                            <select class="form-select form-select-sm section-select shadow-sm"
+                                                    data-index="${rowCount}" name="ConsumedItems[${rowCount}].SectionId">
+                                                <option value="">ابتدا قسمت را انتخاب کنید</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ConsumedItems[${rowCount}].SectionId"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                `);
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
 
-                tableBody.append(newRow);
+            tableBody.append(newRow);
+
+            // مقداردهی Select2 برای سلکت‌های جدید
+            newRow.find('.select2').select2({
+                theme: 'bootstrap5',
+                width: '100%'
+            });
+
+            // فعال‌سازی اعتبارسنجی سمت کلاینت
+            $.validator.unobtrusive.parse('#conversionForm');
+        }
+
+                 function addProducedItemRow() {
+            const tableBody = $('#producedItemsTable tbody');
+            const rowCount = tableBody.find('tr[data-index]').length;
+
+            if (rowCount >= 1) {
+                alert('فقط یک ردیف برای کالای تولیدی مجاز است.');
+                return;
             }
 
-            function addProducedItemRow() {
-                const tableBody = $('#producedItemsTable tbody');
-                const rowCount = tableBody.find('tr[data-index]').length;
-
-                if (rowCount >= 1) {
-                    alert('فقط یک ردیف برای کالای تولیدی مجاز است.');
-                    return;
-                }
-
-                const newRow = $(`
-                    <tr class="validation-row" data-index="0">
-                        <td colspan="4">
-                            <div class="text-danger error-message-list" style="display:none;"></div>
-                        </td>
-                    </tr>
-                    <tr data-index="0">
-                        <td style="min-width: 300px;">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-primary text-white fw-bold p-2" style="cursor:pointer;"
-                                     data-bs-toggle="collapse" data-bs-target="#collapseProducedForm0" aria-expanded="true" aria-controls="collapseProducedForm0">
-                                    مشخصات کالا
-                                    <span class="float-end">▼</span>
-                                </div>
-                                <div id="collapseProducedForm0" class="collapse show card-body p-2">
-                                    <select class="form-select category-select mb-2" data-index="produced_0" name="ProducedItems[0].CategoryId">
-                                        ${buildOptions(normalizedData.categories)}
-                                    </select>
-                                    <select class="form-select group-select mb-2" data-index="produced_0" name="ProducedItems[0].GroupId">
-                                        <option value="">ابتدا دسته‌بندی را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select status-select mb-2" data-index="produced_0" name="ProducedItems[0].StatusId">
-                                        <option value="">ابتدا گروه را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select product-select" data-index="produced_0" name="ProducedItems[0].ProductId">
-                                        <option value="">ابتدا وضعیت را انتخاب کنید</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <input type="number" min="1" name="ProducedItems[0].Quantity" class="form-control" />
-                        </td>
-                        <td style="min-width: 300px;">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-primary text-white fw-bold p-2" style="cursor:pointer;"
-                                     data-bs-toggle="collapse" data-bs-target="#collapseProducedWarehouse0" aria-expanded="true" aria-controls="collapseProducedWarehouse0">
-                                    محل نگهداری
-                                    <span class="float-end">▼</span>
-                                </div>
-                                <div id="collapseProducedWarehouse0" class="collapse show card-body p-2">
-                                    <select class="form-select warehouse-select mb-2" data-index="produced_0" name="ProducedItems[0].WarehouseId">
-                                        ${buildOptions(normalizedData.warehouses)}
-                                    </select>
-                                    <select class="form-select zone-select mb-2" data-index="produced_0" name="ProducedItems[0].ZoneId">
-                                        <option value="">ابتدا انبار را انتخاب کنید</option>
-                                    </select>
-                                    <select class="form-select section-select" data-index="produced_0" name="ProducedItems[0].SectionId">
-                                        <option value="">ابتدا قسمت را انتخاب کنید</option>
-                                    </select>
+            const newRow = $(`
+                <tr class="validation-row" data-index="0">
+                    <td colspan="4">
+                        <div class="text-danger error-message-list" style="display:none;"></div>
+                    </td>
+                </tr>
+                <tr class="align-middle" data-index="0">
+                    <td style="min-width: 300px;">
+                        <div class="accordion" id="productAccordion_0">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#productCollapse_0"
+                                            aria-expanded="false" aria-controls="productCollapse_0">
+                                        مشخصات کالا
+                                    </button>
+                                </h2>
+                                <div id="productCollapse_0" class="accordion-collapse collapse"
+                                     data-bs-parent="#productAccordion_0">
+                                    <div class="accordion-body p-2">
+                                        <select class="form-select category-select select2 shadow-sm mb-2"
+                                                data-index="0" name="ProducedItems[0].CategoryId">
+                                            ${buildOptions(normalizedData.categories)}
+                                        </select>
+                                        <select class="form-select group-select select2 shadow-sm mb-2"
+                                                data-index="0" name="ProducedItems[0].GroupId">
+                                            <option value="">ابتدا دسته‌بندی را انتخاب کنید</option>
+                                        </select>
+                                        <select class="form-select status-select mb-2"
+                                                data-index="0" name="ProducedItems[0].StatusId">
+                                            <option value="">ابتدا گروه را انتخاب کنید</option>
+                                        </select>
+                                        <select class="form-select product-select select2 shadow-sm"
+                                                data-index="0" name="ProducedItems[0].ProductId">
+                                            <option value="">ابتدا وضعیت را انتخاب کنید</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                                    <i class="bi bi-check-lg">ثبت</i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                                    <i class="bi bi-trash">حذف</i>
-                                </button>
+                        </div>
+                    </td>
+                    <td style="width: 120px;">
+                        <input type="number" min="1" name="ProducedItems[0].Quantity"
+                               class="form-control shadow-sm" />
+                        <span class="text-danger small d-block mt-1"
+                              data-valmsg-for="ProducedItems[0].Quantity"></span>
+                    </td>
+                    <td style="min-width: 300px;">
+                        <div class="accordion" id="locationAccordion_0">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#locationCollapse_0"
+                                            aria-expanded="false" aria-controls="locationCollapse_0">
+                                        مشخصات محل نگهداری
+                                    </button>
+                                </h2>
+                                <div id="locationCollapse_0" class="accordion-collapse collapse"
+                                     data-bs-parent="#locationAccordion_0">
+                                    <div class="accordion-body p-2">
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">انبار</label>
+                                            <select class="form-select form-select-sm warehouse-select shadow-sm mb-2"
+                                                    data-index="0" name="ProducedItems[0].WarehouseId">
+                                                ${buildOptions(normalizedData.warehouses)}
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ProducedItems[0].WarehouseId"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">زون</label>
+                                            <select class="form-select form-select-sm zone-select shadow-sm mb-2"
+                                                    data-index="0" name="ProducedItems[0].ZoneId">
+                                                <option value="">ابتدا انبار را انتخاب کنید</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ProducedItems[0].ZoneId"></span>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">بخش</label>
+                                            <select class="form-select form-select-sm section-select shadow-sm"
+                                                    data-index="0" name="ProducedItems[0].SectionId">
+                                                <option value="">ابتدا قسمت را انتخاب کنید</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"
+                                                  data-valmsg-for="ProducedItems[0].SectionId"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </td>
-                    </tr>
-                `);
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `);
 
-                tableBody.append(newRow);
-            }
+            tableBody.append(newRow);
+
+            // مقداردهی Select2 برای سلکت‌های جدید
+            newRow.find('.select2').select2({
+                theme: 'bootstrap5',
+                width: '100%'
+            });
+
+            // فعال‌سازی اعتبارسنجی سمت کلاینت
+            $.validator.unobtrusive.parse('#conversionForm');
+        }
+
 
             $(document).on('change', '.category-select', function () {
                 const rowIndex = $(this).data('index');
@@ -687,50 +790,85 @@
                 $sectionSelect.html(buildOptions(filteredSections));
             });
 
+            
             $(document).on('click', '.save-item', function () {
-                const $row = $(this).closest('tr');
-                const index = $row.data('index');
-                const isProduced = $row.find('select[name^="ProducedItems"]').length > 0;
-                const prefix = isProduced ? 'ProducedItems' : 'ConsumedItems';
+            const $row = $(this).closest('tr[data-index]').filter(function () {
+                return !$(this).hasClass('validation-row');
+            }).first();
 
-                const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
-                const sectionId = $row.find(`select[name="${prefix}[${index}].SectionId"]`).val();
-                const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+            const index = $row.data('index');
+            if (index === undefined) {
+                console.error('Index not found for this row');
+                return;
+            }
 
-                let errorMessages = [];
+            // تشخیص نوع آیتم (مصرفی یا تولیدی)
+            const isProduced = $row.closest('#producedItemsTable').length > 0;
+            const prefix = isProduced ? 'ProducedItems' : 'ConsumedItems';
+            const itemType = isProduced ? 'produced' : '';
 
-                if (!productId)
-                    errorMessages.push("کالا انتخاب نشده است.");
+            // دریافت مقادیر
+            const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+            const sectionId = $row.find(`select[name="${prefix}[${index}].SectionId"]`).val();
+            const zoneId = $row.find(`select[name="${prefix}[${index}].ZoneId"]`).val();
+            const warehouseId = $row.find(`select[name="${prefix}[${index}].WarehouseId"]`).val();
+            const statusId = $row.find(`select[name="${prefix}[${index}].StatusId"]`).val();
+            const groupId = $row.find(`select[name="${prefix}[${index}].GroupId"]`).val();
+            const categoryId = $row.find(`select[name="${prefix}[${index}].CategoryId"]`).val();
 
-                if (!sectionId)
-                    errorMessages.push("محل نگهداری انتخاب نشده است.");
+            // اعتبارسنجی
+            let errorMessages = [];
+            if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+            if (!sectionId) errorMessages.push("بخش انتخاب نشده است.");
+            if (!zoneId) errorMessages.push("زون انتخاب نشده است.");
+            if (!warehouseId) errorMessages.push("انبار انتخاب نشده است.");
+            if (!quantity || parseInt(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
 
-                if (!quantity || parseInt(quantity) <= 0)
-                    errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+            const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
+            const $errorBox = $errorRow.find('.error-message-list');
 
-                const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
-                const $errorBox = $errorRow.find('.error-message-list');
+            if (errorMessages.length > 0) {
+                $errorBox.html(`<ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
+                $errorRow.show();
+                return;
+            } else {
+                $errorBox.empty();
+                $errorRow.hide();
+            }
 
-                if (errorMessages.length > 0) {
-                    $errorBox.html(`<ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`).show();
-                    return;
-                } else {
-                    $errorBox.hide().empty();
-                }
+            // گرفتن متن انتخاب‌شده‌ها
+            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+            const warehouseText = $row.find(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
+            const zoneText = $row.find(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
+            const sectionText = $row.find(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
 
-                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-                const sectionText = $row.find(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
+            // ساخت خلاصه‌ها
+            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
+            const storageSummary = `${warehouseText} / ${zoneText} / ${sectionText}`;
 
-                const $productHeader = $row.find(`#collapse${isProduced ? 'Produced' : ''}Form${index}`).prev('.card-header');
-                const $productCollapse = $row.find(`#collapse${isProduced ? 'Produced' : ''}Form${index}`);
-                $productHeader.html(`${productText} <span class="float-end">▼</span>`);
+            // به‌روزرسانی هدر آکاردئون کالا
+            const productCollapseId = isProduced ? `producedProductCollapse_${index}` : `productCollapse_${index}`;
+            const $productHeader = $row.find(`#${productCollapseId}`).closest('.accordion-item').find('.accordion-button');
+            const $productCollapse = $row.find(`#${productCollapseId}`);
+            if ($productHeader.length > 0) {
+                $productHeader.html(productSummary);
                 bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+            }
 
-                const $warehouseHeader = $row.find(`#collapse${isProduced ? 'Produced' : ''}Warehouse${index}`).prev('.card-header');
-                const $warehouseCollapse = $row.find(`#collapse${isProduced ? 'Produced' : ''}Warehouse${index}`);
-                $warehouseHeader.html(`${sectionText} <span class="float-end">▼</span>`);
+            // به‌روزرسانی هدر آکاردئون محل نگهداری
+            const locationCollapseId = isProduced ? `producedLocationCollapse_${index}` : `locationCollapse_${index}`;
+            const $warehouseHeader = $row.find(`#${locationCollapseId}`).closest('.accordion-item').find('.accordion-button');
+            const $warehouseCollapse = $row.find(`#${locationCollapseId}`);
+            if ($warehouseHeader.length > 0) {
+                $warehouseHeader.html(storageSummary);
                 bootstrap.Collapse.getOrCreateInstance($warehouseCollapse[0]).hide();
-            });
+            }
+        });
+
 
             $(document).on('click', '.remove-item', function () {
                 const $row = $(this).closest('tr');

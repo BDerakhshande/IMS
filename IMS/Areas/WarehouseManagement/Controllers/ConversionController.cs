@@ -104,8 +104,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Zones = zones,
                 Sections = sections,
                 Products = products,
-                ConsumedItems = new List<ConversionConsumedItemDto>(),
-                ProducedItems = new List<ConversionProducedItemDto>(),
+                ConsumedItems = new List<ConversionConsumedItemDto> { new ConversionConsumedItemDto() },
+                ProducedItems = new List<ConversionProducedItemDto> { new ConversionProducedItemDto() },
+
                 DateString = persianDateString,
                 DocumentNumber = await GetNextDocumentNumberAsync()
             };
@@ -160,6 +161,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
                 await PopulateSelectListsAsync(model);
                 return View(model);
+            }
+            foreach (var consumed in model.ConsumedItems)
+            {
+                Console.WriteLine($"Consumed ProductId: {consumed.ProductId}");
             }
 
             try
