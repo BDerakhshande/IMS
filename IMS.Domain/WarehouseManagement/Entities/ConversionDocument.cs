@@ -9,12 +9,9 @@ namespace IMS.Domain.WarehouseManagement.Entities
     public class ConversionDocument
     {
 
-        public int Id { get; set; } // 👈 کلید اصلی
+        public int Id { get; set; }
 
-        // در صورتی که انبار در سطح سند نیاز نیست، این دو خط را حذف کن:
-        // public int WarehouseId { get; set; }
-        // public Warehouse Warehouse { get; set; }
-
+        public string DocumentNumber { get; set; } 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public List<ConversionConsumedItem> ConsumedItems { get; set; } = new();

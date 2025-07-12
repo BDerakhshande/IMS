@@ -31,6 +31,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 {
                     Id = d.Id,
                     CreatedAt = d.CreatedAt,
+                    DocumentNumber = d.DocumentNumber, // ← این خط را اضافه کن
                     ConsumedProducts = d.ConsumedItems.Select(ci => new ProductInfoDto
                     {
                         ProductName = ci.Product.Name,

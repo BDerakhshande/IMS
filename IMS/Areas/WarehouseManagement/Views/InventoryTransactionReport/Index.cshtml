@@ -8,438 +8,441 @@
     var products = ViewBag.Products as SelectList;
     var documentTypes = new List<string> { "رسید", "حواله", "انتقال" };
 }
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-<div class="inventory-report-container">
-    <h1>@ViewData["Title"]</h1>
-
-    <div class="filter-section">
-        <div class="filter-box">
-            <label for="warehouse">انبار</label>
-            <select id="warehouse" class="form-select">
-                <option value="">انتخاب انبار</option>
-                @foreach (var item in warehouses)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-
-            <label for="zone">منطقه</label>
-            <select id="zone" class="form-select">
-                <option value="">انتخاب منطقه</option>
-            </select>
-
-            <label for="section">بخش</label>
-            <select id="section" class="form-select">
-                <option value="">انتخاب بخش</option>
-            </select>
-
-        </div>
-
-        <div class="filter-box">
-            <label for="category">دسته‌بندی</label>
-            <select id="category" class="form-select">
-                <option value="">انتخاب دسته‌بندی</option>
-                @foreach (var item in categories)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-
-            <label for="group">گروه</label>
-            <select id="group" class="form-select">
-                <option value="">انتخاب گروه</option>
-                @foreach (var item in groups)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-
-            <label for="status">وضعیت</label>
-            <select id="status" class="form-select">
-                <option value="">انتخاب وضعیت</option>
-                @foreach (var item in statuses)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-
-            <label for="product">کالا</label>
-            <select id="product" class="form-select">
-                <option value="">انتخاب کالا</option>
-                @foreach (var item in products)
-                {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-        </div>
-
-        <div class="filter-box">
-            <input type="text" id="fromDate" class="form-control" placeholder="yyyy/MM/dd" />
-            <input type="text" id="toDate" class="form-control" placeholder="yyyy/MM/dd" />
-
-
-            <label for="docType">نوع سند</label>
-            <select id="docType" class="form-select">
-                <option value="">انتخاب نوع</option>
-                @foreach (var item in documentTypes)
-                {
-                    <option value="@item">@item</option>
-                }
-            </select>
-        </div>
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">@ViewData["Title"]</h5>
     </div>
 
-    <button class="search-btn" id="searchBtn">جستجو</button>
+    <div class="card-body">
+        <form id="transactionReportForm">
+            <!-- فیلترهای انبار -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-light-success text-success">
+                    <h6 class="mb-0"><i class="fas fa-warehouse me-2"></i>فیلتر بر اساس انبار</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">انبار</label>
+                            <select id="warehouse" class="form-select">
+                                <option value="">انتخاب انبار</option>
+                                @foreach (var item in warehouses)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="zone">منطقه</label>
+                            <select id="zone" class="form-select">
+                                <option value="">انتخاب منطقه</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="section">بخش</label>
+                            <select id="section" class="form-select">
+                                <option value="">انتخاب بخش</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <table id="reportTable" style="display:none;">
-        <thead>
-            <tr>
-                <th>تاریخ</th>
-                <th>کالا</th>
-                <th>مبدأ</th>
-                <th>مقصد</th>
-                <th>نوع سند</th>
-                <th>شماره سند</th>
-                <th>تعداد</th>
-            </tr>
-        </thead>
-        <tbody id="reportBody"></tbody>
-    </table>
+            <!-- فیلترهای محصول -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-light-success text-success">
+                    <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>فیلتر بر اساس کالا</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">دسته‌بندی</label>
+                            <select id="category" class="form-select">
+                                <option value="">انتخاب دسته‌بندی</option>
+                                @foreach (var item in categories)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">گروه</label>
+                            <select id="group" class="form-select">
+                                <option value="">انتخاب گروه</option>
+                                @foreach (var item in groups)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">وضعیت</label>
+                            <select id="status" class="form-select">
+                                <option value="">انتخاب وضعیت</option>
+                                @foreach (var item in statuses)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">کالا</label>
+                            <select id="product" class="form-select">
+                                <option value="">انتخاب کالا</option>
+                                @foreach (var item in products)
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فیلترهای تاریخ و نوع سند -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-light-info text-info">
+                    <h6 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>فیلترهای زمانی و نوع سند</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">از تاریخ</label>
+                            <input type="text" id="fromDate" class="form-control" placeholder="yyyy/MM/dd" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">تا تاریخ</label>
+                            <input type="text" id="toDate" class="form-control" placeholder="yyyy/MM/dd" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">نوع سند</label>
+                            <select id="docType" class="form-select">
+                                <option value="">انتخاب نوع</option>
+                                @foreach (var item in documentTypes)
+                                {
+                                    <option value="@item">@item</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-12 text-center">
+                    <button type="button" id="searchBtn" class="btn btn-primary px-5">
+                        <i class="fas fa-search me-2"></i> جستجو
+                    </button>
+                    <button type="reset" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                        <i class="fas fa-undo me-2"></i> بازنشانی
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<style>
-    .inventory-report-container {
-        font-family: 'IRANSans', Tahoma;
-        background: #fff;
-        padding: 20px;
-        direction: rtl;
-        max-width: 1200px;
-        margin: auto;
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
+<div id="reportResults" class="mt-4" style="display: none;">
+    <div class="card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">نتایج گزارش تراکنش‌ها</h5>
+        </div>
+        <div class="card-body">
+            <div id="reportLoading" style="display: none; text-align: center; margin-top: 15px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">در حال بارگذاری...</span>
+                </div>
+                <p class="mt-2">در حال دریافت گزارش...</p>
+            </div>
 
-        .inventory-report-container h1 {
+            <div class="table-responsive" id="reportTableWrapper">
+                <table id="reportTable" class="table table-hover table-striped">
+                    <thead>
+                        <tr class="table-primary">
+                            <th>تاریخ</th>
+                            <th>کالا</th>
+                            <th>مبدأ</th>
+                            <th>مقصد</th>
+                            <th>نوع سند</th>
+                            <th>شماره سند</th>
+                            <th class="text-end">تعداد</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <style>
+        .select2-container--default .select2-selection--single {
+            height: 38px;
+            padding: 6px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px;
+            }
+
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 24px;
+                text-align: right;
+            }
+
+        .select2-container--default.select2-container--focus .select2-selection--single {
+            border-color: #4a6baf;
+            box-shadow: 0 0 0 3px rgba(74, 107, 175, 0.1);
+        }
+
+        .no-results {
             text-align: center;
-            font-size: 24px;
-            color: #2c3e50;
-            margin-bottom: 20px;
+            padding: 20px;
+            color: #6c757d;
+        }
+    </style>
+
+
+@section Scripts {
+    <script>
+         function toPersianDateString(date) {
+            const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(date);
+
+            // خروجی بصورت ۱۴۰۳/۰۴/۲۳ است، تبدیل به 1403/04/23
+            return persian.replaceAll('۰','0').replaceAll('۱','1')
+                          .replaceAll('۲','2').replaceAll('۳','3')
+                          .replaceAll('۴','4').replaceAll('۵','5')
+                          .replaceAll('۶','6').replaceAll('۷','7')
+                          .replaceAll('۸','8').replaceAll('۹','9');
         }
 
-    .filter-section {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
+        document.addEventListener('DOMContentLoaded', function () {
+            const today = new Date();
+            const persianToday = toPersianDateString(today);
 
-    .filter-box {
-        flex: 1;
-        min-width: 250px;
-        background: #f9f9f9;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #e0e0e0;
-    }
-
-        .filter-box label {
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-
-    .form-select, .form-control {
-        width: 100%;
-        padding: 8px 10px;
-        margin-top: 4px;
-        border-radius: 5px;
-        border: 1px solid #ced4da;
-        background: #fff;
-        font-size: 14px;
-    }
-
-    .search-btn {
-        display: block;
-        margin: 20px auto;
-        padding: 10px 30px;
-        background-color: #4a6baf;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-        .search-btn:hover {
-            background-color: #3a5688;
-        }
-
-    #reportTable {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-    }
-
-        #reportTable th, #reportTable td {
-            padding: 10px;
-            text-align: right;
-            border: 1px solid #ddd;
-        }
-
-        #reportTable th {
-            background-color: #4a6baf;
-            color: white;
-        }
-
-        #reportTable tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-    .hierarchy {
-        color: #555;
-        font-style: italic;
-    }
-
-    .origin::after {
-        content: " →";
-        color: #aaa;
-    }
-</style>
-
-<script>
-     function toPersianDateString(date) {
-        const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit'
-        }).format(date);
-
-        // خروجی بصورت ۱۴۰۳/۰۴/۲۳ است، تبدیل به 1403/04/23
-        return persian.replaceAll('۰','0').replaceAll('۱','1')
-                      .replaceAll('۲','2').replaceAll('۳','3')
-                      .replaceAll('۴','4').replaceAll('۵','5')
-                      .replaceAll('۶','6').replaceAll('۷','7')
-                      .replaceAll('۸','8').replaceAll('۹','9');
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const today = new Date();
-        const persianToday = toPersianDateString(today);
-
-        $('#fromDate').val(persianToday);
-        $('#toDate').val(persianToday);
-    });
-
-
-
-    $(document).ready(function () {
-
-        $('#warehouse').on('change', function () {
-            const warehouseId = $(this).val();
-            console.log('Selected warehouseId:', warehouseId);
-
-            $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
-            $('#section').empty().append('<option value="">انتخاب بخش</option>');
-
-            if (warehouseId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetZonesByWarehouseId?warehouseId=${warehouseId}`)
-                    .then(res => {
-                        console.log('Response status for zones:', res.status);
-                        if (!res.ok) throw new Error('خطا در دریافت مناطق از سرور: ' + res.status);
-                        return res.json();
-                    })
-                    .then(zones => {
-                        console.log('Received zones:', zones);
-                        $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
-                        if (zones.length === 0) {
-                            alert('هیچ منطقه‌ای برای این انبار یافت نشد.');
-                        } else {
-                            zones.forEach(z => {
-                                $('#zone').append(`<option value="${z.value}">${z.text}</option>`);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching zones:', err);
-                        alert('خطا در دریافت مناطق: ' + err.message);
-                        $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
-                    });
-            }
+            $('#fromDate').val(persianToday);
+            $('#toDate').val(persianToday);
         });
 
-        $('#zone').on('change', function () {
-            const zoneId = $(this).val();
-            console.log('Selected zoneId:', zoneId);
 
-            $('#section').empty().append('<option value="">انتخاب بخش</option>');
 
-            if (zoneId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetSectionsByZoneId?zoneId=${zoneId}`)
-                    .then(res => {
-                        console.log('Response status for sections:', res.status);
-                        if (!res.ok) throw new Error('خطا در دریافت بخش‌ها از سرور: ' + res.status);
-                        return res.json();
-                    })
-                    .then(sections => {
-                        console.log('Received sections:', sections);
-                        $('#section').empty().append('<option value="">انتخاب بخش</option>');
-                        if (sections.length === 0) {
-                            alert('هیچ بخشی برای این منطقه یافت نشد.');
-                        } else {
-                            sections.forEach(s => {
-                                $('#section').append(`<option value="${s.value}">${s.text}</option>`);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching sections:', err);
-                        alert('خطا در دریافت بخش‌ها: ' + err.message);
-                        $('#section').empty().append('<option value="">انتخاب بخش</option>');
-                    });
-            }
-        });
+        $(document).ready(function () {
 
-        // Category → Group → Status → Product
-        $('#category').on('change', function () {
-            const categoryId = $(this).val();
-            $('#group').empty().append('<option value="">انتخاب گروه</option>');
-            $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
-            $('#product').empty().append('<option value="">انتخاب کالا</option>');
+            $('#warehouse').on('change', function () {
+                const warehouseId = $(this).val();
+                console.log('Selected warehouseId:', warehouseId);
 
-            if (categoryId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetGroupsByCategoryId?categoryId=${categoryId}`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('خطا در دریافت گروه‌ها از سرور: ' + res.status);
-                        return res.json();
-                    })
-                    .then(groups => {
-                        $('#group').empty().append('<option value="">انتخاب گروه</option>');
-                        if (groups.length === 0) {
-                            alert('هیچ گروهی برای این دسته‌بندی یافت نشد.');
-                        } else {
-                            groups.forEach(g => {
-                                $('#group').append(`<option value="${g.value}">${g.text}</option>`);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching groups:', err);
-                        alert('خطا در دریافت گروه‌ها: ' + err.message);
-                        $('#group').empty().append('<option value="">انتخاب گروه</option>');
-                    });
-            }
-        });
+                $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
+                $('#section').empty().append('<option value="">انتخاب بخش</option>');
 
-        $('#group').on('change', function () {
-            const groupId = $(this).val();
-            $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
-            $('#product').empty().append('<option value="">انتخاب کالا</option>');
-
-            if (groupId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetStatusesByGroupId?groupId=${groupId}`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('خطا در دریافت وضعیت‌ها از سرور: ' + res.status);
-                        return res.json();
-                    })
-                    .then(statuses => {
-                        $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
-                        if (statuses.length === 0) {
-                            alert('هیچ وضعیتی برای این گروه یافت نشد.');
-                        } else {
-                            statuses.forEach(s => {
-                                $('#status').append(`<option value="${s.value}">${s.text}</option>`);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching statuses:', err);
-                        alert('خطا در دریافت وضعیت‌ها: ' + err.message);
-                        $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
-                    });
-            }
-        });
-
-        $('#status').on('change', function () {
-            const statusId = $(this).val();
-            $('#product').empty().append('<option value="">انتخاب کالا</option>');
-
-            if (statusId) {
-                fetch(`/WarehouseManagement/InventoryTransactionReport/GetProductsByStatusId?statusId=${statusId}`)
-                    .then(res => {
-                        if (!res.ok) throw new Error('خطا در دریافت کالاها از سرور: ' + res.status);
-                        return res.json();
-                    })
-                    .then(products => {
-                        $('#product').empty().append('<option value="">انتخاب کالا</option>');
-                        if (products.length === 0) {
-                            alert('هیچ کالایی برای این وضعیت یافت نشد.');
-                        } else {
-                            products.forEach(p => {
-                                $('#product').append(`<option value="${p.value}">${p.text}</option>`);
-                            });
-                        }
-                    })
-                    .catch(err => {
-                        console.error('Error fetching products:', err);
-                        alert('خطا در دریافت کالاها: ' + err.message);
-                        $('#product').empty().append('<option value="">انتخاب کالا</option>');
-                    });
-            }
-        });
-
-        // Search button click event
-           $('#searchBtn').on('click', function () {
-        const filter = {
-            WarehouseId: $('#warehouse').val() || null,
-            ZoneId: $('#zone').val() || null,
-            SectionId: $('#section').val() || null,
-            CategoryId: $('#category').val() || null,
-            GroupId: $('#group').val() || null,
-            StatusId: $('#status').val() || null,
-            ProductId: $('#product').val() || null,
-            FromDateString: $('#fromDate').val() || null,
-            ToDateString: $('#toDate').val() || null,
-            DocumentType: $('#docType').val() || null
-        };
-        console.log('Filter values:', filter); // بررسی مقادیر فیلتر
-        
-
-           fetch(`/WarehouseManagement/InventoryTransactionReport/GetReport?${$.param(filter)}`)
-
-                .then(res => {
-                    if (!res.ok) throw new Error('خطا در دریافت گزارش از سرور: ' + res.status);
-                    return res.json();
-                })
-                .then(data => {
-                    $('#reportBody').empty();
-                    if (data.length === 0) {
-                        $('#reportTable').hide();
-                        alert('هیچ داده‌ای برای نمایش وجود ندارد.');
-                    } else {
-                        data.forEach(item => {
-                            $('#reportBody').append(`
-                                <tr>
-                                    <td>${item.date}</td>
-                                    <td>${item.productName}</td>
-                                    <td>${item.sourceWarehouseName || ''} - ${item.sourceDepartmentName || ''} - ${item.sourceSectionName || ''}</td>
-                                    <td>${item.destinationWarehouseName || ''} - ${item.destinationDepartmentName || ''} - ${item.destinationSectionName || ''}</td>
-                                    <td>${item.documentType}</td>
-                                    <td>${item.documentNumber}</td>
-                                    <td>${item.quantity}</td>
-                                </tr>
-                            `);
+                if (warehouseId) {
+                    fetch(`/WarehouseManagement/InventoryTransactionReport/GetZonesByWarehouseId?warehouseId=${warehouseId}`)
+                        .then(res => {
+                            console.log('Response status for zones:', res.status);
+                            if (!res.ok) throw new Error('خطا در دریافت مناطق از سرور: ' + res.status);
+                            return res.json();
+                        })
+                        .then(zones => {
+                            console.log('Received zones:', zones);
+                            $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
+                            if (zones.length === 0) {
+                                alert('هیچ منطقه‌ای برای این انبار یافت نشد.');
+                            } else {
+                                zones.forEach(z => {
+                                    $('#zone').append(`<option value="${z.value}">${z.text}</option>`);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching zones:', err);
+                            alert('خطا در دریافت مناطق: ' + err.message);
+                            $('#zone').empty().append('<option value="">انتخاب منطقه</option>');
                         });
-                        $('#reportTable').show();
-                    }
-                })
-                .catch(err => {
-                    console.error('Error fetching report:', err);
-                    alert('خطا در دریافت گزارش: ' + err.message);
-                    $('#reportTable').hide();
-                });
-        });
+                }
+            });
+
+            $('#zone').on('change', function () {
+                const zoneId = $(this).val();
+                console.log('Selected zoneId:', zoneId);
+
+                $('#section').empty().append('<option value="">انتخاب بخش</option>');
+
+                if (zoneId) {
+                    fetch(`/WarehouseManagement/InventoryTransactionReport/GetSectionsByZoneId?zoneId=${zoneId}`)
+                        .then(res => {
+                            console.log('Response status for sections:', res.status);
+                            if (!res.ok) throw new Error('خطا در دریافت بخش‌ها از سرور: ' + res.status);
+                            return res.json();
+                        })
+                        .then(sections => {
+                            console.log('Received sections:', sections);
+                            $('#section').empty().append('<option value="">انتخاب بخش</option>');
+                            if (sections.length === 0) {
+                                alert('هیچ بخشی برای این منطقه یافت نشد.');
+                            } else {
+                                sections.forEach(s => {
+                                    $('#section').append(`<option value="${s.value}">${s.text}</option>`);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching sections:', err);
+                            alert('خطا در دریافت بخش‌ها: ' + err.message);
+                            $('#section').empty().append('<option value="">انتخاب بخش</option>');
+                        });
+                }
+            });
+
+            // Category → Group → Status → Product
+            $('#category').on('change', function () {
+                const categoryId = $(this).val();
+                $('#group').empty().append('<option value="">انتخاب گروه</option>');
+                $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
+                $('#product').empty().append('<option value="">انتخاب کالا</option>');
+
+                if (categoryId) {
+                    fetch(`/WarehouseManagement/InventoryTransactionReport/GetGroupsByCategoryId?categoryId=${categoryId}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('خطا در دریافت گروه‌ها از سرور: ' + res.status);
+                            return res.json();
+                        })
+                        .then(groups => {
+                            $('#group').empty().append('<option value="">انتخاب گروه</option>');
+                            if (groups.length === 0) {
+                                alert('هیچ گروهی برای این دسته‌بندی یافت نشد.');
+                            } else {
+                                groups.forEach(g => {
+                                    $('#group').append(`<option value="${g.value}">${g.text}</option>`);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching groups:', err);
+                            alert('خطا در دریافت گروه‌ها: ' + err.message);
+                            $('#group').empty().append('<option value="">انتخاب گروه</option>');
+                        });
+                }
+            });
+
+            $('#group').on('change', function () {
+                const groupId = $(this).val();
+                $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
+                $('#product').empty().append('<option value="">انتخاب کالا</option>');
+
+                if (groupId) {
+                    fetch(`/WarehouseManagement/InventoryTransactionReport/GetStatusesByGroupId?groupId=${groupId}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('خطا در دریافت وضعیت‌ها از سرور: ' + res.status);
+                            return res.json();
+                        })
+                        .then(statuses => {
+                            $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
+                            if (statuses.length === 0) {
+                                alert('هیچ وضعیتی برای این گروه یافت نشد.');
+                            } else {
+                                statuses.forEach(s => {
+                                    $('#status').append(`<option value="${s.value}">${s.text}</option>`);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching statuses:', err);
+                            alert('خطا در دریافت وضعیت‌ها: ' + err.message);
+                            $('#status').empty().append('<option value="">انتخاب وضعیت</option>');
+                        });
+                }
+            });
+
+            $('#status').on('change', function () {
+                const statusId = $(this).val();
+                $('#product').empty().append('<option value="">انتخاب کالا</option>');
+
+                if (statusId) {
+                    fetch(`/WarehouseManagement/InventoryTransactionReport/GetProductsByStatusId?statusId=${statusId}`)
+                        .then(res => {
+                            if (!res.ok) throw new Error('خطا در دریافت کالاها از سرور: ' + res.status);
+                            return res.json();
+                        })
+                        .then(products => {
+                            $('#product').empty().append('<option value="">انتخاب کالا</option>');
+                            if (products.length === 0) {
+                                alert('هیچ کالایی برای این وضعیت یافت نشد.');
+                            } else {
+                                products.forEach(p => {
+                                    $('#product').append(`<option value="${p.value}">${p.text}</option>`);
+                                });
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Error fetching products:', err);
+                            alert('خطا در دریافت کالاها: ' + err.message);
+                            $('#product').empty().append('<option value="">انتخاب کالا</option>');
+                        });
+                }
+            });
+
+                 // جستجوی گزارش
+            $('#searchBtn').on('click', function () {
+                const filter = {
+                    WarehouseId: $('#warehouse').val() || null,
+                    ZoneId: $('#zone').val() || null,
+                    SectionId: $('#section').val() || null,
+                    CategoryId: $('#category').val() || null,
+                    GroupId: $('#group').val() || null,
+                    StatusId: $('#status').val() || null,
+                    ProductId: $('#product').val() || null,
+                    FromDateString: $('#fromDate').val() || null,
+                    ToDateString: $('#toDate').val() || null,
+                    DocumentType: $('#docType').val() || null
+                };
+
+                $('#reportBody').empty();
+                $('#reportTableWrapper').hide();
+                $('#reportLoading').show();
+                $('#reportResults').show();
+
+                fetch(`/WarehouseManagement/InventoryTransactionReport/GetReport?${$.param(filter)}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('خطا در دریافت گزارش از سرور');
+                        return res.json();
+                    })
+                    .then(data => {
+                        $('#reportLoading').hide();
+                        if (data.length === 0) {
+                            $('#reportTableWrapper').hide();
+                            alert('هیچ داده‌ای برای نمایش وجود ندارد.');
+                        } else {
+                            data.forEach(item => {
+                                $('#reportBody').append(`
+                                    <tr>
+                                        <td>${item.date}</td>
+                                        <td>${item.productName}</td>
+                                        <td>${item.sourceWarehouseName || ''} - ${item.sourceDepartmentName || ''} - ${item.sourceSectionName || ''}</td>
+                                        <td>${item.destinationWarehouseName || ''} - ${item.destinationDepartmentName || ''} - ${item.destinationSectionName || ''}</td>
+                                        <td>${item.documentType}</td>
+                                        <td>${item.documentNumber}</td>
+                                        <td class="text-end">${item.quantity}</td>
+                                    </tr>
+                                `);
+                            });
+                            $('#reportTableWrapper').fadeIn();
+                        }
+                    })
+                    .catch(err => {
+                        $('#reportLoading').hide();
+                        $('#reportTableWrapper').hide();
+                        console.error(err);
+                        alert('خطا در دریافت گزارش: ' + err.message);
+                    });
+            });
     });
 </script>
+}
