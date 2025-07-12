@@ -116,8 +116,7 @@
                                                                         </option>
                                                                     }
                                                                 </select>
-
-                                                                    <select asp-for="ConsumedItems[i].ProductId" class="form-select product-select select2 shadow-sm" data-index="@i">
+                                                                <select asp-for="ConsumedItems[i].ProductId" class="form-select product-select mb-2" data-index="@i">
                                                                         <option value="">انتخاب کالا</option>
                                                                         @foreach (var product in Model.Products)
                                                                         {
@@ -790,22 +789,22 @@
                 $sectionSelect.html(buildOptions(filteredSections));
             });
 
-            
-            $(document).on('click', '.save-item', function () {
+
+                   $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]').filter(function () {
                 return !$(this).hasClass('validation-row');
             }).first();
 
             const index = $row.data('index');
             if (index === undefined) {
-                console.error('Index not found for this row');
+                console.error('❌ Index not found for this row');
                 return;
             }
 
             // تشخیص نوع آیتم (مصرفی یا تولیدی)
             const isProduced = $row.closest('#producedItemsTable').length > 0;
             const prefix = isProduced ? 'ProducedItems' : 'ConsumedItems';
-            const itemType = isProduced ? 'produced' : '';
+            const itemType = isProduced ? 'produced' : 'consumed';
 
             // دریافت مقادیر
             const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
@@ -816,6 +815,19 @@
             const statusId = $row.find(`select[name="${prefix}[${index}].StatusId"]`).val();
             const groupId = $row.find(`select[name="${prefix}[${index}].GroupId"]`).val();
             const categoryId = $row.find(`select[name="${prefix}[${index}].CategoryId"]`).val();
+
+            // ✅ دیباگ لاگ‌ها:
+            console.log(`📌 [${itemType.toUpperCase()}] Save button clicked for row index: ${index}`);
+            console.log({
+                productId,
+                quantity,
+                categoryId,
+                groupId,
+                statusId,
+                warehouseId,
+                zoneId,
+                sectionId
+            });
 
             // اعتبارسنجی
             let errorMessages = [];
@@ -829,6 +841,7 @@
             const $errorBox = $errorRow.find('.error-message-list');
 
             if (errorMessages.length > 0) {
+                console.warn("⚠️ Validation errors:", errorMessages);
                 $errorBox.html(`<ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
                 $errorRow.show();
                 return;

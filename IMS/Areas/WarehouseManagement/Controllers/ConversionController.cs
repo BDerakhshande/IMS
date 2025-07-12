@@ -145,15 +145,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 }
             }
 
-            // اعتبارسنجی شماره سند تکراری
-            bool exists = await _warehouseDbContext.ReceiptOrIssues
-                .AnyAsync(r => r.DocumentNumber == model.DocumentNumber);
-
-            if (exists)
-            {
-                ModelState.AddModelError(nameof(model.DocumentNumber), "شماره سند تکراری است. لطفا شماره دیگری وارد کنید.");
-            }
-
 
             // بررسی وجود اقلام مصرفی
             if (model.ConsumedItems == null || !model.ConsumedItems.Any())
