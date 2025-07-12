@@ -146,7 +146,14 @@ namespace IMS.Application.WarehouseManagement.Services
             if (dto.Items == null || !dto.Items.Any())
                 throw new ArgumentException("Items collection cannot be empty.");
 
-          
+            var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
+
+            // بارگذاری نام محصولات از دیتابیس بر اساس ProductId ها
+            var productNames = await _dbContext.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
+
+
             foreach (var item in dto.Items)
             {
                 if (item.ProductId <= 0)
@@ -224,7 +231,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     SourceSectionId = sourceSection?.Id,
                     DestinationWarehouseId = itemDto.DestinationWarehouseId,
                     DestinationZoneId = itemDto.DestinationZoneId,
-                    DestinationSectionId = destinationSection?.Id
+                    DestinationSectionId = destinationSection?.Id,
+
                 };
 
                 entity.Items.Add(newItem);
@@ -279,41 +287,44 @@ namespace IMS.Application.WarehouseManagement.Services
                     i.SectionId == item.DestinationSectionId &&
                     i.ProductId == item.ProductId);
 
+                var productName = productNames.ContainsKey(item.ProductId) ? productNames[item.ProductId] : "نامشخص";
+
                 switch (dto.Type)
                 {
                     case ReceiptOrIssueType.Receipt:
                         if (sourceInventory == null || destinationInventory == null)
-                            throw new InvalidOperationException("موجودی مبدأ یا مقصد یافت نشد.");
+                            throw new InvalidOperationException($"موجودی مبدأ یا مقصد برای کالای {productName} یافت نشد.");
                         sourceInventory.Quantity -= item.Quantity;
                         if (sourceInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مبدأ به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ به صفر یا کمتر رسید.");
                         destinationInventory.Quantity += item.Quantity;
                         if (destinationInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مقصد به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مقصد به صفر یا کمتر رسید.");
                         break;
 
                     case ReceiptOrIssueType.Issue:
                         if (sourceInventory == null || destinationInventory == null)
-                            throw new InvalidOperationException("موجودی مبدأ یا مقصد یافت نشد.");
+                            throw new InvalidOperationException($"موجودی مبدأ یا مقصد برای کالای {productName} یافت نشد.");
                         sourceInventory.Quantity -= item.Quantity;
                         if (sourceInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مبدأ به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ به صفر یا کمتر رسید.");
                         destinationInventory.Quantity += item.Quantity;
                         if (destinationInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مقصد به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مقصد به صفر یا کمتر رسید.");
                         break;
 
                     case ReceiptOrIssueType.Transfer:
                         if (sourceInventory == null || destinationInventory == null)
-                            throw new InvalidOperationException("موجودی مبدأ یا مقصد یافت نشد.");
+                            throw new InvalidOperationException($"موجودی مبدأ یا مقصد برای کالای {productName} یافت نشد.");
                         sourceInventory.Quantity -= item.Quantity;
                         if (sourceInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مبدأ به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ به صفر یا کمتر رسید.");
                         destinationInventory.Quantity += item.Quantity;
                         if (destinationInventory.Quantity <= 0)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مقصد به صفر یا کمتر رسید.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مقصد به صفر یا کمتر رسید.");
                         break;
                 }
+
             }
 
 
@@ -367,7 +378,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     CategoryName = null, 
                     GroupName = null,
                     StatusName = null,
-                    ProductName = null
+                    ProductName = productNames.ContainsKey(i.ProductId) ? productNames[i.ProductId] : "نامشخص"
                 }).ToList()
             };
 
@@ -375,6 +386,7 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
+    
 
 
         public async Task<ReceiptOrIssueDto?> UpdateAsync(int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken = default)
@@ -383,6 +395,13 @@ namespace IMS.Application.WarehouseManagement.Services
                 throw new ArgumentNullException(nameof(dto));
             if (dto.Items == null || !dto.Items.Any())
                 throw new ArgumentException("Items collection cannot be empty.");
+
+            var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
+
+            var productNames = await _dbContext.Products
+    .Where(p => productIds.Contains(p.Id))
+    .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
+
 
             foreach (var item in dto.Items)
             {
@@ -499,20 +518,21 @@ namespace IMS.Application.WarehouseManagement.Services
                     i.ZoneId == item.DestinationZoneId &&
                     i.SectionId == item.DestinationSectionId &&
                     i.ProductId == item.ProductId);
+                var productName = productNames.ContainsKey(item.ProductId) ? productNames[item.ProductId] : "نامشخص";
 
                 switch (dto.Type)
                 {
+                    
                     case ReceiptOrIssueType.Receipt:
                         if (destinationInventory == null)
-                            throw new InvalidOperationException("موجودی مقصد یافت نشد.");
+                            throw new InvalidOperationException($"موجودی مقصد برای کالای {productName} یافت نشد.");
                         destinationInventory.Quantity += item.Quantity;
                         break;
-
                     case ReceiptOrIssueType.Issue:
                         if (sourceInventory == null)
                             throw new InvalidOperationException("موجودی مبدأ یافت نشد.");
                         if (sourceInventory.Quantity < item.Quantity)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مبدأ کافی نیست.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ کافی نیست.");
                         sourceInventory.Quantity -= item.Quantity;
                         break;
 
@@ -520,7 +540,7 @@ namespace IMS.Application.WarehouseManagement.Services
                         if (sourceInventory == null || destinationInventory == null)
                             throw new InvalidOperationException("موجودی مبدأ یا مقصد یافت نشد.");
                         if (sourceInventory.Quantity < item.Quantity)
-                            throw new InvalidOperationException($"موجودی کالا {item.ProductId} در انبار مبدأ کافی نیست.");
+                            throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ کافی نیست.");
                         sourceInventory.Quantity -= item.Quantity;
                         destinationInventory.Quantity += item.Quantity;
                         break;
@@ -563,7 +583,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     SourceWarehouseName = i.SourceSection?.Zone?.Warehouse?.Name,
                     DestinationSectionName = i.DestinationSection?.Name,
                     DestinationZoneName = i.DestinationSection?.Zone?.Name,
-                    DestinationWarehouseName = i.DestinationSection?.Zone?.Warehouse?.Name
+                    DestinationWarehouseName = i.DestinationSection?.Zone?.Warehouse?.Name,
+                    ProductName = productNames.ContainsKey(i.ProductId) ? productNames[i.ProductId] : "نامشخص"
                 }).ToList()
             };
         }

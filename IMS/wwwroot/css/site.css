@@ -9,7 +9,7 @@
     --transition: all 0.3s ease;
 }
 
-/* ÍÇáÊ ÊÇÑ?˜ */
+/* حالت تار?ک */
 .dark-mode {
     --primary-color: #0d2b36;
     --secondary-color: #14857b;
@@ -68,13 +68,13 @@ body {
 }
 
     .system-access-container main {
-        flex: 1 0 auto; /* ?Ç flex-grow:1 */
+        flex: 1 0 auto; /* ?ا flex-grow:1 */
     }
 
 .system-header {
     background-color: var(--primary-color);
     color: var(--light-text);
-    padding: 1rem 2rem;
+    padding: 0.75rem 1.5rem; 
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
@@ -126,7 +126,7 @@ body {
     gap: 25px;
 }
 
-/* ? ÇÖÇÝå ÔÏå: ?ÏãÇä ÑÏ?Ý? ÈÑÇ? Ïæ ˜ÇÑÊ */
+/* ? اضافه شده: چ?دمان رد?ف? برا? دو کارت */
 .subsystems-row {
     display: flex;
     justify-content: center;
@@ -151,7 +151,7 @@ body {
     height: 180px;
     width: 48%;
     flex-direction: row-reverse;
-    margin: 0; /* ? ÇÕáÇÍ ÔÏå: ÍÐÝ ÝÇÕáå äÇÎæÇÓÊå */
+    margin: 0; /* ? اصلاح شده: حذف فاصله ناخواسته */
 }
 
 .dark-mode .subsystem-card {
@@ -215,7 +215,7 @@ body {
         box-shadow: 0 0 10px rgba(52, 152, 219, 0.6);
     }
 
-/* ÑäåÇ? ˜ÇÑÊåÇ */
+/* رنگ‌ها? کارت‌ها */
 .inventory .card-icon {
     background-color: #16a085;
 }
@@ -307,9 +307,7 @@ body {
     padding-top: 60px;
 }
 
-
-
-/* ? æÇ˜äÔÑÇ?? ÏÑ ÍÇáÊ ãæÈÇ?á */
+/* ? واکنش‌گرا?? در حالت موبا?ل */
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;

@@ -99,6 +99,10 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("DocumentNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.ToTable("conversionDocuments");

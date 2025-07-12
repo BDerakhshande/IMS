@@ -1,0 +1,90 @@
+﻿@model IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssue
+@{
+    string GetPersianType(IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType type) => type switch
+    {
+        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt => "رسید",
+        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue => "حواله",
+        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال"
+    };
+}
+
+@{
+    Layout = null; // حذف هدر و فوتر لایه اصلی
+}
+
+
+
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <link href="~/css/PrintCreateIssueAndRecept.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="header-info">
+        <div class="info-item">
+            <span class="info-label">شماره سند:</span>
+            <span class="info-value">@Model.DocumentNumber</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">تاریخ سند:</span>
+            <span class="info-value">@Model.Date.ToString("yyyy/MM/dd")</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">نوع سند:</span>
+            <span class="info-value">@GetPersianType(Model.Type)</span>
+        </div>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>کالا</th>
+                <th>مبدأ</th>
+                <th>مقصد</th>
+                <th>تعداد</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Items)
+            {
+                <tr>
+                    <td>
+                        @{
+                            var parts = new[] {
+                    item.Category?.Name ?? "—",
+                    item.Group?.Name ?? "—",
+                    item.Status?.Name ?? "—",
+                    item.Product?.Name ?? "—"
+                    };
+                            var combined = string.Join(" / ", parts);
+                        }
+                        @combined
+                    </td>
+                    <td>
+                        @{
+                            var src = string.Join(" / ", new[] {
+                    item.SourceWarehouse?.Name ?? "—",
+                    item.SourceZone?.Name ?? "—",
+                    item.SourceSection?.Name ?? "—"
+                    });
+                        }
+                        @src
+                    </td>
+                    <td>
+                        @{
+                            var dest = string.Join(" / ", new[] {
+                    item.DestinationWarehouse?.Name ?? "—",
+                    item.DestinationZone?.Name ?? "—",
+                    item.DestinationSection?.Name ?? "—"
+                    });
+                        }
+                        @dest
+                    </td>
+                    <td>@item.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

@@ -11,18 +11,21 @@ namespace IMS.Application.WarehouseManagement.Services
     public interface IInventoryReportService
     {
 
-        Task<List<InventoryReportItemDto>> GetInventoryReportAsync(
-    InventoryReportFilterDto? filter = null,
-    CancellationToken cancellationToken = default);
+        Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter);
 
-        
+
+
         Task<List<SelectListItem>> GetZonesByWarehouseIdAsync(int warehouseId);
-
+        Task<List<SelectListItem>> GetSectionsByZoneIdsAsync(List<int> zoneIds);
         Task<List<SelectListItem>> GetAllSectionsAsync();
         Task<List<SelectListItem>> GetAllZonesAsync();
         Task<List<SelectListItem>> GetAllGroupsAsync();
         Task<List<SelectListItem>> GetAllStatusesAsync();
         Task<List<SelectListItem>> GetAllProductsAsync();
-      
+        Task<List<SelectListItem>> GetGroupsByCategoryIdAsync(int categoryId);
+        Task<List<SelectListItem>> GetStatusesByGroupIdAsync(int groupId);
+        Task<List<SelectListItem>> GetProductsByStatusIdAsync(int statusId);
+
+
     }
 }

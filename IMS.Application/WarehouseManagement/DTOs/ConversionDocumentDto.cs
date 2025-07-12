@@ -12,7 +12,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public int WarehouseId { get; set; }
         public string WarehouseName { get; set; }
         public DateTime CreatedAt { get; set; }
-
+        public string DocumentNumber { get; set; }
         public List<ProductInfoDto> ConsumedProducts { get; set; } = new();
         public List<ProductInfoDto> ProducedProducts { get; set; } = new();
 
