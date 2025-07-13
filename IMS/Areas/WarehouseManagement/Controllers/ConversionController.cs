@@ -33,6 +33,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
+            // Load all necessary data
             var categories = await _warehouseDbContext.Categories
                 .Select(c => new SelectListItem
                 {
@@ -40,32 +41,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     Text = c.Name
                 }).ToListAsync();
 
+            // Load groups with their category relationships
             var groups = await _warehouseDbContext.Groups
-       .Select(g => new GroupDto
-       {
-           Id = g.Id,
-           Name = g.Name,
-           CategoryId = g.CategoryId
-       })
-       .ToListAsync();
+                .Select(g => new GroupDto
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    CategoryId = g.CategoryId
+                }).ToListAsync();
 
-
+            // Load statuses with their group relationships
             var statuses = await _warehouseDbContext.Statuses
-    .Select(s => new StatusDto
-    {
-        Id = s.Id,
-        Name = s.Name,
-        GroupId = s.GroupId 
-    }).ToListAsync();
+                .Select(s => new StatusDto
+                {
+                    Id = s.Id,
+                    Name = s.Name,
+                    GroupId = s.GroupId
+                }).ToListAsync();
 
+            // Load products with their status relationships
             var products = await _warehouseDbContext.Products
                 .Select(p => new ProductDto
                 {
                     Id = p.Id,
                     Name = p.Name,
-                    StatusId = p.StatusId 
+                    StatusId = p.StatusId
                 }).ToListAsync();
 
+            // Load warehouses
             var warehouses = await _warehouseDbContext.Warehouses
                 .Select(w => new SelectListItem
                 {
@@ -73,6 +76,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     Text = w.Name
                 }).ToListAsync();
 
+            // Load zones with warehouse relationships
             var zones = await _warehouseDbContext.StorageZones
                 .Select(z => new StorageZoneDto
                 {
@@ -81,6 +85,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     WarehouseId = z.WarehouseId
                 }).ToListAsync();
 
+            // Load sections with zone relationships
             var sections = await _warehouseDbContext.StorageSections
                 .Select(s => new StorageSectionDto
                 {
@@ -89,8 +94,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     ZoneId = s.ZoneId
                 }).ToListAsync();
 
-
-            // محاسبه تاریخ روز شمسی به صورت رشته
+            // Persian date setup
             PersianCalendar pc = new PersianCalendar();
             DateTime now = DateTime.Now;
             string persianDateString = $"{pc.GetYear(now):0000}/{pc.GetMonth(now):00}/{pc.GetDayOfMonth(now):00}";
@@ -100,17 +104,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Categories = categories,
                 Groups = groups,
                 Statuses = statuses,
+                Products = products,
                 Warehouses = warehouses,
                 Zones = zones,
                 Sections = sections,
-                Products = products,
                 ConsumedItems = new List<ConversionConsumedItemDto> { new ConversionConsumedItemDto() },
                 ProducedItems = new List<ConversionProducedItemDto> { new ConversionProducedItemDto() },
-
                 DateString = persianDateString,
                 DocumentNumber = await GetNextDocumentNumberAsync()
             };
-
 
             return View(model);
         }
@@ -161,11 +163,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 await PopulateSelectListsAsync(model);
                 return View(model);
             }
-            foreach (var consumed in model.ConsumedItems)
-            {
-                Console.WriteLine($"Consumed ProductId: {consumed.ProductId}");
-            }
-
+          
             try
             {
                 // فراخوانی سرویس برای ثبت سند تبدیل

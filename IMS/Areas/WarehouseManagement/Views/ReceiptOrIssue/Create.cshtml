@@ -842,21 +842,25 @@
         });
 
 
-                  $(document).on('click', '.save-item', function () {
-            const $row = $(this).closest('tr');
+        $(document).on('click', '.save-item', function () {
+            const $row = $(this).closest('tr[data-index]');
             const index = $row.data('index');
+            const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
 
-            const productId = $row.find(`select[name="Items[${index}].ProductId"]`).val();
-            const quantity = $row.find(`input[name="Items[${index}].Quantity"]`).val();
-            const sourceSectionId = $row.find(`select[name="Items[${index}].SourceSectionId"]`).val();
-            const destinationSectionId = $row.find(`select[name="Items[${index}].DestinationSectionId"]`).val();
+            // استخراج مقادیر
+            const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+            const warehouseId = $row.find(`select[name="${prefix}[${index}].WarehouseId"]`).val();
+            const zoneId = $row.find(`select[name="${prefix}[${index}].ZoneId"]`).val();
+            const sectionId = $row.find(`select[name="${prefix}[${index}].SectionId"]`).val();
 
+            // اعتبارسنجی
             let errorMessages = [];
-
             if (!productId) errorMessages.push("کالا انتخاب نشده است.");
-            if (!quantity || parseInt(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
-            if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
-            if (!destinationSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
+            if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+            if (!warehouseId) errorMessages.push("انبار انتخاب نشده است.");
+            if (!zoneId) errorMessages.push("قسمت انتخاب نشده است.");
+            if (!sectionId) errorMessages.push("بخش انتخاب نشده است.");
 
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
@@ -870,44 +874,33 @@
                 $errorRow.hide();
             }
 
-            // دریافت متن‌های انتخاب شده برای کالا
-            const productText = $row.find(`select[name="Items[${index}].ProductId"] option:selected`).text();
-            const groupText = $row.find(`select[name="Items[${index}].GroupId"] option:selected`).text();
-            const categoryText = $row.find(`select[name="Items[${index}].CategoryId"] option:selected`).text();
-            const statusText = $row.find(`select[name="Items[${index}].StatusId"] option:selected`).text();
+            // 🟦 دریافت متن‌های خلاصه برای کالا
+            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
 
             const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
 
-            // 🟩 دریافت متن‌های انتخاب شده برای مبدا
-            const sourceWarehouseText = $row.find(`select[name="Items[${index}].SourceWarehouseId"] option:selected`).text();
-            const sourceZoneText = $row.find(`select[name="Items[${index}].SourceZoneId"] option:selected`).text();
-            const sourceSectionText = $row.find(`select[name="Items[${index}].SourceSectionId"] option:selected`).text();
+            // 🟩 خلاصه مکان نگهداری
+            const warehouseText = $row.find(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
+            const zoneText = $row.find(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
+            const sectionText = $row.find(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
 
-            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+            const locationSummary = `${warehouseText} / ${zoneText} / ${sectionText}`;
 
-            // 🟩 دریافت متن‌های انتخاب شده برای مقصد
-            const destWarehouseText = $row.find(`select[name="Items[${index}].DestinationWarehouseId"] option:selected`).text();
-            const destZoneText = $row.find(`select[name="Items[${index}].DestinationZoneId"] option:selected`).text();
-            const destSectionText = $row.find(`select[name="Items[${index}].DestinationSectionId"] option:selected`).text();
-
-            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
-
-            // 🟦 بستن آکاردئون و نمایش اطلاعات خلاصه
+            // 🟦 بستن آکاردئون‌ها و درج خلاصه‌ها
             const $productHeader = $row.find(`#productCollapse_${index}`).prev('.accordion-header');
             const $productCollapse = $row.find(`#productCollapse_${index}`);
-            $productHeader.find('.accordion-button').html(`${productSummary}`);
+            $productHeader.find('.accordion-button').html(productSummary);
             bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
 
-            const $sourceHeader = $row.find(`#sourceCollapse_${index}`).prev('.accordion-header');
-            const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-            $sourceHeader.find('.accordion-button').html(`${sourceSummary}`);
-            bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
-
-            const $destHeader = $row.find(`#destCollapse_${index}`).prev('.accordion-header');
-            const $destCollapse = $row.find(`#destCollapse_${index}`);
-            $destHeader.find('.accordion-button').html(`${destSummary}`);
-            bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
+            const $locationHeader = $row.find(`#locationCollapse_${index}`).prev('.accordion-header');
+            const $locationCollapse = $row.find(`#locationCollapse_${index}`);
+            $locationHeader.find('.accordion-button').html(locationSummary);
+            bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]).hide();
         });
+
 
 
 
