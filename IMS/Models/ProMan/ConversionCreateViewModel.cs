@@ -5,6 +5,8 @@ namespace IMS.Models.ProMan
 {
     public class ConversionCreateViewModel
     {
+        public int? DocumentId { get; set; }
+
         public string? DateString { get; set; } // برای ورودی شمسی کاربر
 
         public DateTime? Date { get; set; } // برای ذخیره در دیتابیس به میلادی

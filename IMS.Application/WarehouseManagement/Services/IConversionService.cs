@@ -17,6 +17,10 @@ namespace IMS.Application.WarehouseManagement.Services
         Task<string> GetNextConversionDocumentNumberAsync();
         Task<List<ConversionDocumentDto>> GetConversionDocumentsAsync();
 
-
+        Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
+        int documentId,
+        List<ConversionConsumedItemDto> consumedItems,
+        List<ConversionProducedItemDto> producedItems,
+        CancellationToken cancellationToken = default);
     }
 }

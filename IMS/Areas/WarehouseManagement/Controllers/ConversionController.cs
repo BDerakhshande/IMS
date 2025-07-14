@@ -311,6 +311,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return RedirectToAction("Index");
             }
         }
+
+
         public IActionResult Print(int id)
         {
             var conversion = _warehouseDbContext.conversionDocuments.FirstOrDefault(d => d.Id == id);
@@ -373,6 +375,127 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var document = await _warehouseDbContext.conversionDocuments
+                .Include(d => d.ConsumedItems)
+                .Include(d => d.ProducedItems)
+                .FirstOrDefaultAsync(d => d.Id == id);
+
+            if (document == null)
+            {
+                TempData["ErrorMessage"] = "سند مورد نظر یافت نشد.";
+                return RedirectToAction("Index");
+            }
+
+            var pc = new PersianCalendar();
+            var persianDate = $"{pc.GetYear(document.CreatedAt):0000}/{pc.GetMonth(document.CreatedAt):00}/{pc.GetDayOfMonth(document.CreatedAt):00}";
+
+            var model = new ConversionCreateViewModel
+            {
+                
+                DocumentNumber = document.DocumentNumber,
+                Date = document.CreatedAt,
+                DateString = persianDate,
+                ConsumedItems = document.ConsumedItems.Select(i => new ConversionConsumedItemDto
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    CategoryId = i.CategoryId,
+                    GroupId = i.GroupId,
+                    StatusId = i.StatusId,
+                    WarehouseId = i.WarehouseId,
+                    ZoneId = i.ZoneId,
+                    SectionId = i.SectionId
+                }).ToList(),
+                ProducedItems = document.ProducedItems.Select(i => new ConversionProducedItemDto
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    CategoryId = i.CategoryId,
+                    GroupId = i.GroupId,
+                    StatusId = i.StatusId,
+                    WarehouseId = i.WarehouseId,
+                    ZoneId = i.ZoneId,
+                    SectionId = i.SectionId
+                }).ToList()
+            };
+
+            await PopulateSelectListsAsync(model);
+            return View("Edit", model); // از همان View ایجاد استفاده می‌کنیم
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(ConversionCreateViewModel model)
+        {
+            // تبدیل تاریخ شمسی به میلادی
+            if (!string.IsNullOrEmpty(model.DateString))
+            {
+                var parts = model.DateString.Split('/');
+                if (parts.Length == 3 &&
+                    int.TryParse(parts[0], out int year) &&
+                    int.TryParse(parts[1], out int month) &&
+                    int.TryParse(parts[2], out int day))
+                {
+                    try
+                    {
+                        PersianCalendar pc = new PersianCalendar();
+                        model.Date = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+                    }
+                    catch
+                    {
+                        ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
+                }
+            }
+
+            if (model.ConsumedItems == null || !model.ConsumedItems.Any())
+                ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
+
+            if (model.ProducedItems == null || !model.ProducedItems.Any())
+                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
+
+            ModelState.Remove(nameof(model.Zones));
+            ModelState.Remove(nameof(model.Groups));
+            ModelState.Remove(nameof(model.Products));
+            ModelState.Remove(nameof(model.Sections));
+            ModelState.Remove(nameof(model.Statuses));
+            ModelState.Remove(nameof(model.Categories));
+            ModelState.Remove(nameof(model.Warehouses));
+
+            if (!ModelState.IsValid)
+            {
+                await PopulateSelectListsAsync(model);
+                return View("Edit", model);
+            }
+
+            try
+            {
+                var (documentId, documentNumber) = await _conversionService.UpdateConversionDocumentAsync(
+                    model.DocumentId!.Value,
+                    model.ConsumedItems,
+                    model.ProducedItems,
+                    CancellationToken.None);
+
+                TempData["SuccessMessage"] = $"سند با شماره {documentNumber} با موفقیت ویرایش شد.";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, $"خطا در ویرایش سند: {ex.Message}");
+                await PopulateSelectListsAsync(model);
+                return View("Edit", model);
+            }
+        }
 
 
 
