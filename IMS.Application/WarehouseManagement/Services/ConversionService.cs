@@ -244,5 +244,179 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
+
+        public async Task<(int Id, string DocumentNumber)> EditConversionDocumentAsync(
+      int documentId,
+      List<ConversionConsumedItemDto> consumedItems,
+      List<ConversionProducedItemDto> producedItems,
+      CancellationToken cancellationToken = default)
+        {
+            if (consumedItems == null || producedItems == null)
+                throw new ArgumentException("اقلام مصرفی یا تولیدی نمی‌تواند خالی باشد.");
+
+            // Cast _dbContext to WarehouseDbContext برای دسترسی به Database و تراکنش
+            var transaction = await _dbContext.BeginTransactionAsync(cancellationToken);
+
+
+            using var transaction = await efDbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            try
+            {
+                var document = await efDbContext.conversionDocuments
+                    .Include(d => d.ConsumedItems)
+                    .Include(d => d.ProducedItems)
+                    .FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
+
+                if (document == null)
+                    throw new InvalidOperationException("سند تبدیل یافت نشد.");
+
+                // ۱. جمع آوری همه ProductId ها برای مصرفی و تولیدی
+                var allProductIds = document.ConsumedItems.Select(c => c.ProductId)
+                    .Concat(document.ProducedItems.Select(p => p.ProductId))
+                    .Concat(consumedItems.Select(c => c.ProductId))
+                    .Concat(producedItems.Select(p => p.ProductId))
+                    .Distinct()
+                    .ToList();
+
+                // ۲. واکشی موجودی‌های مرتبط با همه کالاها (برای مصرفی و تولیدی)
+                var inventories = await efDbContext.Inventories
+                    .Where(i => allProductIds.Contains(i.ProductId))
+                    .ToListAsync(cancellationToken);
+
+                // ۳. واکشی نام کالاها برای خطاها
+                var productNames = await efDbContext.Products
+                    .Where(p => allProductIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
+
+                // ۴. بازگرداندن موجودی اقلام قبلی (مصرفی)
+                foreach (var consumed in document.ConsumedItems)
+                {
+                    var inventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == consumed.WarehouseId &&
+                        i.ZoneId == consumed.ZoneId &&
+                        i.SectionId == consumed.SectionId &&
+                        i.ProductId == consumed.ProductId);
+
+                    if (inventory != null)
+                    {
+                        inventory.Quantity += consumed.Quantity;
+                        efDbContext.Entry(inventory).Property(i => i.Quantity).IsModified = true;
+                    }
+                }
+
+                // ۵. بازگرداندن موجودی اقلام قبلی (تولیدی)
+                foreach (var produced in document.ProducedItems)
+                {
+                    var inventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == produced.WarehouseId &&
+                        i.ZoneId == produced.ZoneId &&
+                        i.SectionId == produced.SectionId &&
+                        i.ProductId == produced.ProductId);
+
+                    if (inventory != null)
+                    {
+                        inventory.Quantity -= produced.Quantity;
+                        if (inventory.Quantity < 0) inventory.Quantity = 0;
+                        efDbContext.Entry(inventory).Property(i => i.Quantity).IsModified = true;
+                    }
+                }
+
+                // ۶. حذف اقلام قبلی
+                efDbContext.conversionConsumedItems.RemoveRange(document.ConsumedItems);
+                efDbContext.conversionProducedItems.RemoveRange(document.ProducedItems);
+                document.ConsumedItems.Clear();
+                document.ProducedItems.Clear();
+
+                // ۷. افزودن اقلام جدید مصرفی و کاهش موجودی
+                foreach (var consumed in consumedItems)
+                {
+                    var inventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == consumed.WarehouseId &&
+                        i.ZoneId == consumed.ZoneId &&
+                        i.SectionId == consumed.SectionId &&
+                        i.ProductId == consumed.ProductId);
+
+                    if (inventory == null)
+                    {
+                        var productName = productNames.GetValueOrDefault(consumed.ProductId) ?? "نامشخص";
+                        throw new InvalidOperationException($"موجودی برای کالای مصرفی '{productName}' یافت نشد.");
+                    }
+
+                    if (inventory.Quantity < consumed.Quantity)
+                    {
+                        var productName = productNames.GetValueOrDefault(consumed.ProductId) ?? "نامشخص";
+                        throw new InvalidOperationException($"مقدار کافی از کالا '{productName}' در انبار موجود نیست.");
+                    }
+
+                    inventory.Quantity -= consumed.Quantity;
+                    efDbContext.Entry(inventory).Property(i => i.Quantity).IsModified = true;
+
+                    document.ConsumedItems.Add(new ConversionConsumedItem
+                    {
+                        CategoryId = consumed.CategoryId,
+                        GroupId = consumed.GroupId,
+                        StatusId = consumed.StatusId,
+                        ProductId = consumed.ProductId,
+                        Quantity = consumed.Quantity,
+                        ZoneId = consumed.ZoneId,
+                        SectionId = consumed.SectionId,
+                        WarehouseId = consumed.WarehouseId
+                    });
+                }
+
+                // ۸. افزودن اقلام جدید تولیدی و افزایش موجودی (در صورت نبودن موجودی، ایجادش کن)
+                foreach (var produced in producedItems)
+                {
+                    var inventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == produced.WarehouseId &&
+                        i.ZoneId == produced.ZoneId &&
+                        i.SectionId == produced.SectionId &&
+                        i.ProductId == produced.ProductId);
+
+                    if (inventory == null)
+                    {
+                        inventory = new Inventory
+                        {
+                            WarehouseId = produced.WarehouseId,
+                            ZoneId = produced.ZoneId,
+                            SectionId = produced.SectionId,
+                            ProductId = produced.ProductId,
+                            Quantity = 0
+                        };
+                        efDbContext.Inventories.Add(inventory);
+                        inventories.Add(inventory); // اضافه کردن به لیست برای پیگیری
+                    }
+                    inventory.Quantity += produced.Quantity;
+
+                    document.ProducedItems.Add(new ConversionProducedItem
+                    {
+                        CategoryId = produced.CategoryId,
+                        GroupId = produced.GroupId,
+                        StatusId = produced.StatusId,
+                        ProductId = produced.ProductId,
+                        Quantity = produced.Quantity,
+                        ZoneId = produced.ZoneId,
+                        SectionId = produced.SectionId,
+                        WarehouseId = produced.WarehouseId
+                    });
+                }
+
+                // ۹. ذخیره تغییرات و commit تراکنش
+                await efDbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return (document.Id, document.DocumentNumber);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
+
+
+
+
+
     }
 }

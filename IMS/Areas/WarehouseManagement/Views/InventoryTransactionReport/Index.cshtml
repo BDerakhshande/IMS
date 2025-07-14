@@ -6,7 +6,8 @@
     var groups = ViewBag.Groups as SelectList;
     var statuses = ViewBag.Statuses as SelectList;
     var products = ViewBag.Products as SelectList;
-    var documentTypes = new List<string> { "رسید", "حواله", "انتقال" };
+    var documentTypes = new List<string> { "رسید", "حواله", "انتقال", "تبدیل" };
+
 }
 
 <div class="card">
@@ -204,12 +205,51 @@
             padding: 20px;
             color: #6c757d;
         }
+
+    .conversion-consumed {
+        background-color: #ffe6e6; /* قرمز روشن */
+    }
+
+    .conversion-produced {
+        background-color: #e6ffe6; /* سبز روشن */
+    }
+
     </style>
 
 
 @section Scripts {
     <script>
-         function toPersianDateString(date) {
+
+       function renderReportRows(data) {
+            const tbody = document.getElementById('reportBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+
+                // رنگ پس‌زمینه بر اساس نوع تبدیل
+                if (item.DocumentType === 'تبدیل' || item.DocumentType === 'Conversion') {
+                    if (item.ConversionType === 'Consumed') tr.classList.add('conversion-consumed');
+                    else if (item.ConversionType === 'Produced') tr.classList.add('conversion-produced');
+                }
+
+                tr.innerHTML = `
+                    <td>${item.Date || '-'}</td>
+                    <td>${item.ProductName || '-'}</td>
+                    <td>${item.SourceWarehouseName || '-'} - ${item.SourceDepartmentName || '-'} - ${item.SourceSectionName || '-'}</td>
+                    <td>${item.DestinationWarehouseName || '-'} - ${item.DestinationDepartmentName || '-'} - ${item.DestinationSectionName || '-'}</td>
+                    <td>${item.DocumentType === 'تبدیل' || item.DocumentType === 'Conversion' ? `تبدیل (${item.ConversionType || ''})` : item.DocumentType || '-'}</td>
+                    <td>${item.DocumentNumber || '-'}</td>
+                    <td class="text-end">${item.Quantity != null ? item.Quantity : '-'}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+        }
+
+
+
+        function toPersianDateString(date) {
             const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
                 year: 'numeric',
                 month: '2-digit',
@@ -232,7 +272,7 @@
             $('#toDate').val(persianToday);
         });
 
-
+                
 
         $(document).ready(function () {
 
@@ -443,6 +483,12 @@
                         alert('خطا در دریافت گزارش: ' + err.message);
                     });
             });
+
+
+
+            
+    
+
     });
 </script>
 }

@@ -41,11 +41,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 // اگر نوع سند داده شده بود اعتبارسنجی شود، در غیر اینصورت فیلتر نوع سند اعمال نشود
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
-                    if (!Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
                     {
                         return BadRequest("نوع سند نامعتبر است.");
                     }
                 }
+
                 else
                 {
                     // اگر DocumentType خالی بود مقدارش را null بگذاریم تا در سرویس فیلتر نشود
@@ -143,6 +144,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "رسید" => "Receipt",
             "حواله" => "Issue",
             "انتقال" => "Transfer",
+            "تبدیل" => "Conversion",   // اضافه شده
             _ => null
         };
 
@@ -151,8 +153,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "Receipt" => "رسید",
             "Issue" => "حواله",
             "Transfer" => "انتقال",
+            "Conversion" => "تبدیل",   // اضافه شده
             _ => type
         };
+
 
         // ======== Ajax Actions ========
 
