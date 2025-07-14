@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.WarehouseManagement.DTOs;
@@ -31,12 +32,14 @@ namespace IMS.Application.WarehouseManagement.Services
                 {
                     Id = d.Id,
                     CreatedAt = d.CreatedAt,
-                    DocumentNumber = d.DocumentNumber, // ← این خط را اضافه کن
+                    DocumentNumber = d.DocumentNumber, // ✅ این خط درست است
+
                     ConsumedProducts = d.ConsumedItems.Select(ci => new ProductInfoDto
                     {
                         ProductName = ci.Product.Name,
                         Quantity = ci.Quantity
                     }).ToList(),
+
                     ProducedProducts = d.ProducedItems.Select(pi => new ProductInfoDto
                     {
                         ProductName = pi.Product.Name,
@@ -49,18 +52,46 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
-
-        public async Task<int> ConvertAndRegisterDocumentAsync(
-       List<ConversionConsumedItemDto> consumedItems,
-       List<ConversionProducedItemDto> producedItems)
+        public async Task<string> GetNextConversionDocumentNumberAsync()
         {
+            var existingNumbers = await _dbContext.conversionDocuments
+                .Select(r => r.DocumentNumber)
+                .ToListAsync();
+
+            var existingInts = existingNumbers
+                .Select(s => int.TryParse(s, out int n) ? n : 0)
+                .Where(n => n > 0)
+                .OrderBy(n => n)
+                .ToList();
+
+            int nextNumber = 1;
+            foreach (var number in existingInts)
+            {
+                if (number == nextNumber)
+                    nextNumber++;
+                else if (number > nextNumber)
+                    break;
+            }
+
+            return nextNumber.ToString(); // ← مثلاً "1"، "2"، "3"
+        }
+
+
+        public async Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
+    List<ConversionConsumedItemDto> consumedItems,
+    List<ConversionProducedItemDto> producedItems)
+        {
+           
+
             if (consumedItems == null || producedItems == null)
                 throw new ArgumentException("اقلام مصرفی یا تولیدی نمی‌تواند خالی باشد.");
 
+            string nextDocNumber = await GetNextConversionDocumentNumberAsync();
+
             var conversionDocument = new ConversionDocument
             {
+                DocumentNumber = nextDocNumber,
                 CreatedAt = DateTime.Now,
-              
                 ConsumedItems = new List<ConversionConsumedItem>(),
                 ProducedItems = new List<ConversionProducedItem>()
             };
@@ -72,12 +103,25 @@ namespace IMS.Application.WarehouseManagement.Services
                     i.ZoneId == consumed.ZoneId &&
                     i.SectionId == consumed.SectionId &&
                     i.ProductId == consumed.ProductId);
-
                 if (inventory == null)
-                    throw new InvalidOperationException($"موجودی برای کالای مصرفی با شناسه {consumed.ProductId} یافت نشد.");
+                {
+                    var productName = await _dbContext.Products
+                        .Where(p => p.Id == consumed.ProductId)
+                        .Select(p => p.Name)
+                        .FirstOrDefaultAsync() ?? "نامشخص";
+
+                    throw new InvalidOperationException($"موجودی برای کالای مصرفی '{productName}' یافت نشد.");
+                }
 
                 if (inventory.Quantity < consumed.Quantity)
-                    throw new InvalidOperationException($"مقدار کافی از کالا ({consumed.ProductId}) در انبار موجود نیست.");
+                {
+                    var productName = await _dbContext.Products
+                        .Where(p => p.Id == consumed.ProductId)
+                        .Select(p => p.Name)
+                        .FirstOrDefaultAsync() ?? "نامشخص";
+
+                    throw new InvalidOperationException($"مقدار کافی از کالا '{productName}' در انبار موجود نیست.");
+                }
 
                 inventory.Quantity -= consumed.Quantity;
 
@@ -97,14 +141,19 @@ namespace IMS.Application.WarehouseManagement.Services
                 });
             }
 
+            // گرفتن نام همه کالاهای مرتبط در یک کوئری قبل از حلقه
+            var productIds = producedItems.Select(p => p.ProductId).Distinct().ToList();
 
+            var productNames = await _dbContext.Products
+    .Where(p => productIds.Contains(p.Id))
+    .ToDictionaryAsync(p => p.Id, p => p.Name);
             foreach (var produced in producedItems)
             {
                 var inventory = await _dbContext.Inventories.FirstOrDefaultAsync(i =>
-                    i.WarehouseId == produced.WarehouseId &&
-                    i.ZoneId == produced.ZoneId &&
-                    i.SectionId == produced.SectionId &&
-                    i.ProductId == produced.ProductId);
+        i.WarehouseId == produced.WarehouseId &&
+        i.ZoneId == produced.ZoneId &&
+        i.SectionId == produced.SectionId &&
+        i.ProductId == produced.ProductId);
 
                 if (inventory == null)
                 {
@@ -118,7 +167,6 @@ namespace IMS.Application.WarehouseManagement.Services
                     };
                     _dbContext.Inventories.Add(inventory);
                 }
-
                 inventory.Quantity += produced.Quantity;
 
                 conversionDocument.ProducedItems.Add(new ConversionProducedItem
@@ -137,7 +185,7 @@ namespace IMS.Application.WarehouseManagement.Services
             _dbContext.conversionDocuments.Add(conversionDocument);
             await _dbContext.SaveChangesAsync(CancellationToken.None);
 
-            return conversionDocument.Id;
+            return (conversionDocument.Id, nextDocNumber);
         }
 
         public async Task<bool> DeleteConversionDocumentAsync(int documentId)

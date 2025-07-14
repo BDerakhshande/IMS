@@ -10,7 +10,6 @@
 
 
 
-
     <div class="card shadow-lg">
         <div class="card-header bg-primary text-white">
             <h5 class="card-title mb-0">فرم ثبت سند تبدیل</h5>
@@ -65,6 +64,8 @@
                 </div>
                 <div class="card-body">
                     <div class="table-responsive border rounded-3">
+                        <div id="consumedValidationErrors" class="mb-3"></div>
+
                         <table class="table table-hover mb-0" id="consumedItemsTable">
                             <thead class="table-light">
                                 <tr>
@@ -75,6 +76,8 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <div id="clientValidationErrors"></div>
+
                                 @if (Model.ConsumedItems != null && Model.ConsumedItems.Any())
                                 {
                                     for (int i = 0; i < Model.ConsumedItems.Count; i++)
@@ -179,10 +182,10 @@
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
                                                     <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                                                        <i class="bi bi-check-lg"></i>
+                                                        <i class="bi bi-check-lg"></i>ثبت
                                                     </button>
                                                     <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                                                        <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash"></i>حذف
                                                     </button>
                                                 </div>
                                             </td>
@@ -207,6 +210,7 @@
                     </div>
                     <div class="card-body produced-item-container">
                         <div class="table-responsive border rounded-3">
+                        <div id="producedValidationErrors" class="mb-3"></div>
                         <table class="table table-hover mb-0" id="producedItemsTable">
                                 <thead class="table-light">
                                     <tr>
@@ -219,8 +223,11 @@
                                 <tbody>
                                     @if (Model.ProducedItems != null && Model.ProducedItems.Any())
                                     {
+                                    
                                         for (int i = 0; i < Model.ProducedItems.Count; i++)
                                         {
+                                        
+
                                             <tr class="align-middle" data-index="@i">
                                                 <td>
                                                     <div class="accordion" id="producedProductAccordion_@i">
@@ -324,10 +331,10 @@
                                                 <td class="text-center">
                                                     <div class="d-flex justify-content-center gap-2">
                                                         <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                                                            <i class="bi bi-check-lg"></i>
+                                                        <i class="bi bi-check-lg"></i>ثبت
                                                         </button>
                                                         <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                                                            <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash"></i>حذف
                                                         </button>
                                                     </div>
                                                 </td>
@@ -411,7 +418,104 @@
                 });
                 return options;
             }
+                    // --- افزودن ردیف جدید برای کالای مصرفی
+            $('#addConsumedItem').on('click', function () {
+            const index = $('#consumedItemsTable tbody tr').length; // شماره ردیف جدید
+            const rowTemplate = `
+                <tr class="align-middle" data-index="${index}">
+                    <td>
+                        <div class="accordion" id="productAccordion_${index}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${index}">
+                                        انتخاب کالا و مشخصات آن
+                                    </button>
+                                </h2>
+                                <div id="productCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${index}">
+                                    <div class="accordion-body p-2">
+                                        <select name="ConsumedItems[${index}].CategoryId" class="form-select category-select select2 shadow-sm" data-index="${index}">
+                                         
+                                            ${buildOptions(normalizedData.categories)}
+                                        </select>
+                                        <select name="ConsumedItems[${index}].GroupId" class="form-select group-select select2 shadow-sm" data-index="${index}">
+                                            <option value="">انتخاب گروه</option>
+                                        </select>
+                                        <select name="ConsumedItems[${index}].StatusId" class="form-select status-select select2 shadow-sm" data-index="${index}">
+                                            <option value="">انتخاب وضعیت</option>
+                                        </select>
+                                        <select name="ConsumedItems[${index}].ProductId" class="form-select product-select select2 shadow-sm" data-index="${index}">
+                                            <option value="">انتخاب کالا</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="width: 120px;">
+                            <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                            <span asp-validation-for="ConsumedItems[${index}].Quantity" class="text-danger small d-block mt-1"></span>
+                        </td>
+                        <td>
+                            <div class="accordion" id="locationAccordion_${index}">
+                                <div class="accordion-item border-0">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#locationCollapse_${index}">
+                                            مشخصات محل نگهداری
+                                        </button>
+                                    </h2>
+                                    <div id="locationCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion_${index}">
+                                        <div class="accordion-body p-2">
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-1">انبار</label>
+                                                <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
+                                                   
+                                                    ${buildOptions(normalizedData.warehouses)}
+                                                </select>
+                                                <span asp-validation-for="ConsumedItems[${index}].WarehouseId" class="text-danger small d-block mt-1"></span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-1">قسمت</label>
+                                                <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
+                                                    <option value="">انتخاب قسمت</option>
+                                                </select>
+                                                <span asp-validation-for="ConsumedItems[${index}].ZoneId" class="text-danger small d-block mt-1"></span>
+                                            </div>
+                                            <div>
+                                                <label class="form-label small text-muted mb-1">بخش</label>
+                                                <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
+                                                    <option value="">انتخاب بخش</option>
+                                                </select>
+                                                <span asp-validation-for="ConsumedItems[${index}].SectionId" class="text-danger small d-block mt-1"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                        <i class="bi bi-check-lg">ثبت</i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                        <i class="bi bi-trash">حذف</i>
+                                    </button>
+                                </div>
+                            </td>
+                </tr>
+            `;
+            $('#consumedItemsTable tbody').append(rowTemplate);
 
+            // مقداردهی اولیه به select2 برای ردیف جدید
+            $(`select[name="ConsumedItems[${index}].CategoryId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].GroupId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].StatusId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].ProductId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].WarehouseId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].ZoneId"]`).select2();
+            $(`select[name="ConsumedItems[${index}].SectionId"]`).select2();
+
+            // فعال‌سازی اعتبارسنجی برای ردیف جدید
+            $('form').validate().element(`input[name="ConsumedItems[${index}].Quantity"]`);
+        });
             // --- Cascading Dropdown Handling
             function updateDependentDropdowns(prefix, index) {
                 const $category = $(`select[name="${prefix}[${index}].CategoryId"]`);
@@ -486,27 +590,91 @@
                 $(`select.section-select[data-index="${index}"]`).html(buildOptions(filtered));
             });
 
-            // --- Save and Remove Buttons
-            $(document).on('click', '.save-item', function () {
-                const $row = $(this).closest('tr[data-index]');
-                const index = $row.data('index');
-                const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
 
-                const product = $(`select[name="${prefix}[${index}].ProductId"]`).val();
-                const quantity = $(`input[name="${prefix}[${index}].Quantity"]`).val();
-                const warehouse = $(`select[name="${prefix}[${index}].WarehouseId"]`).val();
 
-                if (!product || !quantity || !warehouse || quantity <= 0) {
-                    alert('لطفاً فیلدهای الزامی را تکمیل کنید');
-                    return;
-                }
 
-                // بستن آکاردئون و خلاصه‌سازی اطلاعات
-                const productText = $(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-                const header = $row.find('.accordion-button').first();
-                header.text(productText);
-                bootstrap.Collapse.getOrCreateInstance($row.find('.accordion-collapse')[0]).hide();
-            });
+                     function showClientError(message, type) {
+            const targetId = type === 'ProducedItems' ? '#producedValidationErrors' : '#consumedValidationErrors';
+            $(targetId).html(`
+                <div class="alert alert-danger" role="alert">${message}</div>
+            `);
+        }
+
+        function clearClientErrors(type) {
+            const targetId = type === 'ProducedItems' ? '#producedValidationErrors' : '#consumedValidationErrors';
+            $(targetId).empty();
+        }
+
+
+           $(document).on('click', '.save-item', function () {
+            const $row = $(this).closest('tr[data-index]');
+            const index = $row.data('index');
+            const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
+            const isProduced = prefix === 'ProducedItems';
+
+            clearClientErrors(prefix);
+
+            // اطلاعات دسته‌بندی، گروه، وضعیت، کالا
+            const categoryVal = $(`select[name="${prefix}[${index}].CategoryId"]`).val();
+            const categoryText = $(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+
+            const groupVal = $(`select[name="${prefix}[${index}].GroupId"]`).val();
+            const groupText = $(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+
+            const statusVal = $(`select[name="${prefix}[${index}].StatusId"]`).val();
+            const statusText = $(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+
+            const productVal = $(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const productText = $(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+
+            const quantity = $(`input[name="${prefix}[${index}].Quantity"]`).val();
+
+            const warehouseVal = $(`select[name="${prefix}[${index}].WarehouseId"]`).val();
+            const warehouseText = $(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
+
+            const zoneVal = $(`select[name="${prefix}[${index}].ZoneId"]`).val();
+            const zoneText = $(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
+
+            const sectionVal = $(`select[name="${prefix}[${index}].SectionId"]`).val();
+            const sectionText = $(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
+
+            // اعتبارسنجی
+            if (!productVal) return showClientError('لطفاً یک کالا انتخاب کنید.', prefix);
+            if (!quantity || quantity <= 0) return showClientError('لطفاً مقدار معتبر وارد کنید.', prefix);
+            if (!warehouseVal) return showClientError('لطفاً انبار را انتخاب کنید.', prefix);
+            if (!zoneVal) return showClientError('لطفاً قسمت را انتخاب کنید.', prefix);
+            if (!sectionVal) return showClientError('لطفاً بخش را انتخاب کنید.', prefix);
+
+            clearClientErrors(prefix);
+
+            // شناسه آکاردئون‌ها
+            const productCollapsePrefix = isProduced ? 'producedProductCollapse_' : 'productCollapse_';
+            const locationCollapsePrefix = isProduced ? 'producedLocationCollapse_' : 'locationCollapse_';
+
+            // بستن آکاردئون‌ها
+            const $productCollapse = $row.find(`.accordion-collapse[id^="${productCollapsePrefix}"]`);
+            bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+
+            const $locationCollapse = $row.find(`.accordion-collapse[id^="${locationCollapsePrefix}"]`);
+            bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]).hide();
+
+            // متن خلاصه برای هدرها
+            const productHeaderText = `${categoryText.trim()} - ${groupText.trim()} - ${statusText.trim()} - ${productText.trim()}`;
+            const locationHeaderText = `${warehouseText.trim()} - ${zoneText.trim()} - ${sectionText.trim()}`;
+
+            // به‌روزرسانی هدر آکاردئون کالا
+            const $productHeader = $row.find(`.accordion-button[data-bs-target^="#${productCollapsePrefix}"]`);
+            $productHeader.text(productHeaderText);
+
+            // به‌روزرسانی هدر آکاردئون محل نگهداری
+            const $locationHeader = $row.find(`.accordion-button[data-bs-target^="#${locationCollapsePrefix}"]`);
+            $locationHeader.text(locationHeaderText);
+        });
+
+
+
+
+
 
             $(document).on('click', '.remove-item', function () {
                 const $row = $(this).closest('tr');
@@ -522,5 +690,35 @@
                 initialValue: true
             });
         });
+
+                      $("#conversionForm").submit(function (e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: "POST",
+                url: $(this).attr("action"),
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        var printConfirm = confirm("سند با موفقیت ثبت شد.\nآیا مایل به چاپ سند هستید؟");
+
+                        if (printConfirm) {
+                            // هدایت در همان تب فعلی به صفحه چاپ
+                            window.location.href = '/WarehouseManagement/Conversion/Print/' + response.documentId;
+                        } else {
+                            // هدایت به صفحه فهرست (index)
+                            window.location.href = '/WarehouseManagement/Conversion/Index';
+                        }
+                    } else {
+                        alert("خطا:\n" + response.errors.join("\n"));
+                    }
+                },
+                error: function () {
+                    alert("خطا در ارسال درخواست.");
+                }
+            });
+        });
+
+
     </script>
 }

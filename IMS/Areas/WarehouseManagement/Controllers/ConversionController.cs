@@ -5,6 +5,8 @@ using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore.Options;
+using Rotativa.AspNetCore;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -24,6 +26,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         public async Task<IActionResult> Index()
         {
             var documents = await _conversionService.GetConversionDocumentsAsync();
+            ViewBag.CreatedDocumentId = TempData["CreatedDocumentId"];
+            ViewBag.SuccessMessage = TempData["SuccessMessage"];
             return View(documents); 
         }
 
@@ -111,7 +115,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ConsumedItems = new List<ConversionConsumedItemDto> { new ConversionConsumedItemDto() },
                 ProducedItems = new List<ConversionProducedItemDto> { new ConversionProducedItemDto() },
                 DateString = persianDateString,
-                DocumentNumber = await GetNextDocumentNumberAsync()
+                DocumentNumber = await _conversionService.GetNextConversionDocumentNumberAsync()
+
             };
 
             return View(model);
@@ -138,78 +143,66 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     }
                     catch
                     {
-                        ModelState.AddModelError(nameof(model.DateString), "تاریخ وارد شده معتبر نیست.");
+                        ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
                     }
                 }
                 else
                 {
-                    ModelState.AddModelError(nameof(model.DateString), "فرمت تاریخ صحیح نیست.");
+                    ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
                 }
             }
 
-
-            // بررسی وجود اقلام مصرفی
+            // بررسی وجود اقلام مصرفی و تولیدی
             if (model.ConsumedItems == null || !model.ConsumedItems.Any())
-            {
                 ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
-                await PopulateSelectListsAsync(model);
-                return View(model);
+
+            if (model.ProducedItems == null || !model.ProducedItems.Any())
+                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
+
+            // حذف فیلدهای فقط نمایشی از اعتبارسنجی
+            ModelState.Remove(nameof(model.Zones));
+            ModelState.Remove(nameof(model.Groups));
+            ModelState.Remove(nameof(model.Products));
+            ModelState.Remove(nameof(model.Sections));
+            ModelState.Remove(nameof(model.Statuses));
+            ModelState.Remove(nameof(model.Categories));
+            ModelState.Remove(nameof(model.Warehouses));
+
+            if (!ModelState.IsValid)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
-            // بررسی وجود اقلام تولیدی
-            if (model.ProducedItems == null || !model.ProducedItems.Any())
-            {
-                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
-                await PopulateSelectListsAsync(model);
-                return View(model);
-            }
-          
             try
             {
-                // فراخوانی سرویس برای ثبت سند تبدیل
-                int documentId = await _conversionService.ConvertAndRegisterDocumentAsync(
+                var (documentId, documentNumber) = await _conversionService.ConvertAndRegisterDocumentAsync(
                     model.ConsumedItems,
                     model.ProducedItems
                 );
 
-                // هدایت به صفحه جزئیات سند ثبت‌شده
-                return RedirectToAction("Index", new { id = documentId });
+                return Json(new
+                {
+                    success = true,
+                    documentId = documentId,
+                    documentNumber = documentNumber
+                });
             }
             catch (Exception ex)
             {
-                // در صورت بروز خطا، نمایش پیام خطا در فرم
-                ModelState.AddModelError(string.Empty, ex.Message);
-                await PopulateSelectListsAsync(model);
-                return View(model);
+                return Json(new
+                {
+                    success = false,
+                    errors = new[] { "خطا در ایجاد سند: " + ex.Message }
+                });
             }
         }
 
 
-        private async Task<string> GetNextDocumentNumberAsync()
-        {
-            // گرفتن شماره های موجود به صورت عددی (اگر رشته‌ای هستند ابتدا تبدیل می‌شوند)
-            var existingNumbers = await _warehouseDbContext.ReceiptOrIssues
-                .Select(r => r.DocumentNumber)
-                .ToListAsync();
 
-            var existingInts = existingNumbers
-                .Select(s => int.TryParse(s, out int n) ? n : 0)
-                .Where(n => n > 0)
-                .OrderBy(n => n)
-                .ToList();
-
-            // پیدا کردن کوچک‌ترین عدد مثبت که استفاده نشده (برای پر کردن جای خالی‌ها)
-            int nextNumber = 1;
-            foreach (var number in existingInts)
-            {
-                if (number == nextNumber)
-                    nextNumber++;
-                else if (number > nextNumber)
-                    break;
-            }
-
-            return nextNumber.ToString();
-        }
 
         private async Task PopulateSelectListsAsync(ConversionCreateViewModel model)
         {
@@ -318,6 +311,68 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return RedirectToAction("Index");
             }
         }
+        public IActionResult Print(int id)
+        {
+            var conversion = _warehouseDbContext.conversionDocuments.FirstOrDefault(d => d.Id == id);
+
+            if (conversion == null)
+                return NotFound();
+
+            // بارگذاری داده‌ها به صورت دیکشنری برای سرعت
+            var categories = _warehouseDbContext.Categories.ToDictionary(c => c.Id, c => c.Name);
+            var groups = _warehouseDbContext.Groups.ToDictionary(g => g.Id, g => g.Name);
+            var statuses = _warehouseDbContext.Statuses.ToDictionary(s => s.Id, s => s.Name);
+            var products = _warehouseDbContext.Products.ToDictionary(p => p.Id, p => p.Name);
+            var warehouses = _warehouseDbContext.Warehouses.ToDictionary(w => w.Id, w => w.Name);
+            var zones = _warehouseDbContext.StorageZones.ToDictionary(z => z.Id, z => z.Name);
+            var sections = _warehouseDbContext.StorageSections.ToDictionary(s => s.Id, s => s.Name);
+
+            var consumedItems = _warehouseDbContext.conversionConsumedItems
+                .Where(i => i.ConversionDocumentId == id)
+                .Select(i => new ConversionItemViewModel
+                {
+                    CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
+                    GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
+                    StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
+                    ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
+                    WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
+                    ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
+                    SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
+                    Quantity = i.Quantity
+                }).ToList();
+
+            var producedItems = _warehouseDbContext.conversionProducedItems
+                .Where(i => i.ConversionDocumentId == id)
+                .Select(i => new ConversionItemViewModel
+                {
+                    CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
+                    GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
+                    StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
+                    ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
+                    WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
+                    ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
+                    SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
+                    Quantity = i.Quantity
+                }).ToList();
+
+            var viewModel = new ConversionPrintViewModel
+            {
+                DocumentNumber = conversion.DocumentNumber,
+                CreatedAt = conversion.CreatedAt,
+                ConsumedItems = consumedItems,
+                ProducedItems = producedItems
+            };
+
+            return new ViewAsPdf("Print", viewModel)
+            {
+                FileName = $"Conversion_{id}.pdf",
+                PageSize = Size.A4,
+                PageOrientation = Orientation.Portrait,
+                CustomSwitches = "--disable-smart-shrinking"
+            };
+        }
+
+
 
 
 

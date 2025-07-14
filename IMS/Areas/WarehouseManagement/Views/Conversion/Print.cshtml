@@ -1,0 +1,78 @@
+﻿@model IMS.Models.ProMan.ConversionPrintViewModel
+
+@{
+    Layout = null;
+
+    string FormatItem(string category, string group, string status, string product)
+    {
+        return string.Join(" / ", new[] { category ?? "—", group ?? "—", status ?? "—", product ?? "—" });
+    }
+
+    string FormatLocation(string warehouse, string zone, string section)
+    {
+        return string.Join(" / ", new[] { warehouse ?? "—", zone ?? "—", section ?? "—" });
+    }
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>چاپ سند تبدیل</title>
+    <link href="~/css/PrintCreateIssueAndRecept.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="header-info">
+        <div class="info-item">
+            <span class="info-label">شماره سند:</span>
+            <span class="info-value">@Model.DocumentNumber</span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">تاریخ:</span>
+            <span class="info-value">@Model.CreatedAt.ToString("yyyy/MM/dd")</span>
+        </div>
+    </div>
+
+    <h4 class="section-title">اقلام مصرفی</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>کالا</th>
+                <th>محل نگهداری</th>
+                <th>تعداد</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ConsumedItems)
+            {
+                <tr>
+                    <td>@FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName)</td>
+                    <td>@FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName)</td>
+                    <td>@item.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4 class="section-title">اقلام تولیدی</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>کالا</th>
+                <th>محل نگهداری</th>
+                <th>تعداد</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.ProducedItems)
+            {
+                <tr>
+                    <td>@FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName)</td>
+                    <td>@FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName)</td>
+                    <td>@item.Quantity</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>
