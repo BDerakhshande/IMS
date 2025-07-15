@@ -395,7 +395,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             var model = new ConversionCreateViewModel
             {
-                
+                DocumentId = document.Id,
                 DocumentNumber = document.DocumentNumber,
                 Date = document.CreatedAt,
                 DateString = persianDate,
@@ -433,67 +433,26 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ConversionCreateViewModel model)
         {
-            // تبدیل تاریخ شمسی به میلادی
-            if (!string.IsNullOrEmpty(model.DateString))
+           
+
+            if (!model.DocumentId.HasValue)
             {
-                var parts = model.DateString.Split('/');
-                if (parts.Length == 3 &&
-                    int.TryParse(parts[0], out int year) &&
-                    int.TryParse(parts[1], out int month) &&
-                    int.TryParse(parts[2], out int day))
-                {
-                    try
-                    {
-                        PersianCalendar pc = new PersianCalendar();
-                        model.Date = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
-                    }
-                    catch
-                    {
-                        ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
-                }
-            }
-
-            if (model.ConsumedItems == null || !model.ConsumedItems.Any())
-                ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
-
-            if (model.ProducedItems == null || !model.ProducedItems.Any())
-                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
-
-            ModelState.Remove(nameof(model.Zones));
-            ModelState.Remove(nameof(model.Groups));
-            ModelState.Remove(nameof(model.Products));
-            ModelState.Remove(nameof(model.Sections));
-            ModelState.Remove(nameof(model.Statuses));
-            ModelState.Remove(nameof(model.Categories));
-            ModelState.Remove(nameof(model.Warehouses));
-
-            if (!ModelState.IsValid)
-            {
-                await PopulateSelectListsAsync(model);
-                return View("Edit", model);
+                return Json(new { success = false, errors = new[] { "شناسه سند معتبر نیست." } });
             }
 
             try
             {
                 var (documentId, documentNumber) = await _conversionService.UpdateConversionDocumentAsync(
-                    model.DocumentId!.Value,
+                    model.DocumentId.Value,
                     model.ConsumedItems,
                     model.ProducedItems,
                     CancellationToken.None);
 
-                TempData["SuccessMessage"] = $"سند با شماره {documentNumber} با موفقیت ویرایش شد.";
-                return RedirectToAction("Index");
+                return Json(new { success = true, documentId });
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, $"خطا در ویرایش سند: {ex.Message}");
-                await PopulateSelectListsAsync(model);
-                return View("Edit", model);
+                return Json(new { success = false, errors = new[] { "خطا در ویرایش سند: " + ex.Message } });
             }
         }
 

@@ -125,7 +125,7 @@
                                     </div>
                                 </td>
                                 <td style="width: 120px;">
-                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner"/>
+                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner" />
                                     <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1"></span>
                                 </td>
                                 <td>
@@ -264,7 +264,7 @@
 <link href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
 
 <style>
-   
+
 
 </style>
 
@@ -272,15 +272,15 @@
 
 
 @section Scripts {
-    
+
 
     <script>
-               
-        
+
+
         // ارسال داده‌های ViewBag به JS به صورت JSON
         const categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories));
-		const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
-		const statuses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Statuses));
+        const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
+        const statuses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Statuses));
         const products = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Products));
         const warehouses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses));
         const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
@@ -600,8 +600,8 @@
         });
 
 
-   
-           
+
+
 
 
 
@@ -616,7 +616,7 @@
             let index = $this.data('index');
             let categoryId = $this.val();
 
-            
+
 
             let groupSelect = $(`select[name="Items[${index}].GroupId"]`);
             let statusSelect = $(`select[name="Items[${index}].StatusId"]`);
@@ -842,19 +842,19 @@
         });
 
 
-        $(document).on('click', '.save-item', function () {
+                $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]');
             const index = $row.data('index');
-            const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
+            const prefix = 'Items';  // نام prefix ثابت و بدون شرط
 
-            // استخراج مقادیر
+            // استخراج مقادیر ورودی مبدا (Source)
             const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
             const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
-            const warehouseId = $row.find(`select[name="${prefix}[${index}].WarehouseId"]`).val();
-            const zoneId = $row.find(`select[name="${prefix}[${index}].ZoneId"]`).val();
-            const sectionId = $row.find(`select[name="${prefix}[${index}].SectionId"]`).val();
+            const warehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
+            const zoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
+            const sectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
 
-            // اعتبارسنجی
+            // اعتبارسنجی فیلدها
             let errorMessages = [];
             if (!productId) errorMessages.push("کالا انتخاب نشده است.");
             if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
@@ -874,7 +874,7 @@
                 $errorRow.hide();
             }
 
-            // 🟦 دریافت متن‌های خلاصه برای کالا
+            // دریافت متن‌های خلاصه برای کالا
             const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
             const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
             const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
@@ -882,24 +882,38 @@
 
             const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
 
-            // 🟩 خلاصه مکان نگهداری
-            const warehouseText = $row.find(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
-            const zoneText = $row.find(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
-            const sectionText = $row.find(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
+            // دریافت متن‌های خلاصه برای مکان مبدا (Source)
+            const warehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
+            const zoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
+            const sectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
 
             const locationSummary = `${warehouseText} / ${zoneText} / ${sectionText}`;
 
-            // 🟦 بستن آکاردئون‌ها و درج خلاصه‌ها
-            const $productHeader = $row.find(`#productCollapse_${index}`).prev('.accordion-header');
+            // بستن آکاردئون کالا و درج خلاصه متن
             const $productCollapse = $row.find(`#productCollapse_${index}`);
-            $productHeader.find('.accordion-button').html(productSummary);
+            const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
+            $productHeader.html(productSummary);
             bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
 
-            const $locationHeader = $row.find(`#locationCollapse_${index}`).prev('.accordion-header');
-            const $locationCollapse = $row.find(`#locationCollapse_${index}`);
-            $locationHeader.find('.accordion-button').html(locationSummary);
-            bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]).hide();
+            // بستن آکاردئون مکان مبدا و درج خلاصه متن
+            const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
+            const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
+            $sourceHeader.html(locationSummary);
+            bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
+
+           
+            const warehouseTextDest = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
+            const zoneTextDest = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
+            const sectionTextDest = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
+            const locationSummaryDest = `${warehouseTextDest} / ${zoneTextDest} / ${sectionTextDest}`;
+
+            const $destCollapse = $row.find(`#destCollapse_${index}`);
+            const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
+            $destHeader.html(locationSummaryDest);
+            bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
+          
         });
+
 
 
 
@@ -934,6 +948,6 @@
                 }
             });
         });
-       
+
     </script>
 }
