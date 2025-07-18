@@ -1,0 +1,198 @@
+﻿@{
+    ViewData["Title"] = "گزارش گردش موجودی";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // مسیر Layout خودتان را تنظیم کنید
+}
+
+<h2>گزارش گردش موجودی</h2>
+
+<div class="card p-3 mb-4">
+    <form id="filterForm" class="row g-3">
+        <div class="col-md-3">
+            <label for="WarehouseId" class="form-label">انبار</label>
+            <select id="WarehouseId" name="WarehouseId" class="form-select" required>
+                <option value="">انتخاب کنید</option>
+             
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="ZoneId" class="form-label">زون</label>
+            <select id="ZoneId" name="ZoneId" class="form-select">
+                <option value="">انتخاب کنید</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="SectionId" class="form-label">بخش</label>
+            <select id="SectionId" name="SectionId" class="form-select">
+                <option value="">انتخاب کنید</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="FromDate" class="form-label">از تاریخ</label>
+            <input type="date" id="FromDate" name="FromDate" class="form-control" required />
+        </div>
+        <div class="col-md-3">
+            <label for="ToDate" class="form-label">تا تاریخ</label>
+            <input type="date" id="ToDate" name="ToDate" class="form-control" required />
+        </div>
+        <div class="col-md-12">
+            <button type="submit" class="btn btn-primary mt-3">نمایش گزارش</button>
+        </div>
+    </form>
+</div>
+
+<div id="resultArea" style="display:none;">
+    <h4>نتایج گزارش</h4>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>انبار</th>
+                <th>زون</th>
+                <th>بخش</th>
+                <th>کالا</th>
+                <th>دسته‌بندی</th>
+                <th>گروه</th>
+                <th>وضعیت</th>
+                <th>موجودی اولیه</th>
+                <th>ورودی</th>
+                <th>خروجی</th>
+                <th>موجودی نهایی</th>
+            </tr>
+        </thead>
+        <tbody id="resultBody">
+            <!-- نتایج اینجا بارگذاری می‌شوند -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+
+            // 🟢 بارگذاری خودکار لیست انبارها
+            $.ajax({
+                url: '@Url.Action("GetWarehouses", "InventoryTurnover", new { area = "WarehouseManagement" })',
+                type: 'GET',
+                success: function (warehouses) {
+                    var options = '<option value="">انتخاب کنید</option>';
+                    warehouses.forEach(function (w) {
+                        options += `<option value="${w.value}">${w.text}</option>`;
+                    });
+                    $('#WarehouseId').html(options);
+                },
+                error: function () {
+                    $('#WarehouseId').html('<option value="">خطا در بارگذاری انبارها</option>');
+                }
+            });
+
+            // 🔄 وقتی انبار تغییر کرد، زون‌ها بارگذاری شوند
+            $('#WarehouseId').change(function () {
+                var warehouseId = $(this).val();
+                $('#ZoneId').empty().append('<option value="">در حال بارگذاری...</option>');
+                $('#SectionId').empty().append('<option value="">ابتدا زون را انتخاب کنید</option>');
+
+                if (!warehouseId) {
+                    $('#ZoneId').html('<option value="">انتخاب کنید</option>');
+                    $('#SectionId').html('<option value="">انتخاب کنید</option>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetZones", "InventoryTurnover", new { area = "WarehouseManagement" })',
+                    type: 'GET',
+                    data: { warehouseId: warehouseId },
+                    success: function (zones) {
+                        var options = '<option value="">انتخاب کنید</option>';
+                        zones.forEach(function (zone) {
+                            options += `<option value="${zone.value}">${zone.text}</option>`;
+                        });
+                        $('#ZoneId').html(options);
+                        $('#SectionId').html('<option value="">ابتدا زون را انتخاب کنید</option>');
+                    },
+                    error: function () {
+                        $('#ZoneId').html('<option value="">خطا در بارگذاری زون‌ها</option>');
+                    }
+                });
+            });
+
+            // 🔄 وقتی زون تغییر کرد، بخش‌ها بارگذاری شوند
+            $('#ZoneId').change(function () {
+                var zoneId = $(this).val();
+                $('#SectionId').empty().append('<option value="">در حال بارگذاری...</option>');
+
+                if (!zoneId) {
+                    $('#SectionId').html('<option value="">انتخاب کنید</option>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetSections", "InventoryTurnover", new { area = "WarehouseManagement" })',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify([parseInt(zoneId)]),
+                    success: function (sections) {
+                        var options = '<option value="">انتخاب کنید</option>';
+                        sections.forEach(function (section) {
+                            options += `<option value="${section.value}">${section.text}</option>`;
+                        });
+                        $('#SectionId').html(options);
+                    },
+                    error: function () {
+                        $('#SectionId').html('<option value="">خطا در بارگذاری بخش‌ها</option>');
+                    }
+                });
+            });
+
+            // 📤 ارسال فرم فیلتر و دریافت گزارش
+            $('#filterForm').submit(function (e) {
+                e.preventDefault();
+
+                var filter = {
+                    WarehouseId: parseInt($('#WarehouseId').val()),
+                    ZoneId: $('#ZoneId').val() ? parseInt($('#ZoneId').val()) : null,
+                    SectionId: $('#SectionId').val() ? parseInt($('#SectionId').val()) : null,
+                    FromDate: $('#FromDate').val(),
+                    ToDate: $('#ToDate').val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("GetInventoryTurnover", "InventoryTurnover", new { area = "WarehouseManagement" })',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(filter),
+                    success: function (data) {
+                        $('#resultBody').empty();
+
+                        if (data.length === 0) {
+                            $('#resultBody').append('<tr><td colspan="11" class="text-center">هیچ داده‌ای یافت نشد.</td></tr>');
+                        } else {
+                            data.forEach(function (item) {
+                                var closingQuantity = item.openingQuantity + item.totalIn - item.totalOut;
+
+                                var row = '<tr>' +
+                                    '<td>' + (item.warehouseName ?? '') + '</td>' +
+                                    '<td>' + (item.zoneName ?? '') + '</td>' +
+                                    '<td>' + (item.sectionName ?? '') + '</td>' +
+                                    '<td>' + (item.productName ?? '') + '</td>' +
+                                    '<td>' + (item.categoryName ?? '') + '</td>' +
+                                    '<td>' + (item.groupName ?? '') + '</td>' +
+                                    '<td>' + (item.statusName ?? '') + '</td>' +
+                                    '<td class="text-end">' + item.openingQuantity.toFixed(2) + '</td>' +
+                                    '<td class="text-end">' + item.totalIn.toFixed(2) + '</td>' +
+                                    '<td class="text-end">' + item.totalOut.toFixed(2) + '</td>' +
+                                    '<td class="text-end">' + closingQuantity.toFixed(2) + '</td>' +
+                                    '</tr>';
+                                $('#resultBody').append(row);
+                            });
+                        }
+
+                        $('#resultArea').show();
+                    },
+                    error: function (xhr) {
+                        alert('خطا در دریافت داده‌ها: ' + xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+}

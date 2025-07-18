@@ -19,75 +19,94 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
-            var query = _dbContext.Inventories
-                .Include(i => i.Warehouse)
-                .Include(i => i.Zone)
-                .Include(i => i.Section)
-                .Include(i => i.Product)
-                    .ThenInclude(p => p.Status)
-                        .ThenInclude(s => s.Group)
-                            .ThenInclude(g => g.Category)
-                .AsQueryable();
+            var query = from i in _dbContext.Inventories
+                        join p in _dbContext.Products on i.ProductId equals p.Id
+                        join s in _dbContext.Statuses on p.StatusId equals s.Id
+                        join g in _dbContext.Groups on s.GroupId equals g.Id
+                        join c in _dbContext.Categories on g.CategoryId equals c.Id
+                        join w in _dbContext.Warehouses on i.WarehouseId equals w.Id
+                        join z in _dbContext.StorageZones on i.ZoneId equals z.Id into zoneJoin
+                        from z in zoneJoin.DefaultIfEmpty()
+                        join sec in _dbContext.StorageSections on i.SectionId equals sec.Id into sectionJoin
+                        from sec in sectionJoin.DefaultIfEmpty()
+                        select new
+                        {
+                            Inventory = i,
+                            Product = p,
+                            Status = s,
+                            Group = g,
+                            Category = c,
+                            Warehouse = w,
+                            Zone = z,
+                            Section = sec
+                        };
 
-            if (filter.Warehouses?.Any() == true)
+            // فقط اگر انبار مشخص شده باشد فیلتر کن
+            if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
-                var warehouseIds = filter.Warehouses.Select(w => w.WarehouseId).ToList();
-                query = query.Where(i => warehouseIds.Contains(i.WarehouseId));
+                var warehouseIds = filter.Warehouses
+                    .Where(w => w.WarehouseId > 0)
+                    .Select(w => w.WarehouseId)
+                    .ToList();
+
+                query = query.Where(x => warehouseIds.Contains(x.Inventory.WarehouseId));
             }
 
+            // فیلترهای سلسله‌مراتب کالا
             if (filter.CategoryId.HasValue)
-                query = query.Where(i => i.Product.Status.Group.CategoryId == filter.CategoryId.Value);
+                query = query.Where(x => x.Category.Id == filter.CategoryId.Value);
 
             if (filter.GroupId.HasValue)
-                query = query.Where(i => i.Product.Status.GroupId == filter.GroupId.Value);
+                query = query.Where(x => x.Group.Id == filter.GroupId.Value);
 
             if (filter.StatusId.HasValue)
-                query = query.Where(i => i.Product.StatusId == filter.StatusId.Value);
+                query = query.Where(x => x.Status.Id == filter.StatusId.Value);
 
             if (filter.ProductId.HasValue)
-                query = query.Where(i => i.ProductId == filter.ProductId.Value);
-
-            if (filter.MinQuantity.HasValue)
-                query = query.Where(i => i.Quantity >= filter.MinQuantity.Value);
-
-            if (filter.MaxQuantity.HasValue)
-                query = query.Where(i => i.Quantity <= filter.MaxQuantity.Value);
+                query = query.Where(x => x.Product.Id == filter.ProductId.Value);
 
             if (!string.IsNullOrWhiteSpace(filter.ProductSearch))
             {
-                query = query.Where(i => i.Product.Name.Contains(filter.ProductSearch));
+                var search = filter.ProductSearch.Trim();
+                query = query.Where(x => x.Product.Name.Contains(search));
             }
+
+            if (filter.MinQuantity.HasValue)
+                query = query.Where(x => x.Inventory.Quantity >= filter.MinQuantity.Value);
+
+            if (filter.MaxQuantity.HasValue)
+                query = query.Where(x => x.Inventory.Quantity <= filter.MaxQuantity.Value);
 
             var list = await query.ToListAsync();
 
-            // فیلتر نهایی براساس Zone و Section در حافظه
-            if (filter.Warehouses?.Any() == true)
+            // فیلتر Zone و Section فقط اگر WarehouseId مشخص شده باشد
+            if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 list = list.Where(i =>
                     filter.Warehouses.Any(w =>
-                        w.WarehouseId == i.WarehouseId &&
-                        (w.ZoneIds == null || w.ZoneIds.Count == 0 || (i.ZoneId != null && w.ZoneIds.Contains(i.ZoneId.Value))) &&
-                        (w.SectionIds == null || w.SectionIds.Count == 0 || (i.SectionId != null && w.SectionIds.Contains(i.SectionId.Value)))
-                    )).ToList();
+                        w.WarehouseId == i.Inventory.WarehouseId &&
+                        (w.ZoneIds == null || w.ZoneIds.Count == 0 || (i.Inventory.ZoneId != null && w.ZoneIds.Contains(i.Inventory.ZoneId.Value))) &&
+                        (w.SectionIds == null || w.SectionIds.Count == 0 || (i.Inventory.SectionId != null && w.SectionIds.Contains(i.Inventory.SectionId.Value)))
+                    )
+                ).ToList();
             }
 
-            // حالا گروه‌بندی و جمع مقدار Quantity
             var groupedResults = list
                 .GroupBy(i => new
                 {
-                    i.WarehouseId,
+                    i.Inventory.WarehouseId,
                     WarehouseName = i.Warehouse.Name,
-                    ZoneId = i.ZoneId,
+                    ZoneId = i.Inventory.ZoneId,
                     ZoneName = i.Zone?.Name,
-                    SectionId = i.SectionId,
+                    SectionId = i.Inventory.SectionId,
                     SectionName = i.Section?.Name,
-                    CategoryId = i.Product.Status.Group.CategoryId,
-                    CategoryName = i.Product.Status.Group.Category.Name,
-                    GroupId = i.Product.Status.GroupId,
-                    GroupName = i.Product.Status.Group.Name,
-                    StatusId = i.Product.StatusId,
-                    StatusName = i.Product.Status.Name,
-                    ProductId = i.ProductId,
+                    CategoryId = i.Category.Id,
+                    CategoryName = i.Category.Name,
+                    GroupId = i.Group.Id,
+                    GroupName = i.Group.Name,
+                    StatusId = i.Status.Id,
+                    StatusName = i.Status.Name,
+                    ProductId = i.Product.Id,
                     ProductName = i.Product.Name
                 })
                 .Select(g => new InventoryReportResultDto
@@ -99,14 +118,12 @@ namespace IMS.Application.WarehouseManagement.Services
                     GroupName = g.Key.GroupName,
                     StatusName = g.Key.StatusName,
                     ProductName = g.Key.ProductName,
-                    Quantity = g.Sum(x => x.Quantity)
+                    Quantity = g.Sum(x => x.Inventory.Quantity)
                 })
                 .ToList();
 
             return groupedResults;
         }
-
-
 
 
 

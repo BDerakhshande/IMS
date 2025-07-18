@@ -49,6 +49,7 @@ builder.Services.AddScoped<IConversionService, ConversionService>();
 
 builder.Services.AddScoped<IApplicationDbContext,ProjectManagementDbContext>();
 builder.Services.AddScoped<IWarehouseDbContext, WarehouseDbContext>();
+builder.Services.AddScoped<IInventoryTurnoverService, InventoryTurnoverService>();
 
 builder.Services.AddAutoMapper(typeof(WarehouseMappingProfile));
 

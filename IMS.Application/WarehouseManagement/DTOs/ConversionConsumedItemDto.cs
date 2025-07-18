@@ -17,6 +17,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
 
         public int ProductId { get; set; }
+
         public decimal Quantity { get; set; }
         public int WarehouseId { get; set; }
         public int ZoneId { get; set; }

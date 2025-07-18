@@ -25,6 +25,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string DocumentType { get; set; }
         public string DocumentNumber { get; set; }
         public decimal Quantity { get; set; }
+
+        public string? ConversionType { get; set; }  
     }
 
 }

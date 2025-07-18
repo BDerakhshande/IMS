@@ -183,47 +183,58 @@
         </form>
     </div>
 </div>
-@if (Model.Items != null && Model.Items.Any())
+@if (Model?.Items != null && Model.Items.Any())
 {
-    <div id="reportResults">
-        <div class="card mt-4">
-            <div class="card-header bg-light">
-                <h5 class="mb-0">نتایج گزارش</h5>
+    <div id="reportResults" class="mt-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-boxes me-2"></i>گزارش موجودی انبار
+                    </h5>
+                    <span class="badge bg-light text-dark fs-6">
+                        مجموع: @(ViewBag.TotalQuantity != null ? ((int)ViewBag.TotalQuantity).ToString("N0") : "0")
+                    </span>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead>
-                            <tr class="table-primary">
-                                <th>انبار</th>
-                                <th>منطقه</th>
-                                <th>بخش</th>
-                                <th>دسته‌بندی</th>
-                                <th>گروه</th>
-                                <th>وضعیت</th>
-                                <th>کالا</th>
-                                <th class="text-end">موجودی</th>
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" width="30%" class="text-start ps-4">محل نگهداری</th>
+                                <th scope="col" width="50%" class="text-start">کالا</th>
+                                <th scope="col" width="20%" class="text-end pe-4">موجودی</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model.Items)
                             {
-                                <tr>
-                                    <td>@item.WarehouseName</td>
-                                    <td>@(item.ZoneName ?? "-")</td>
-                                    <td>@(item.SectionName ?? "-")</td>
-                                    <td>@item.CategoryName</td>
-                                    <td>@item.GroupName</td>
-                                    <td>@item.StatusName</td>
-                                    <td>@item.ProductName</td>
-                                    <td class="text-end">@item.Quantity.ToString("N0")</td>
+                                <tr class="align-middle">
+                                    <td class="text-start ps-4" title="@($"{item.WarehouseName} - {item.ZoneName ?? "-"} - {item.SectionName ?? "-"}")">
+                                        <div class="text-muted small">
+                                            @if (!string.IsNullOrEmpty(item.ZoneName) || !string.IsNullOrEmpty(item.SectionName))
+                                            {
+                                                <span>@item.WarehouseName - @(item.ZoneName ?? "-") - @(item.SectionName ?? "-")</span>
+                                            }
+                                            else
+                                            {
+                                                <span>موقعیت نامشخص</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="text-start">
+                                        <div class="text-muted small">
+                                            @item.CategoryName - @item.GroupName - @item.StatusName - @item.ProductName
+                                        </div>
+                                    </td>
+                                    <td class="text-end pe-4 fw-bold">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary fs-6">
+                                            @((item.Quantity).ToString("N0"))
+                                        </span>
+                                    </td>
                                 </tr>
                             }
-
-                            <tr class="table-primary fw-bold">
-                                <td colspan="7" class="text-end">مجموع کل موجودی</td>
-                                <td class="text-end">@ViewBag.TotalQuantity.ToString("N0")</td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -231,12 +242,26 @@
         </div>
     </div>
 }
-else if (Model.Items != null)
+else if (Model?.Items != null)
 {
-    <div class="alert alert-info mt-4 text-center">
-        <i class="fas fa-info-circle me-2"></i> هیچ موردی برای نمایش وجود ندارد.
+    <div class="alert alert-info mt-4 text-center py-3">
+        <i class="fas fa-box-open fa-2x mb-3 d-block"></i>
+        <h5 class="fw-semibold">موردی برای نمایش وجود ندارد</h5>
+        <p class="text-muted mb-0">هیچ آیتمی با فیلترهای انتخاب شده یافت نشد.</p>
     </div>
 }
+else
+{
+    <div class="alert alert-warning mt-4 text-center py-3">
+        <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+        <h5 class="fw-semibold">داده‌ای دریافت نشد</h5>
+        <p class="text-muted mb-0">خطا در بارگذاری داده‌ها.</p>
+    </div>
+}
+
+
+
+
 
 
 @section Scripts {

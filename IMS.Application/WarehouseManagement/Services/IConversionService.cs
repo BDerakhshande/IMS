@@ -9,14 +9,18 @@ namespace IMS.Application.WarehouseManagement.Services
 {
     public interface IConversionService
     {
-        Task<int> ConvertAndRegisterDocumentAsync(
-    List<ConversionConsumedItemDto> consumedItems,
-    List<ConversionProducedItemDto> producedItems);
+        Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
+      List<ConversionConsumedItemDto> consumedItems,
+      List<ConversionProducedItemDto> producedItems);
 
         Task<bool> DeleteConversionDocumentAsync(int documentId);
-
+        Task<string> GetNextConversionDocumentNumberAsync();
         Task<List<ConversionDocumentDto>> GetConversionDocumentsAsync();
 
-
+        Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
+        int documentId,
+        List<ConversionConsumedItemDto> consumedItems,
+        List<ConversionProducedItemDto> producedItems,
+        CancellationToken cancellationToken = default);
     }
 }
