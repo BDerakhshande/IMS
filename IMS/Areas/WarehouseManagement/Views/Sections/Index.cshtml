@@ -6,12 +6,20 @@
     var warehouseId = ViewBag.WarehouseId;
 }
 
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Sections.css"/>
+
+<div class="header-sidebar-wrapper">
+@await Html.PartialAsync("_Sidebar")
+
 
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
             <div class="card card-primary border-0 shadow">
-                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+                <div class="card-header bg-custom-dark py-3 d-flex justify-content-between align-items-center">
                     <div>
                         <h4 class="mb-0 text-white">
                             <i class="fas fa-layer-group me-2"></i>@ViewData["Title"]
@@ -63,7 +71,7 @@
                                             <td class="fw-bold">@sec.FullCode</td>
                                             <td>@sec.Name</td>
                                             <td>
-                                                <span class="badge bg-primary rounded-pill">@sec.Capacity</span>
+                                                    <span class="badge badge-capacity rounded-pill">@sec.Capacity</span>
                                             </td>
                                             <td>@sec.Dimensions</td>
                                             <td>
@@ -72,14 +80,14 @@
                                                        asp-controller="Sections"
                                                        asp-route-id="@sec.Id"
                                                        class="btn btn-sm btn-outline-warning">
-                                                        <i class="fas fa-edit me-1"></i> ویرایش
+                                                        <i class="fas fa-edit me-1"></i>
                                                     </a>
 
                                                     <button type="button"
                                                             class="btn btn-sm btn-outline-danger"
                                                             data-bs-toggle="modal"
                                                             data-bs-target="#deleteModal-@sec.Id">
-                                                        <i class="fas fa-trash-alt me-1"></i> حذف
+                                                        <i class="fas fa-trash-alt me-1"></i> 
                                                     </button>
                                                 </div>
                                                 <!-- Modal for Delete Confirmation -->
@@ -151,49 +159,21 @@
         </div>
     </div>
 </div>
-
-
-    <style>
-        .table {
-            font-size: 0.9rem;
-        text-align: center;
-        }
-
-            .table th {
-                font-weight: 600;
-                white-space: nowrap;
-                background-color: #f8f9fa;
-            }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.05);
-        }
-
-        .badge {
-            padding: 0.5em 0.75em;
-            font-weight: 500;
-        }
-
-        .modal-header {
-            border-bottom: none;
-        }
-
-        .modal-footer {
-            border-top: none;
-            justify-content: flex-start;
-        }
-
-        .card-footer {
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-    </style>
-
+</div>
 
 @section Scripts {
+    <script src="~/js/management.js"></script>
     <script>
         // فعال سازی tooltip برای دکمه‌ها
         $(document).ready(function(){
             $('[data-bs-toggle="tooltip"]').tooltip();
+
+            $('tbody tr[data-url]').on('click', function (e) {
+                if ($(e.target).closest('a, button').length === 0) {
+                    window.location.href = $(this).data('url');
+                }
+            });
         });
+
     </script>
 }

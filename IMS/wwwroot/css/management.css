@@ -1,19 +1,27 @@
-﻿body {
+﻿:root {
+    --primary-color: #0d2b36;
+    --secondary-color: #14857b;
+    --accent-color: #1aada2;
+    --text-color: #ecf0f1;
+    --light-text: #f8f9fa;
+    --border-color: #2a4a54;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body{
     font-family: Vazirmatn, sans-serif;
     margin: 0;
     padding: 0;
     transition: background-color 0.3s, color 0.3s;
 }
-
-    body.dark-mode {
-        background-color: var(#1a4a5a);
-        color: #fff;
-    }
+body.dark-mode {
+    background-color: #0d2b36 !important;
+}
 
 .toggle-btn {
     position: fixed;
     right: 8px;
-    top: 19px;
+    top: 17px;
     background: white;
     color: #1a4a5a;
     border: none;
@@ -37,15 +45,15 @@
     position: fixed;
     right: -10px;
     top: 0;
-    height: 100vh; /* از زیر هدر تا بالای فوتر */
+    height: 100vh;
     width: 70px;
     padding: 20px 0;
-    background-color: #1a4a5a;
+    background-color: var( --primary-color) !important;
     color: white;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease, height 0.3s ease;
+    transition: all 0.3s ease;
     z-index: 900;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -68,11 +76,13 @@
     height: 50px;
     margin-right: 40px;
     transition: opacity 0.3s ease;
+    position: relative;
+    top: -4px !important;
 }
 
-    .sidebar.expanded {
-        width: 200px;
-    }
+.sidebar.expanded {
+    width: 200px;
+}
 
 .dark-mode .sidebar {
     background-color: white;
@@ -109,7 +119,6 @@
         font-size: 1.4rem;
         min-width: 30px;
         text-align: center;
-
     }
 
     .menu-item span,
@@ -165,10 +174,17 @@
     flex-direction: row-reverse;
 }
 
-.sidebar.expanded .submenu.open .submenu-item {
+.sidebar.expanded .submenu.open .submenu-item,
+.sidebar:not(.expanded) .submenu .submenu-item {
     opacity: 1;
     transform: translateX(0);
 }
+
+.submenu-flyout a:hover {
+    background-color: #4fd1c5;
+    color: white;
+}
+
 
 .submenu-item:hover {
     color: #4fd1c5;
@@ -176,6 +192,11 @@
 
 .dark-mode .menu-item,
 .dark-mode .submenu-item {
+    color: #1a4a5a;
+}
+
+.dark-mode .sidebar:not(.expanded) .submenu {
+    background-color: white;
     color: #1a4a5a;
 }
 

@@ -4,198 +4,171 @@
     ViewData["Title"] = "مدیریت انبارها";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Warehouses.css"/>
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
-                    </h4>
-                    <a asp-action="Create" asp-controller="Warehouses" class="btn btn-light btn-sm">
-                        <i class="fas fa-plus me-1"></i> افزودن انبار جدید
-                    </a>
-                </div>
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
-                        <i class="fas fa-check-circle me-2"></i>
-                        @TempData["SuccessMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<div class="header-sidebar-wrapper">
+@await Html.PartialAsync("_Sidebar")
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary border-0 shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-white">
+                            <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
+                        </h4>
+                        <a asp-action="Create" asp-controller="Warehouses" class="btn btn-light btn-sm">
+                            <i class="fas fa-plus me-1"></i> افزودن انبار جدید
+                        </a>
                     </div>
-                }
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        @TempData["ErrorMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                }
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped table-bordered">
-                            <thead class="table-primary">
-                                <tr>
-                                    <th class="text-center">کد انبار</th>
-                                    <th class="text-center">نام انبار</th>
-                                    <th class="text-center">موقعیت</th>
-                                    <th class="text-center">مدیر</th>
-                                    <th class="text-center">وضعیت</th>
-                                    <th class="text-center">قسمت‌ها</th>
-                                    <th class="text-center">عملیات</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var warehouse in Model)
-                                {
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show m-3" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show m-3" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped table-bordered">
+                                <thead class="table-primary">
                                     <tr>
-                                        <td class="fw-bold">@warehouse.DisplayCode</td>
-                                        <td>@warehouse.Name</td>
-                                        <td>@warehouse.Location</td>
-                                        <td>@warehouse.Manager</td>
-                                        <td>
-                                            <span class="badge rounded-pill @(warehouse.IsActive ? "bg-success" : "bg-secondary")">
-                                                <i class="fas @(warehouse.IsActive ? "fa-check-circle" : "fa-times-circle") me-1"></i>
-                                                @(warehouse.IsActive ? "فعال" : "غیرفعال")
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a asp-area="WarehouseManagement"
-                                               asp-controller="Zones"
-                                               asp-action="Index"
-                                               asp-route-id="@warehouse.Id"
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-sitemap me-1"></i> مدیریت قسمت‌ها
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-2">
-                                                <a asp-action="Edit"
-                                                   asp-controller="Warehouses"
-                                                   asp-area="WarehouseManagement"
-                                                   asp-route-id="@warehouse.Id"
-                                                   class="btn btn-sm btn-outline-warning">
-                                                    <i class="fas fa-edit me-1"></i> ویرایش
-                                                </a>
+                                        <th class="text-center">کد انبار</th>
+                                        <th class="text-center">نام انبار</th>
+                                        <th class="text-center">موقعیت</th>
+                                        <th class="text-center">مدیر</th>
+                                        <th class="text-center">وضعیت</th>
+                                        <th class="text-center">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var warehouse in Model)
+                                    {
+                                        <tr data-url="@Url.Action("Index", "Zones", new { area = "WarehouseManagement", id = warehouse.Id })" style="cursor: pointer;">
+                                            <td class="fw-bold">@warehouse.DisplayCode</td>
+                                            <td>@warehouse.Name</td>
+                                            <td>@warehouse.Location</td>
+                                            <td>@warehouse.Manager</td>
+                                            <td>
+                                                <span class="badge rounded-pill @(warehouse.IsActive ? "bg-success" : "bg-secondary")">
+                                                    <i class="fas @(warehouse.IsActive ? "fa-check-circle" : "fa-times-circle") me-1"></i>
+                                                    @(warehouse.IsActive ? "فعال" : "غیرفعال")
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex justify-content-center gap-2">
+                                                    <a asp-action="Edit"
+                                                       asp-controller="Warehouses"
+                                                       asp-area="WarehouseManagement"
+                                                       asp-route-id="@warehouse.Id"
+                                                       class="btn btn-sm btn-outline-warning">
+                                                        <i class="fas fa-edit me-1"></i>
+                                                    </a>
 
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-danger"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#deleteModal-@warehouse.Id">
-                                                    <i class="fas fa-trash-alt me-1"></i> حذف
-                                                </button>
-                                            </div>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal-@warehouse.Id">
+                                                        <i class="fas fa-trash-alt me-1"></i>
+                                                    </button>
+                                                </div>
 
-                                            <!-- Modal for Delete Confirmation -->
-                                            <div class="modal fade" id="deleteModal-@warehouse.Id" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-dialog-centered">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header bg-danger text-white">
-                                                            <h5 class="modal-title">
-                                                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                                                تایید حذف انبار
-                                                            </h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="alert alert-warning">
-                                                                <i class="fas fa-exclamation-circle me-2"></i>
-                                                                آیا از حذف انبار <strong>@warehouse.Name</strong> با کد <strong>@warehouse.DisplayCode</strong> مطمئن هستید؟
+                                                <!-- Modal for Delete Confirmation -->
+                                                <div class="modal fade" id="deleteModal-@warehouse.Id" tabindex="-1" aria-hidden="true">
+                                                    <div class="modal-dialog modal-dialog-centered">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header bg-danger text-white">
+                                                                <h5 class="modal-title">
+                                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                                    تایید حذف انبار
+                                                                </h5>
+                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                             </div>
-                                                            <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام اطلاعات مرتبط با این انبار نیز حذف خواهند شد.</p>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                <i class="fas fa-times me-1"></i> انصراف
-                                                            </button>
-                                                            <form asp-action="Delete" asp-controller="Warehouses" method="post">
-                                                                <input type="hidden" name="id" value="@warehouse.Id" />
-                                                                <button type="submit" class="btn btn-danger">
-                                                                    <i class="fas fa-trash-alt me-1"></i> تایید حذف
+                                                            <div class="modal-body">
+                                                                <div class="alert alert-warning">
+                                                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                                                    آیا از حذف انبار <strong>@warehouse.Name</strong> با کد <strong>@warehouse.DisplayCode</strong> مطمئن هستید؟
+                                                                </div>
+                                                                <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام اطلاعات مرتبط با این انبار نیز حذف خواهند شد.</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                                    <i class="fas fa-times me-1"></i> انصراف
                                                                 </button>
-                                                            </form>
+                                                                <form asp-action="Delete" asp-controller="Warehouses" method="post">
+                                                                    <input type="hidden" name="id" value="@warehouse.Id" />
+                                                                    <button type="submit" class="btn btn-danger">
+                                                                        <i class="fas fa-trash-alt me-1"></i> تایید حذف
+                                                                    </button>
+                                                                </form>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            <i class="fas fa-info-circle me-1"></i>
-                            تعداد انبارها: @Model.Count
-                        </div>
-                        <div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">بعدی</a>
-                                    </li>
-                                </ul>
-                            </nav>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                تعداد انبارها: @Model.Count
+                            </div>
+                            <div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">بعدی</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-    <style>
-        .table {
-            font-size: 0.9rem;
-        }
-
-            .table th {
-                font-weight: 600;
-                white-space: nowrap;
-                background-color: #f8f9fa;
-            }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(13, 110, 253, 0.05);
-        }
-
-        .badge {
-            padding: 0.5em 0.75em;
-            font-weight: 500;
-        }
-
-        .modal-header {
-            border-bottom: none;
-        }
-
-        .modal-footer {
-            border-top: none;
-            justify-content: flex-start;
-        }
-
-        .card-footer {
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-    </style>
-
-
 @section Scripts {
+    <script src="~/js/management.js"></script>
     <script>
-        // فعال سازی tooltip برای دکمه‌ها
-        $(document).ready(function(){
+        $(document).ready(function () {
             $('[data-bs-toggle="tooltip"]').tooltip();
+
+            $('tbody tr[data-url]').on('click', function (e) {
+                if ($(e.target).closest('a, button').length === 0) {
+                    window.location.href = $(this).data('url');
+                }
+            });
         });
     </script>
 }
