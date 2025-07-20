@@ -1,0 +1,53 @@
+﻿@model IMS.Areas.AccountManagement.Models.Account
+
+@{
+    ViewData["Title"] = "افزودن حساب کل";
+}
+
+<link rel="stylesheet" href="~/css/transactionstyle.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 p-4 glass-card">
+        <h2 class="text-center mb-4 fw-bold text-primary">
+            <i class="bi bi-plus-circle me-2"></i> افزودن حساب کل
+        </h2>
+
+        <!-- فرم افزودن حساب کل -->
+        <form method="post" asp-action="CreateAccount" asp-controller="ChartOfAccounts">
+            <div class="row g-4">
+                <div class="col-md-6 mx-auto">
+                    <label for="Code" class="form-label">کد حساب</label>
+                    <input type="text" class="form-control rounded-3 shadow-sm" id="Code" name="Code" value="@Model?.Code" required maxlength="50" />
+                    <span asp-validation-for="Code" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mx-auto">
+                    <label for="Name" class="form-label">نام حساب</label>
+                    <input type="text" class="form-control rounded-3 shadow-sm" id="Name" name="Name" value="@Model?.Name" required maxlength="200" />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-success px-5 py-2 fw-bold rounded-pill shadow-lg">
+                    <i class="bi bi-check-circle me-1"></i> ذخیره
+                </button>
+            </div>
+           
+        </form>
+
+        
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,171 @@
+﻿@model IMS.Areas.AccountManagement.Models.Transaction
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
+
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet" />
+
+<style>
+
+    body {
+        font-family: 'Vazirmatn', sans-serif;
+        background: linear-gradient(135deg, #e0f7fa, #f1f8e9);
+        min-height: 100vh;
+        direction: rtl;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* کارت شیشه‌ای لاکچری */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 2rem auto;
+        max-width: 900px;
+        width: 100%;
+    }
+
+    .glass-card form {
+        padding-right: 5px;
+        overflow: visible;
+    }
+
+    h2.text-center {
+        color: #00796b;
+        font-weight: bold;
+        font-size: 22px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    label.form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+        display: inline-block;
+    }
+
+    input.form-control,
+    select.form-control,
+    select.form-select {
+        height: 48px;
+        font-size: 15.5px;
+        padding: 10px 14px;
+        border-radius: 0.75rem;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        color: #333;
+        line-height: 1.5;
+        box-sizing: border-box;
+    }
+
+    input.form-control:focus,
+    select.form-control:focus,
+    select.form-select:focus {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+
+    /* دکمه اصلی فرم */
+    button[type="submit"] {
+        font-size: 17px;
+        background: linear-gradient(to right, #00c853, #64dd17);
+        color: white;
+        border: none;
+        padding: 12px 32px;
+        transition: all 0.3s ease;
+        border-radius: 0.75rem;
+    }
+
+    button[type="submit"]:hover {
+        background: linear-gradient(to right, #00b140, #4caf50);
+        box-shadow: 0 4px 12px rgba(0, 200, 83, 0.4);
+    }
+
+    /* خطای اعتبارسنجی */
+    .text-danger {
+        font-size: 14px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    /* چیدمان فیلدها به صورت دو ستونه در دسکتاپ */
+    .form-row .col-md-6 {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+</style>
+
+
+@* <div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 glass-card">
+            <h2 class="text-center mb-4 fw-bold text-primary">
+                <i class="bi bi-cash-coin me-2"></i> ویرایش تراکنش
+            </h2>
+
+            <form asp-action="Edit" method="post">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">حساب</label>
+                        <select asp-for="AccountId" class="form-control" asp-items="ViewBag.Accounts"></select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">کاربر</label>
+                        <input type="text" class="form-control" value="@ViewData["UserFullName"]" disabled />
+                        <input type="hidden" asp-for="UserId" />
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">مرکز هزینه</label>
+                        <select asp-for="CostCenterId" class="form-control" asp-items="ViewBag.CostCenters"></select>
+                    </div>
+
+                   @*  
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">مبلغ</label>
+                        <input asp-for="Amount" class="form-control" />
+                    </div> *@
+@* 
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">تاریخ</label>
+                        <input asp-for="Date" class="form-control" type="date" />
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="form-label">نوع سند</label>
+                        <select asp-for="DocumentType" class="form-control">
+                            @foreach (var doc in Enum.GetValues(typeof(TransactionDocumentType)).Cast<TransactionDocumentType>())
+                            {
+                                var displayName = doc.GetType()
+                                .GetMember(doc.ToString())
+                                .First()
+                                .GetCustomAttribute<DisplayAttribute>()?.Name ?? doc.ToString();
+
+                                <option value="@((int)doc)" selected="@(Model.DocumentType == (int)doc ? "selected" : null)">
+                                    @displayName
+                                </option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit">ثبت تغییرات</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>  *@

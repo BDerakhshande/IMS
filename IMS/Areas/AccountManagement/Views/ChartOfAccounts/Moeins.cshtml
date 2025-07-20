@@ -1,0 +1,202 @@
+﻿@model List<IMS.Areas.AccountManagement.Models.Moein>
+
+<!-- افزودن CSS DataTables -->
+<link href="~/css/tablesstyle.css" rel="stylesheet" />
+<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+<style>
+    .selected {
+        background-color: #d1f2eb !important;
+    }
+
+</style>
+<!-- افزودن JS DataTables -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<div class="luxury-table-container">
+
+    @{
+       
+        var successMessage = TempData["SuccessMessage"];
+    }
+
+  
+
+    @if (successMessage != null)
+    {
+        <div class="alert alert-success">
+            @successMessage
+        </div>
+    }
+
+
+    @{
+        var AccountName = ViewBag.AccountName as string;  // دریافت نام معین از ViewBag
+    }
+
+    @if (AccountName != null)
+    {
+        <div class="alert alert-info">
+            @AccountName
+        </div>
+    }
+
+    <!-- دکمه‌ها -->
+    <div class="button-container d-flex justify-content-between mb-3">
+        <button id="addAccountBtn" class="btn btn-gradient-add" onclick="window.location='@Url.Action("CreateMoeins", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.AccountId })'">
+            <i class="fa fa-plus-circle"></i> افزودن
+        </button>
+        <a href="@Url.Action("Index", "ChartOfAccounts")" class="btn btn-secondary">
+            <i class="fa fa-arrow-left"></i> بازگشت
+        </a>
+    </div>
+
+    <!-- جدول معین‌ها -->
+    <table id="moeinTable" class="table luxury-table table-bordered">
+        <thead>
+            <tr>
+                <th>معین</th>
+                <th>کد حساب کل</th> <!-- اضافه کردن ستون کد حساب کل -->
+                <th>نام معین</th>
+                <th>عملیات</th> <!-- دکمه‌های عملیات -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var moein in Model)
+            {
+                <tr onclick="window.location='@Url.Action("Tafzils", "ChartOfAccounts", new { moeinId = moein.Id })'">
+                    <td>@moein.Code</td>
+                    <td>@moein.Account?.Code</td> <!-- نمایش کد حساب کل -->
+                    <td>@moein.Name</td>
+                    <td>
+                        <div class="action-buttons">
+                            <!-- دکمه ویرایش -->
+                            <button class="btn-icon edit-btn" onclick="event.stopPropagation(); window.location='@Url.Action("EditMoeins", "ChartOfAccounts", new { id = moein.Id })'">
+                                <i class="fa fa-edit"></i>
+                            </button>
+
+
+                            <!-- دکمه حذف -->
+                            <form method="post" action="@Url.Action("DeleteMoeins", "ChartOfAccounts")" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@moein.Id" />
+                                <button type="submit" class="btn-icon delete-btn" onclick="return confirm('آیا از حذف این معین مطمئن هستید؟')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // استفاده از DataTables
+        var table = $('#moeinTable').DataTable({
+            paging: true,
+            searching: true,
+            ordering: true,
+            pageLength: 10,
+            lengthMenu: [5, 10, 25, 50, 100],
+            info: true,
+            language: {
+                url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/fa.json"
+            },
+            columnDefs: [
+                { targets: [0, 1, 2], orderable: true }, // ست کردن ستون‌های مرتب‌سازی
+            ]
+        });
+
+        // تغییرات برای برجسته کردن سطر
+        $('#moeinTable tbody').on('mouseenter', 'tr', function() {
+            $(this).css('background-color', '#e0f7fa'); // رنگ برجسته شدن
+        }).on('mouseleave', 'tr', function() {
+            $(this).css('background-color', ''); // بازگرداندن به رنگ اصلی
+        });
+    });
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const table = document.getElementById("moeinTable");
+        const rows = table.querySelectorAll("tbody tr");
+        let selectedIndex = -1;
+
+        // مشخص کردن سطر انتخاب شده
+        function highlightRow(index) {
+            rows.forEach((row, i) => {
+                row.classList.toggle("selected", i === index);
+            });
+        }
+
+        document.addEventListener("keydown", function (event) {
+            const key = event.key;
+
+            // ArrowDown → سطر بعدی
+            if (key === "ArrowDown") {
+                if (selectedIndex < rows.length - 1) {
+                    selectedIndex++;
+                    highlightRow(selectedIndex);
+                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
+                    event.preventDefault();
+                }
+            }
+
+            // ArrowUp → سطر قبلی
+            if (key === "ArrowUp") {
+                if (selectedIndex > 0) {
+                    selectedIndex--;
+                    highlightRow(selectedIndex);
+                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
+                    event.preventDefault();
+                }
+            }
+
+
+            // Enter → رفتن به صفحه معین
+            if (key === "Enter" && selectedIndex >= 0) {
+                const row = rows[selectedIndex];
+                if (row && row.onclick) {
+                    row.onclick();
+                }
+
+            }
+
+            if (key === "Escape") {
+                history.back(); // برمی‌گرده به صفحه قبلی مرورگر
+            }
+
+
+
+
+
+            // Delete → حذف سطر انتخاب شده
+            if (key === "Delete" && selectedIndex >= 0) {
+                const form = rows[selectedIndex].querySelector("form");
+                if (form && confirm("آیا از حذف این معین مطمئن هستید؟")) {
+                    form.submit();
+                }
+            }
+
+            // Shift + E → ویرایش سطر انتخاب شده
+            if ((event.shiftKey && key.toLowerCase() === "e") && selectedIndex >= 0) {
+                const editBtn = rows[selectedIndex].querySelector(".edit-btn");
+                if (editBtn) {
+                    editBtn.click();
+                    event.preventDefault();
+                }
+            }
+
+            // Alt + Shift + N → افزودن معین
+            if (event.altKey && event.shiftKey && key.toLowerCase() === "n") {
+                const addBtn = document.getElementById("addAccountBtn");
+                if (addBtn) {
+                    addBtn.click();
+                    event.preventDefault();
+                }
+            }
+        });
+    });
+</script>

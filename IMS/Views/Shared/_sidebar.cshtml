@@ -1,0 +1,49 @@
+﻿<div class="header-bar">
+    <button class="toggle-btn" id="toggleBtn">☰</button>
+    <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
+</div>
+
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-content">
+        <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
+            <i class="fas fa-home"></i>
+            <span>داشبورد</span>
+        </a>
+
+        <div class="menu-item has-submenu">
+            <i class="fas fa-user"></i>
+            <span>تعاریف</span>
+            <i class="submenu-toggle fas fa-chevron-down"></i>
+        </div>
+        <div class="submenu">
+            <a class="submenu-item" href="/WarehouseManagement/Warehouses/Index"><i class="fas fa-box"></i> <span>مدیریت انبار</span></a>
+            <a class="submenu-item" href="/WarehouseManagement/Categories/Index"><i class="fas fa-tags"></i> <span>دسته‌بندی کالاها</span></a>
+        </div>
+
+        <div class="menu-item has-submenu">
+            <i class="fas fa-exchange-alt"></i>
+            <span>تراکنش‌ها</span>
+            <i class="submenu-toggle fas fa-chevron-down"></i>
+        </div>
+        <div class="submenu">
+            <a asp-area="WarehouseManagement" asp-controller="ReceiptOrIssue" asp-action="Index" class="submenu-item"><i class="fas fa-file-import"></i> <span>رسید حواله</span></a>
+            <a asp-area="WarehouseManagement" asp-controller="Inventory" asp-action="LoadInventory" class="submenu-item"><i class="fas fa-sliders-h"></i> <span>اصلاح موجودی</span></a>
+            <a asp-area="WarehouseManagement" asp-controller="InventoryConversion" asp-action="Index" class="submenu-item"><i class="fas fa-sync-alt"></i> <span>تبدیل کالا</span></a>
+        </div>
+
+        <div class="menu-item has-submenu">
+            <i class="fas fa-chart-bar"></i>
+            <span>گزارشات</span>
+            <i class="submenu-toggle fas fa-chevron-down"></i>
+        </div>
+        <div class="submenu">
+            <a class="submenu-item" href="#"><i class="fas fa-clipboard-list"></i> <span>گزارش موجودی</span></a>
+            <a class="submenu-item" href="#"><i class="fas fa-chart-line"></i> <span>گزارش تراکنش کالا</span></a>
+            <a class="submenu-item" href="#"><i class="fas fa-warehouse"></i> <span>گزارش گردش انبار</span></a>
+        </div>
+        <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
+            <i class="fas fa-right-from-bracket"></i>
+            <span>خروج</span>
+        </a>
+    </div>
+</div>

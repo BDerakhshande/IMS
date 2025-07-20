@@ -1,0 +1,496 @@
+﻿@using IMS.Areas.AccountManagement.Models
+@model List<IMS.Areas.AccountManagement.Models.TransactionViewModel>
+
+@{
+    ViewData["Title"] = "مدیریت اسناد تراکنش‌ها";
+}
+
+<style>
+    .custom-alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    margin: 1rem 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    font-family: 'IRANSans', 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    animation: fadeInUp 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.custom-alert-success {
+    background: linear-gradient(135deg, #e0f5e9, #c0ebd7);
+    color: #146c43;
+    border-left: 5px solid #198754;
+}
+
+.custom-alert-danger {
+    background: linear-gradient(135deg, #fce4e4, #f8cccc);
+    color: #842029;
+    border-left: 5px solid #dc3545;
+}
+
+.custom-alert .icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+}
+
+.custom-alert .message {
+    flex-grow: 1;
+}
+
+.custom-alert .close-btn {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 1.2rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+    .custom-alert .close-btn:hover {
+        opacity: 1;
+    }
+
+
+.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.5s ease;
+}
+
+    .table-active {
+        background-color: #e0f3ff !important;
+        transition: background-color 0.3s;
+    }
+
+    .status-awaiting {
+        color: #0d6efd; /* آبی روشن برای در انتظار تایید */
+        font-weight: 600;
+    }
+
+    .status-approved {
+        color: #198754; /* سبز برای تایید شده */
+        font-weight: 600;
+    }
+
+    .status-rejected {
+        color: #dc3545; /* قرمز برای رد شده */
+        font-weight: 600;
+    }
+
+
+    .help-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .help-content {
+        background: #fff;
+        color:black;
+        border-radius: 16px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        text-align: right;
+        direction: rtl;
+        font-family: IranSans, sans-serif;
+    }
+
+        .help-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-content li {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .help-content kbd {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+
+        .help-content button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .help-content button:hover {
+                background-color: #0056b3;
+            }
+
+  
+
+</style>
+
+
+
+
+@if (TempData["SuccessMessage"] != null)
+
+{
+    <div class="custom-alert custom-alert-success" role="alert">
+        <i class="bi bi-check-circle-fill icon"></i>
+        <div class="message">@TempData["SuccessMessage"]</div>
+        <button type="button" class="btn-close close-btn" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<link rel="stylesheet" href="~/css/managmentviewstyle.css"/>
+<!-- اضافه کردن CDN برای FontAwesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+
+<div class="glass-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="title">مدیریت اسناد </h2>
+        <a href="@Url.Action("Create", "Transactions")" class="btn-gradient-add">
+            <i class="fas fa-plus-circle me-2"></i> افزودن سند 
+        </a>
+    </div>
+
+    <div class="d-flex justify-content-end mb-3 gap-3">
+        <button class="sort-btn" data-sort="DocumentNumber" data-order="asc">
+            <i class="fas fa-sort-numeric-up"></i> مرتب‌سازی بر اساس شماره سند
+        </button>
+        <button class="sort-btn" data-sort="PersianDate" data-order="asc">
+            <i class="fas fa-sort-amount-up"></i> مرتب‌سازی بر اساس تاریخ
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table" id="transactionsTable">
+            <thead>
+                <tr>
+                    <th scope="col">شماره سند</th>
+                    <th scope="col">تاریخ</th>
+                    <th scope="col">شرح</th>
+                    <th scope="col">وضعیت</th>
+                    <th scope="col">نوع سند</th>
+                    <th scope="col">اصلاح‌کننده</th>
+                    <th scope="col">مبلغ</th>
+                    <th scope="col" class="text-center">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var doc in Model)
+
+                {
+                    <tr class="transaction-row" data-id="@doc.Id" style="cursor: pointer;">
+                        <td>@doc.DocumentNumber</td>
+                        <td>@doc.PersianDate</td>
+                        <td>@doc.Description</td>
+                        <td class="@(doc.Status == IMS.Areas.AccountManagement.Models.Status.AwaitingApproval ? "status-awaiting"
+           : doc.Status == IMS.Areas.AccountManagement.Models.Status.Confirmation ? "status-approved"
+           : doc.Status == IMS.Areas.AccountManagement.Models.Status.Reject ? "status-rejected"
+           : "")">
+                            @EnumHelper.GetDescription(doc.Status)
+                        </td>
+
+                        <td>@doc.DocumentTypeName</td>
+                        <td>@doc.ModifiedBy</td>
+                        <td>@doc.TotalAmount.ToString("N0")</td>
+                        <td>
+                            <div class="action-buttons">
+                                @if (doc.Status == IMS.Areas.AccountManagement.Models.Status.AwaitingApproval)
+
+                                {
+                                    <!-- Approve Button -->
+                                    <form method="post" action="@Url.Action("Approve", "Transactions")" class="action-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@doc.Id" />
+                                        <button type="submit" class="btn-icon approve" title="تأیید سند"
+                                                onclick="return confirm('آیا از تأیید این سند مطمئن هستید؟')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <!-- Reject Button -->
+                                    <form method="post" action="@Url.Action("Reject", "Transactions")" class="action-form">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@doc.Id" />
+                                        <button type="submit" class="btn-icon reject" title="رد سند"
+                                                onclick="return confirm('آیا از رد این سند مطمئن هستید؟')">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                <!-- Delete Button -->
+                                <form method="post" action="@Url.Action("Delete", "Transactions")" class="action-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@doc.Id" />
+                                    <button type="submit" class="btn-icon delete" title="حذف سند"
+                                            onclick="return confirm('آیا از حذف این سند مطمئن هستید؟')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+      
+    </div>
+    <!-- Help Modal -->
+    <div id="helpModal" class="help-modal" style="display:none;">
+        <div class="help-content">
+            <h2>راهنما</h2>
+            <ul>
+                <li><kbd>↑</kbd> و <kbd>↓</kbd> → حرکت بین ردیف‌ها</li>
+                <li><kbd>Enter</kbd> → مشاهده جزئیات</li>
+                <li><kbd>Shift + D</kbd> → حذف سطر</li>
+                <li><kbd>Shift + R</kbd> → رد سند</li>
+                <li><kbd>Shift + A</kbd> → تایید سند</li>
+                <li><kbd>Alt + Shift + N</kbd> → افزودن سند</li>
+                <li><kbd>Alt + Shift + S</kbd> → مرتب سازی بر اساس شماره سند</li>
+                <li><kbd>Alt + Shift + D</kbd> → مرتب سازی براساس تاریخ</li>
+                <li><kbd>Shift + H</kbd> → باز / بسته کردن راهنما</li>
+            </ul>
+            <button onclick="closeHelp()">بستن</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.querySelector('#transactionsTable tbody');
+            const rows = Array.from(table.querySelectorAll('tr'));
+
+            document.querySelectorAll('.sort-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const sortKey = this.getAttribute('data-sort');
+                    let order = this.getAttribute('data-order');
+
+                    const getValue = (row) => {
+                        if (sortKey === "DocumentNumber")
+                            return parseInt(row.cells[0].innerText.trim());
+                        else if (sortKey === "PersianDate")
+                            return row.cells[1].innerText.trim(); // تاریخ شمسی (مثلاً "1404/02/18")
+                        return '';
+                    };
+
+                    rows.sort((a, b) => {
+                        const valA = getValue(a);
+                        const valB = getValue(b);
+
+                        if (sortKey === "PersianDate") {
+                            // تبدیل تاریخ شمسی به عدد برای مقایسه
+                            const numA = parseInt(valA.replace(/\//g, ''));
+                            const numB = parseInt(valB.replace(/\//g, ''));
+                            return order === 'asc' ? numA - numB : numB - numA;
+                        }
+
+                        return order === 'asc' ? valA - valB : valB - valA;
+                    });
+
+                    // حذف ردیف‌های قبلی و اضافه‌کردن مرتب‌شده
+                    table.innerHTML = '';
+                    rows.forEach(row => table.appendChild(row));
+
+                    // تغییر ترتیب برای کلیک بعدی
+                    this.setAttribute('data-order', order === 'asc' ? 'desc' : 'asc');
+                });
+            });
+
+            // افزودن رویداد کلیک به ردیف‌ها
+            document.querySelectorAll('.transaction-row').forEach(row => {
+                row.addEventListener('click', function (e) {
+                    // جلوگیری از هدایت در صورتی که روی دکمه یا فرم کلیک شده
+                    if (e.target.closest('.action-buttons') || e.target.closest('form')) return;
+                    const id = this.getAttribute('data-id');
+                    window.location.href = `/Transactions/Details/${id}`;
+                });
+            });
+        });
+
+
+        setTimeout(function () {
+            const alert = document.querySelector('.custom-alert');
+            if (alert) alert.classList.add('fade-out');
+        }, 5000);
+
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const rows = document.querySelectorAll("#transactionsTable tbody tr");
+            let selectedIndex = -1;
+
+            function updateHighlight() {
+                rows.forEach((row, index) => {
+                    if (index === selectedIndex) {
+                        row.classList.add("table-active");
+                        row.scrollIntoView({ behavior: "smooth", block: "center" });
+                    } else {
+                        row.classList.remove("table-active");
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', function (e) {
+                // ترکیب کلیدهای Alt + Shift + N برای افزودن سند جدید
+                if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'n') {
+                    e.preventDefault();
+                    window.location.href = '@Url.Action("Create", "Transactions")';
+                    return;
+                }
+
+                // مرتب‌سازی بر اساس شماره سند (Alt + Shift + S)
+                if (e.altKey && e.shiftKey && e.key.toLowerCase() === 's') {
+                    e.preventDefault();
+                    const sortBtn = document.querySelector('[data-sort="DocumentNumber"]');
+                    if (sortBtn) sortBtn.click();
+                    return;
+                }
+
+                // مرتب‌سازی بر اساس تاریخ (Alt + Shift + D)
+                if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+                    e.preventDefault();
+                    const sortBtn = document.querySelector('[data-sort="PersianDate"]');
+                    if (sortBtn) sortBtn.click();
+                    return;
+                }
+
+                // حرکت با کلیدهای بالا و پایین بین ردیف‌ها
+                if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    if (selectedIndex < rows.length - 1) {
+                        selectedIndex++;
+                        updateHighlight();
+                    }
+                    return;
+                }
+
+                if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    if (selectedIndex > 0) {
+                        selectedIndex--;
+                        updateHighlight();
+                    }
+                    return;
+                }
+
+                // باز کردن جزئیات با Enter
+                if (e.key === "Enter") {
+                    if (selectedIndex >= 0) {
+                        const selectedRow = rows[selectedIndex];
+                        const id = selectedRow.getAttribute("data-id");
+                        if (id) {
+                            window.location.href = `/Transactions/Details/${id}`;
+                        }
+                    }
+                    return;
+                }
+
+                if (selectedIndex < 0) return; // اگر ردیفی انتخاب نشده، ادامه نده
+
+                const selectedRow = rows[selectedIndex];
+
+                // کلیدهای میانبر عملیات با Shift:
+                if (e.shiftKey && !e.altKey && !e.ctrlKey) {
+                    // تأیید سند (Shift + A)
+                    if (e.key.toLowerCase() === 'a') {
+                        e.preventDefault();
+                        const approveForm = selectedRow.querySelector('form[action$="/Approve"]');
+                        if (approveForm) {
+                            if (confirm('آیا از تأیید این سند مطمئن هستید؟')) {
+                                approveForm.submit();
+                            }
+                        }
+                        return;
+                    }
+
+                    // رد سند (Shift + R)
+                    if (e.key.toLowerCase() === 'r') {
+                        e.preventDefault();
+                        const rejectForm = selectedRow.querySelector('form[action$="/Reject"]');
+                        if (rejectForm) {
+                            if (confirm('آیا از رد این سند مطمئن هستید؟')) {
+                                rejectForm.submit();
+                            }
+                        }
+                        return;
+                    }
+
+                    // حذف سند (Shift + D)
+                    if (e.key.toLowerCase() === 'd') {
+                        e.preventDefault();
+                        const deleteForm = selectedRow.querySelector('form[action$="/Delete"]');
+                        if (deleteForm) {
+                            if (confirm('آیا از حذف این سند مطمئن هستید؟')) {
+                                deleteForm.submit();
+                            }
+                        }
+                        return;
+                    }
+                }
+            });
+        });
+
+
+
+
+        const rows = document.querySelectorAll("#transactionsTable tbody tr");
+        console.log("تعداد ردیف‌ها:", rows.length);
+        rows.forEach((row, i) => {
+            console.log(i, row.getAttribute("data-id"), row);
+        });
+
+
+        function toggleHelp() {
+            const modal = document.getElementById("helpModal");
+            const isVisible = modal.style.display === "block";
+            modal.style.display = isVisible ? "none" : "block";
+        }
+
+        function closeHelp() {
+            const modal = document.getElementById("helpModal");
+            modal.style.display = "none";
+        }
+
+        document.addEventListener("keydown", function (event) {
+            if (event.shiftKey && event.key.toLowerCase() === "h") {
+                toggleHelp();
+                event.preventDefault();
+            }
+
+            // برای اینکه بتونی با Esc مودال رو ببندی هم می‌تونی اینو اضافه کنی:
+            if (event.key === "Escape") {
+                closeHelp();
+            }
+        });
+    </script>
+}

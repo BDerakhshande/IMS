@@ -1,0 +1,39 @@
+﻿@model IMS.Areas.AccountManagement.Models.CostCenter
+
+@{
+    ViewData["Title"] = "ویرایش مرکز هزینه";
+}
+
+<link rel="stylesheet" href="~/css/transactionstyle.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+
+<div class="container py-5">
+    <div class="card shadow-lg border-0 rounded-4 p-4 glass-card">
+        <h2 class="text-center mb-4 fw-bold text-warning">
+            <i class="bi bi-pencil-square me-2"></i> ویرایش مرکز هزینه
+        </h2>
+
+        <form method="post" asp-action="CostCenterEdit">
+            <input type="hidden" asp-for="Id" />
+            <div class="row g-4">
+                <div class="col-md-6 mx-auto">
+                    <label for="Name" class="form-label">نام مرکز هزینه</label>
+                    <input type="text" class="form-control rounded-3 shadow-sm" id="Name" name="Name" value="@Model?.Name" required />
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-warning px-5 py-2 fw-bold rounded-pill shadow-lg">
+                    <i class="bi bi-save2 me-1"></i> ذخیره تغییرات
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

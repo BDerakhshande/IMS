@@ -1,0 +1,163 @@
+﻿:root {
+    --primary-color: #0d2b36;
+    --secondary-color: #14857b;
+    --accent-color: #1aada2;
+    --text-color: #ecf0f1;
+    --light-text: #f8f9fa;
+    --border-color: #2a4a54;
+    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode {
+    background-color: #0d2b36 !important;
+}
+
+
+.table {
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+    .table th {
+        font-weight: 600;
+        white-space: nowrap;
+        background-color: #f8f9fa;
+    }
+
+.table-hover tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+}
+
+.table td,
+.table th {
+    text-align: center; /* وسط‌چین افقی */
+    vertical-align: middle; /* وسط‌چین عمودی */
+}
+
+.badge {
+    padding: 0.5em 0.75em;
+    font-weight: 500;
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-footer {
+    border-top: none;
+    justify-content: flex-start;
+}
+
+.card-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.bg-custom-dark {
+    background-color: #1a4a5a !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .card-header {
+    border: 1px solid white;
+}
+
+.badge-capacity {
+    background-color: #1a4a5a !important;
+    color: #fff;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #1a4a5a;
+    border-color: #1a4a5a;
+    color: #ffffff;
+}
+
+.pagination .page-item .page-link {
+    background-color: #ffffff;
+    color: #1a4a5a;
+    border: 1px solid #1a4a5a;
+    border-radius: 0.5rem;
+    margin: 0 0.15rem;
+    transition: all 0.3s ease;
+}
+
+    .pagination .page-item .page-link:hover {
+        background-color: #e6eef0;
+        color: #1a4a5a;
+    }
+
+.clickable-row:hover {
+    background-color: rgba(0, 123, 255, 0.08);
+}
+
+.header-sidebar-wrapper {
+    display: flex;
+}
+/* === Sidebar Styles === */
+
+.toggle-btn {
+    position: fixed;
+    right: 8px;
+    top: 19px;
+    background: white;
+    color: #1a4a5a;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.header-bar {
+    position: fixed;
+    top: 16px;
+    right: 64px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.logo-icon {
+    display: none;
+    width: 50px;
+    height: 50px;
+    margin-right: 40px;
+    transition: opacity 0.3s ease;
+    position: relative;
+    top: -4px;
+}
+
+/* کلاس Sidebar معمولی (بسته) */
+.sidebar {
+    width: 70px; /* عرض سایدبار بسته */
+    transition: width 0.3s ease;
+}
+
+.sidebar-content {
+    padding: 50px 0 20px 0;
+    width: 100%;
+    margin-left: 10px;
+}
+
+/* وقتی سایدبار باز است */
+.sidebar.expanded {
+    width: 220px; /* عرض سایدبار باز */
+}
+
+/* محتوای اصلی */
+.container-fluid {
+    flex-grow: 1;
+    transition: margin-right 0.3s ease;
+    margin-right: 60px; /* وقتی سایدبار بسته */
+}
+
+/* وقتی سایدبار باز است، محتوا جابجا میشه */
+.sidebar.expanded + .container-fluid {
+    margin-right: 220px;
+}

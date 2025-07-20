@@ -1,0 +1,46 @@
+﻿@model IMS.Areas.AccountManagement.Models.Account
+
+@{
+    ViewData["Title"] = "ویرایش حساب";
+}
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<link rel="stylesheet" href="~/css/transactionstyle.css">
+
+<div class="container">
+    <div class="glass-card p-4">
+        <h2 class="text-center">@ViewData["Title"]</h2>
+
+        <form asp-action="EditAccount" method="post">
+            @Html.AntiForgeryToken()
+
+            <!-- کد حساب -->
+            <div class="form-group">
+                <label for="Code" class="form-label">کد حساب</label>
+                <input type="text" id="Code" name="Code" class="form-control" value="@Model.Code" required maxlength="50" />
+                <span class="text-danger" asp-validation-for="Code"></span>
+            </div>
+
+            <!-- نام حساب -->
+            <div class="form-group">
+                <label for="Name" class="form-label">نام حساب</label>
+                <input type="text" id="Name" name="Name" class="form-control" value="@Model.Name" required maxlength="200" />
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+
+            <!-- دکمه ارسال -->
+            <div class="form-group text-center">
+                <button type="submit" class="btn btn-primary btn-sm">ویرایش حساب</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
