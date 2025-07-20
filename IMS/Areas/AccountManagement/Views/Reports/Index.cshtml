@@ -1,0 +1,433 @@
+﻿@model IMS.Areas.AccountManagement.Models.TransactionReportViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using IMS.Areas.AccountManagement.Helper
+
+@{
+    ViewData["Title"] = "گزارش تراکنش‌ها";
+}
+<style>
+
+    .help-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .help-content {
+        background: #fff;
+        color: black;
+        border-radius: 16px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        text-align: right;
+        direction: rtl;
+        font-family: IranSans, sans-serif;
+    }
+
+        .help-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-content li {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .help-content kbd {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+
+        .help-content button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .help-content button:hover {
+                background-color: #0056b3;
+            }
+
+</style>
+<link rel="stylesheet" href="~/css/reportstyle.css" />
+<link href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWixU2PqApdwF2L4R3l1O3N1fO3jMZmXOtA0vJphZmXOtA0vJphZmXOtA0vJphZmXOtA0vJphZm" crossorigin="anonymous">
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+@if (TempData["SuccessMessage"] != null)
+
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="container-fluid">
+    <h1 class="text-center mb-4" style="color: #00796b; font-weight: 700; border-bottom: 2px solid #1abc9c; padding-bottom: 10px;">گزارش تراکنش‌ها</h1>
+
+    <div class="row no-print">
+        <div class="col-md-12">
+            <form asp-action="Index" method="post" class="glass-card">
+                <div class="card-header" style="background: linear-gradient(135deg, #1abc9c, #16a085); color: #fff; border-radius: 12px 12px 0 0; padding: 15px;">
+                    <h4 class="mb-0" style="font-weight: 600;">فیلترهای گزارش</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label asp-for="FromDate" class="form-label" style="color: #00796b; font-weight: 600;">از تاریخ</label>
+                            <input asp-for="FromDate" placeholder="مثال: 1403/02/01" class="form-control custom-input persian-datepicker" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="ToDate" class="form-label" style="color: #00796b; font-weight: 600;">تا تاریخ</label>
+                            <input asp-for="ToDate" placeholder="مثال: 1403/02/31" class="form-control custom-input persian-datepicker" />
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="MinAmount" class="form-label" style="color: #00796b; font-weight: 600;">از مبلغ</label>
+                            <input asp-for="MinAmount" class="form-control custom-input no-spinner" type="number" />
+                            <span asp-validation-for="MinAmount" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="MaxAmount" class="form-label" style="color: #00796b; font-weight: 600;">تا مبلغ</label>
+                            <input asp-for="MaxAmount" class="form-control custom-input no-spinner" type="number" />
+                            <span asp-validation-for="MaxAmount" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="CostCenterId" class="form-label" style="color: #00796b; font-weight: 600;">مرکز هزینه</label>
+                            <select asp-for="CostCenterId" class="form-control custom-input select2" asp-items="ViewBag.CostCenters">
+                                <option value="">انتخاب کنید</option>
+                            </select>
+                            <span asp-validation-for="CostCenterId" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="MainAccountId" class="form-label" style="color: #00796b; font-weight: 600;">کد کل</label>
+                            <select asp-for="MainAccountId" class="form-control custom-input select2" asp-items="ViewBag.MainAccounts">
+                                <option value="">انتخاب کنید</option>
+                            </select>
+                            <span asp-validation-for="MainAccountId" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="SubAccountId" class="form-label" style="color: #00796b; font-weight: 600;">کد معین</label>
+                            <select asp-for="SubAccountId" class="form-control custom-input select2" asp-items="ViewBag.SubAccounts">
+                                <option value="">انتخاب کنید</option>
+                            </select>
+                            <span asp-validation-for="SubAccountId" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="DetailAccount1Id" class="form-label" style="color: #00796b; font-weight: 600;">کد تفصیل ۱</label>
+                            <select asp-for="DetailAccount1Id" class="form-control custom-input select2" asp-items="ViewBag.DetailAccounts1">
+                                <option value="">انتخاب کنید</option>
+                            </select>
+                            <span asp-validation-for="DetailAccount1Id" class="form-error"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="DetailAccount2Id" class="form-label" style="color: #00796b; font-weight: 600;">کد تفصیل ۲</label>
+                            <select asp-for="DetailAccount2Id" class="form-control custom-input select2" asp-items="ViewBag.DetailAccounts2">
+                                <option value="">انتخاب کنید</option>
+                            </select>
+                            <span asp-validation-for="DetailAccount2Id" class="form-error"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center gap-2">
+                    <div>
+                        <button id="btnGenerateReport" type="submit" class="btn btn-gradient-add">
+                            <span class="icon-circle"><i class="fas fa-chart-bar"></i></span>
+                            گزارش
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" formaction="@Url.Action("ExportToExcel")" class="btn btn-gradient-excel">
+                            <span class="icon-circle"><i class="fas fa-file-excel"></i></span>
+                           
+                        </button>
+                        <button onclick="window.print()" class="btn btn-gradient-pdf no-print">
+                            <span class="icon-circle"><i class="fas fa-print"></i></span>
+                           
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Transactions.Any())
+
+    {
+        <div class="row mt-4" id="print-area">
+            <div class="col-md-12">
+                <div class="glass-card">
+                    <div class="card-header" style="background: linear-gradient(135deg, #1abc9c, #16a085); color: #fff; border-radius: 12px 12px 0 0; padding: 15px;">
+                        <h4 class="mb-0" style="font-weight: 600;">نتایج گزارش</h4>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <colgroup>
+                                <col style="width: 12%;">
+                                <col style="width: 15%;">
+                                <col style="width: 15%;">
+                                <col style="width: 15%;">
+                                <col style="width: 15%;">
+                                <col style="width: 15%;">
+                                <col style="width: 13%;">
+                                <col style="width: 13%;">
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>کد حساب کل</th>
+                                    <th>کد حساب معین</th>
+                                    <th>کد تفصیل ۱</th>
+                                    <th>کد تفصیل ۲</th>
+                                    <th>مرکز هزینه</th>
+                                    <th>بدهکار</th>
+                                    <th>بستانکار</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Transactions)
+
+                                {
+                                    <tr>
+                                        <td>@(item.Date.HasValue ? item.Date.ConvertToPersianDate() : "مثال: 1403/02/15")</td>
+
+                                        <td>@item.MainAccount</td>
+                                        <td>@item.SubAccount</td>
+                                        <td>@item.DetailAccount1</td>
+                                        <td>@item.DetailAccount2</td>
+                                        <td>@(string.IsNullOrEmpty(item.CostCenterName) ? "--" : item.CostCenterName)</td>
+                                        <td>@item.Debit.ToString("N2")</td>
+                                        <td>@item.Credit.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="6" class="text-end"><strong>جمع کل:</strong></td>
+                                    <td><strong style="color: #00796b;">@Model.TotalDebit.ToString("N2")</strong></td>
+                                    <td><strong style="color: #00796b;">@Model.TotalCredit.ToString("N2")</strong></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-end"><strong>مانده حساب:</strong></td>
+                                    <td colspan="2">
+                                        <strong style="color: @(Model.Balance >= 0 ? "#00796b" : "#e74c3c");">
+                                            @Model.Balance.ToString("N2")
+                                        </strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    else
+
+    {
+        <div class="alert alert-info mt-4" style="border-radius: 8px; background-color: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb;">
+            هیچ تراکنشی با فیلترهای انتخاب‌شده یافت نشد.
+        </div>
+    }
+     <!-- Help Modal -->
+    <div id="helpModal" class="help-modal" style="display:none;">
+        <div class="help-content">
+            <h2>راهنما</h2>
+            <ul>
+                <li><kbd>↑</kbd> و <kbd>↓</kbd> → حرکت بین ردیف‌ها</li>
+                <li><kbd>Ctrl + Enter</kbd> → گزارش گیری</li>
+                <li><kbd>Ctrl + P</kbd> → پرینت</li>
+                <li><kbd>Alt + E</kbd> → خروجی اکسل</li>
+                <li><kbd>Shift + H</kbd> → باز / بسته کردن راهنما</li>
+            </ul>
+            <button onclick="closeHelp()">بستن</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            $('.persian-datepicker').persianDatepicker({
+                format: 'YYYY/MM/DD',
+                autoClose: true,
+                toolbox: {
+                    calendarSwitch: {
+                        enabled: true
+                    }
+                }
+            });
+
+            $('.select2').select2({
+                dir: 'rtl',
+                placeholder: 'انتخاب کنید',
+                allowClear: true
+            });
+
+            $('form').validate({
+                rules: {
+                    FromDate: { required: false },
+                    ToDate: { required: false }
+                },
+                ignore: '.persian-datepicker'
+            });
+
+            $('#MainAccountId').change(function () {
+                var mainAccountId = $(this).val();
+                $('#SubAccountId').empty().append('<option value="">در حال بارگذاری...</option>');
+                $('#DetailAccount1Id').empty().append('<option value="">لطفاً ابتدا معین را انتخاب کنید</option>');
+                $('#DetailAccount2Id').empty().append('<option value="">لطفاً ابتدا تفصیل ۱ را انتخاب کنید</option>');
+
+                if (mainAccountId) {
+                    $.getJSON('/Reports/GetSubAccounts', { mainAccountId: mainAccountId }, function (data) {
+                        $('#SubAccountId').empty().append('<option value="">انتخاب کنید</option>');
+                        $.each(data, function (i, item) {
+                            $('#SubAccountId').append($('<option>', {
+                                value: item.id,
+                                text: item.code + ' - ' + item.name
+                            }));
+                        });
+                    });
+                }
+            });
+
+            $('#SubAccountId').change(function () {
+                var moeinId = $(this).val();
+                $('#DetailAccount1Id').empty().append('<option value="">در حال بارگذاری...</option>');
+                $('#DetailAccount2Id').empty().append('<option value="">لطفاً ابتدا تفصیل ۱ را انتخاب کنید</option>');
+
+                if (moeinId) {
+                    $.getJSON('/Reports/GetDetailAccounts1', { moeinId: moeinId }, function (data) {
+                        $('#DetailAccount1Id').empty().append('<option value="">انتخاب کنید</option>');
+                        $.each(data, function (i, item) {
+                            $('#DetailAccount1Id').append($('<option>', {
+                                value: item.id,
+                                text: item.code + ' - ' + item.name
+                            }));
+                        });
+                    });
+                }
+            });
+
+            $('#DetailAccount1Id').change(function () {
+                var tafzilId = $(this).val();
+                $('#DetailAccount2Id').empty().append('<option value="">در حال بارگذاری...</option>');
+
+                if (tafzilId) {
+                    $.getJSON('/Reports/GetDetailAccounts2', { tafzilId: tafzilId }, function (data) {
+                        $('#DetailAccount2Id').empty().append('<option value="">انتخاب کنید</option>');
+                        $.each(data, function (i, item) {
+                            $('#DetailAccount2Id').append($('<option>', {
+                                value: item.id,
+                                text: item.code + ' - ' + item.name
+                            }));
+                        });
+                    });
+                }
+            });
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            // تمام فیلدهای فرم (input و select)
+            const inputs = Array.from(document.querySelectorAll(
+                '.card-body .form-control:not([disabled])'
+            ));
+
+            // لیسنر برای کل فرم
+            document.querySelector(".card-body").addEventListener("keydown", function (event) {
+                const key = event.key;
+                const target = event.target;
+
+                const currentIndex = inputs.indexOf(target);
+
+                if (key === "ArrowLeft") {
+                    if (currentIndex < inputs.length - 1) {
+                        inputs[currentIndex + 1].focus();
+                        event.preventDefault();
+                    }
+                } else if (key === "ArrowRight") {
+                    if (currentIndex > 0) {
+                        inputs[currentIndex - 1].focus();
+                        event.preventDefault();
+                    }
+                }
+            });
+        });
+        document.addEventListener("keydown", function (e) {
+    // Ctrl + Enter → تولید گزارش
+    if (e.ctrlKey && e.key === "Enter") {
+        e.preventDefault();
+        const reportBtn = document.getElementById("btnGenerateReport");
+        if (reportBtn) reportBtn.click();
+    }
+
+    // Shift + H → باز / بسته کردن راهنما
+    else if (e.shiftKey && e.key.toLowerCase() === "h") {
+        e.preventDefault();
+        const modal = document.getElementById("helpModal");
+        if (modal) {
+            const isVisible = modal.style.display === "flex";
+            modal.style.display = isVisible ? "none" : "flex";
+        }
+    }
+
+    // Escape → بستن مودال
+    if (e.key === "Escape") {
+        const modal = document.getElementById("helpModal");
+        if (modal && modal.style.display === "flex") {
+            modal.style.display = "none";
+        }
+    }
+});
+        document.addEventListener("keydown", function (event) {
+            // Ctrl + E → خروجی Excel
+            if (event.altKey && event.key.toLowerCase() === "e") {
+                const excelBtn = document.querySelector('.btn-gradient-excel');
+                if (excelBtn) {
+                    excelBtn.click();
+                    event.preventDefault(); 
+                }
+            }
+
+         
+            if (event.ctrlKey && event.key.toLowerCase() === "p") {
+                const printBtn = document.querySelector('.btn-gradient-pdf');
+                if (printBtn) {
+                    printBtn.click();
+                    event.preventDefault(); 
+                }
+            }
+        });
+
+    </script>
+}

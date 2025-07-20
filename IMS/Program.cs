@@ -2,6 +2,8 @@ using FluentValidation;
 using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.MappingProfiles;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Areas.AccountManagement.Data;
+
 using IMS.Domain.ProjectManagement.Validator;
 using IMS.Domain.WarehouseManagement.Validator;
 using IMS.Infrastructure.Persistence.ProjectManagement;
@@ -59,6 +61,11 @@ builder.Services.AddAutoMapper(typeof(WarehouseMappingProfile));
 
 builder.Services.AddDbContext<WarehouseDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("WarehouseDb")));
+
+
+builder.Services.AddDbContext<AccountManagementDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AccountManagementDb")));
+
 
 
 // Add services to the container.

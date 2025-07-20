@@ -1,0 +1,66 @@
+﻿@model IMS.Areas.AccountManagement.Models.Moein
+
+@{
+    ViewData["Title"] = "ویرایش حساب معین";
+}
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        @ViewBag.ErrorMessage
+    </div>
+}
+
+<link rel="stylesheet" href="~/css/transactionstyle.css">
+
+<div class="container">
+    <div class="glass-card p-4">
+        <h2 class="text-center">@ViewData["Title"]</h2>
+
+        <form asp-action="EditMoeins" method="post">
+            @Html.AntiForgeryToken()
+
+          
+            <div class="form-group">
+                <label for="Code" class="form-label">کد معین</label>
+                <input type="text" id="Code" name="Code" class="form-control" value="@Model.Code" required maxlength="50" />
+                <span class="text-danger" asp-validation-for="Code"></span>
+            </div>
+
+            <!-- نام حساب معین -->
+            <div class="form-group">
+                <label for="Name" class="form-label">نام حساب معین</label>
+                <input type="text" id="Name" name="Name" class="form-control" value="@Model.Name" required maxlength="200" />
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+
+            <!-- انتخاب حساب کل -->
+            <div class="form-group">
+                <label for="AccountId" class="form-label">حساب کل</label>
+                @Html.DropDownListFor(
+                         model => model.AccountId,
+                         new SelectList(ViewBag.Accounts as List<IMS.Areas.AccountManagement.Models.Account>, "Id", "Name", Model.AccountId),
+                         "انتخاب حساب کل",
+                         new { @class = "form-control" }
+                         )
+                <span class="text-danger" asp-validation-for="AccountId"></span>
+            </div>
+
+            <!-- نمایش فقط‌خواندنی نام فعلی -->
+            <div class="form-group">
+                <label for="MoeinName" class="form-label">نام فعلی حساب معین</label>
+                <input type="text" id="MoeinName" name="MoeinName" class="form-control" value="@Model.Name" disabled />
+                <small class="form-text text-muted">این نام حساب معین در حال ویرایش است.</small>
+            </div>
+
+            <!-- دکمه ارسال -->
+            <div class="form-group text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-sm">ویرایش حساب معین</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

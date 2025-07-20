@@ -1,0 +1,995 @@
+﻿@using IMS.Areas.AccountManagement.Helper
+@using IMS.Areas.AccountManagement.Models
+@model IMS.Areas.AccountManagement.Models.TransactionDocumentDetailsViewModel
+
+
+
+
+<style>
+
+    table.table {
+        border-collapse: collapse;
+        width: 100%;
+        font-family: 'Vazirmatn', sans-serif;
+        font-size: 13px;
+        color: #333;
+        background-color: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+        table.table thead tr {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+        }
+
+        table.table thead th {
+            color: #fff;
+            text-align: center;
+            padding: 6px 8px;
+            font-size: 13px;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            background: transparent;
+        }
+
+        table.table tbody td {
+            padding: 2px 6px !important;
+            font-size: 13px !important;
+            line-height: 1.1 !important;
+            height: 32px !important;
+            vertical-align: middle;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.3s ease;
+        }
+
+        table.table tbody tr:hover {
+            background-color: #f0f8ff;
+            transform: scale(1.02);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table.table tbody td:first-child {
+            font-weight: bold;
+            color: #00796b;
+        }
+
+    /* استایل‌های جدید یا اصلاح‌شده */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .title {
+        color: #00796b;
+        font-weight: 700;
+        font-size: 1.75rem;
+        text-align: center;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #1abc9c;
+        padding-bottom: 10px;
+    }
+
+    .subtitle {
+        color: #00796b;
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #1abc9c;
+        padding-bottom: 5px;
+    }
+
+    .custom-input {
+        border-radius: 8px;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        width: 100%;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        font-size: 14px;
+        color: #495057;
+        cursor: text; /* نشانگر متنی برای فیلدهای فعال */
+    }
+
+        .custom-input:focus {
+            border-color: #1abc9c;
+            box-shadow: 0 0 5px rgba(26, 188, 156, 0.3);
+            outline: none;
+        }
+
+        .custom-input:disabled,
+        .custom-input:read-only {
+            background-color: #f0f0f0;
+            cursor: text; /* حذف علامت ممنوع و استفاده از نشانگر متنی */
+        }
+
+    /* استایل دکمه‌ها */
+    .btn-gradient-add {
+        background: linear-gradient(135deg, #1abc9c, #16a085);
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 20px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(22, 160, 133, 0.3);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+        .btn-gradient-add:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(22, 160, 133, 0.4);
+        }
+
+        .btn-gradient-add:disabled {
+            background: #ced4da;
+            box-shadow: none;
+            cursor: default; /* تغییر نشانگر برای دکمه غیرفعال */
+            opacity: 0.65;
+        }
+
+    .btn-gradient-save {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 20px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(52, 152, 219, 0.3);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+        .btn-gradient-save:hover {
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(52, 152, 219, 0.4);
+        }
+
+    .btn-gradient-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border: none;
+        color: #fff;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+
+        .btn-gradient-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #e74c3c);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(231, 76, 60, 0.3);
+        }
+
+    .btn-gradient-secondary {
+        background: linear-gradient(135deg, #7f8c8d, #6c757d);
+        border: none;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        padding: 8px 20px;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(127, 140, 141, 0.3);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+        .btn-gradient-secondary:hover {
+            background: linear-gradient(135deg, #6c757d, #7f8c8d);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(127, 140, 141, 0.4);
+        }
+
+    .btn-close {
+        background: transparent;
+        border: none;
+        font-size: 14px;
+        opacity: 0.7;
+        transition: opacity 0.3s ease;
+    }
+
+        .btn-close:hover {
+            opacity: 1;
+        }
+
+    /* استایل پیام‌های هشدار */
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeeba;
+        border-radius: 8px;
+        color: #856404;
+        font-size: 14px;
+        padding: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+        .alert-warning strong {
+            font-weight: 600;
+        }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        border: 1px solid #f5c6cb;
+        border-radius: 8px;
+        color: #721c24;
+        font-size: 14px;
+        padding: 12px;
+        margin-bottom: 20px;
+        text-align: right;
+    }
+
+        .alert-danger ul {
+            margin: 0;
+            padding-right: 20px;
+        }
+
+    .alert-success {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        color: #155724;
+        font-size: 14px;
+        padding: 12px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    /* هماهنگی با PersianDatepicker */
+    .persianDatepicker .pdp-input {
+        border-radius: 8px !important;
+        border: 1px solid #ced4da !important;
+        padding: 10px;
+        width: 100%;
+        font-size: 14px;
+        color: #495057;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        cursor: text; /* اطمینان از نشانگر متنی */
+    }
+
+        .persianDatepicker .pdp-input:focus {
+            border-color: #1abc9c !important;
+            box-shadow: 0 0 5px rgba(26, 188, 156, 0.3) !important;
+            outline: none;
+        }
+
+
+    .help-modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .help-content {
+        background: #fff;
+        color: black;
+        border-radius: 16px;
+        padding: 2rem;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        text-align: right;
+        direction: rtl;
+        font-family: IranSans, sans-serif;
+    }
+
+        .help-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .help-content ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .help-content li {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .help-content kbd {
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+
+        .help-content button {
+            padding: 0.5rem 1rem;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+            .help-content button:hover {
+                background-color: #0056b3;
+            }
+</style>
+
+<div class="glass-card">
+    <h3 class="title">جزئیات سند</h3>
+
+    <!-- نمایش پیام برای اسناد تأییدشده -->
+    @if (Model.DocumentStatus == Status.Confirmation)
+
+    {
+        <div class="alert alert-warning" role="alert">
+            <strong>توجه:</strong> این سند تأیید شده است و امکان ویرایش آن وجود ندارد.
+        </div>
+    }
+
+    <form asp-action="SaveDocumentDetails" method="post" id="documentForm" class="glass-card p-4">
+        <input type="hidden" name="DocumentId" value="@Model.DocumentId" />
+        <input type="hidden" name="DocumentDate" value="@Model.DocumentDate" />
+
+        <div class="mb-3">
+            <label for="Description" class="form-label">شرح سند:</label>
+            @Html.TextAreaFor(model => model.Description, new { @class = "custom-input", rows = 3, @readonly = Model.DocumentStatus == Status.Confirmation ? "readonly" : null })
+
+        </div>
+
+        <div class="table-responsive">
+            <table class="table" id="transactionsTable">
+                <thead>
+                    <tr>
+                        <th>جستجو</th>
+                        <th>ردیف</th>
+                        <th>کد کل</th>
+                        <th>کد معین</th>
+                        <th>کد تفصیل ۱</th>
+                        <th>کد تفصیل ۲</th>
+                        <th>شرح تراکنش</th>
+                        <th>بدهکار</th>
+                        <th>بستانکار</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Transactions.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                @if (Model.DocumentStatus != Status.Confirmation)
+                                {
+                                    <button type="button" class="btn btn-outline-primary open-search-modal" data-toggle="modal" data-target="#searchTafzil2Modal">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                }
+                            </td>
+                            <td>@(i + 1)</td>
+                            <td>
+                                <select name="Transactions[@i].MainAccountId" class="custom-input main-account" data-index="@i" disabled="@(Model.DocumentStatus == Status.Confirmation)">
+                                    <option value="">انتخاب حساب کل</option>
+                                    @foreach (var account in Model.MainAccounts)
+                                    {
+                                        <option value="@account.Value" selected="@(account.Value == Model.Transactions[i].MainAccountId?.ToString() ? "selected" : null)">@account.Text</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="Transactions[@i].SubAccountId" class="custom-input sub-account" data-index="@i" disabled="@(Model.DocumentStatus == Status.Confirmation)">
+                                    <option value="">انتخاب حساب معین</option>
+                                    @if (Model.Transactions[i].MainAccountId.HasValue && Model.SubAccounts.ContainsKey(Model.Transactions[i].MainAccountId.Value))
+                                    {
+                                        foreach (var moein in Model.SubAccounts[Model.Transactions[i].MainAccountId.Value])
+                                        {
+                                            <option value="@moein.Value" selected="@(moein.Value == Model.Transactions[i].SubAccountId?.ToString() ? "selected" : null)">@moein.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="Transactions[@i].DetailAccount1Id" class="custom-input detail-account1" data-index="@i" disabled="@(Model.DocumentStatus == Status.Confirmation)">
+                                    <option value="">انتخاب تفصیل ۱</option>
+                                    @if (Model.Transactions[i].SubAccountId.HasValue && Model.DetailAccounts1.ContainsKey(Model.Transactions[i].SubAccountId.Value))
+                                    {
+                                        foreach (var tafzil in Model.DetailAccounts1[Model.Transactions[i].SubAccountId.Value])
+                                        {
+                                            <option value="@tafzil.Value" selected="@(tafzil.Value == Model.Transactions[i].DetailAccount1Id?.ToString() ? "selected" : null)">@tafzil.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <select name="Transactions[@i].DetailAccount2Id" class="custom-input detail-account2" data-index="@i" disabled="@(Model.DocumentStatus == Status.Confirmation)">
+                                    <option value="">انتخاب تفصیل ۲</option>
+                                    @if (Model.Transactions[i].DetailAccount1Id.HasValue && Model.DetailAccounts2.ContainsKey(Model.Transactions[i].DetailAccount1Id.Value))
+                                    {
+                                        foreach (var tafzil2 in Model.DetailAccounts2[Model.Transactions[i].DetailAccount1Id.Value])
+                                        {
+                                            <option value="@tafzil2.Value" selected="@(tafzil2.Value == Model.Transactions[i].DetailAccount2Id?.ToString() ? "selected" : null)">@tafzil2.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" name="Transactions[@i].DescriptionTran" class="custom-input" value="@Model.Transactions[i].DescriptionTran" disabled="@(Model.DocumentStatus == Status.Confirmation)" />
+                            </td>
+                            <td>
+                                <input type="number" name="Transactions[@i].Debit" class="custom-input text-danger" value="@Model.Transactions[i].Debit" step="0.01" min="0" disabled="@(Model.DocumentStatus == Status.Confirmation)" />
+                            </td>
+                            <td>
+                                <input type="number" name="Transactions[@i].Credit" class="custom-input text-success" value="@Model.Transactions[i].Credit" step="0.01" min="0" disabled="@(Model.DocumentStatus == Status.Confirmation)" />
+                            </td>
+                            <td>
+                                @if (Model.DocumentStatus != Status.Confirmation)
+                                {
+                                    <button type="button" class="btn-gradient-danger btn-sm" onclick="deleteRow(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-between mt-3">
+            @if (Model.DocumentStatus != Status.Confirmation)
+            {
+                <button type="button" class="btn-gradient-add" onclick="addNewRow()">
+                    <i class="fas fa-plus-circle"></i> افزودن ردیف
+                </button>
+                <button type="submit" class="btn-gradient-save">
+                    <i class="fas fa-save"></i> ذخیره سند
+                </button>
+            }
+        </div>
+    </form>
+    <!-- Modal -->
+    <div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content rounded-3 shadow">
+
+                <!-- Header -->
+                <div class="modal-header bg-gradient-primary text-white">
+                    <h5 class="modal-title" id="searchModalLabel">
+                        <i class="fas fa-search"></i> جستجوی تفصیل ۲
+                    </h5>
+                   
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control"
+                               placeholder="نام یا کد تفصیل ۲ را وارد کنید" />
+                    </div>
+
+                    <div id="searchResults" class="table-responsive mt-3" style="display:none;">
+                        <table class="table table-bordered table-striped text-center align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>کل</th>
+                                    <th>معین</th>
+                                    <th>تفصیل ۱</th>
+                                    <th>تفصیل ۲</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tafzil2ResultsBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="noResults" class="text-danger text-center mt-3" style="display: none;">
+                        نتیجه‌ای یافت نشد!
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- Help Modal -->
+    <div id="helpModal" class="help-modal" style="display:none;">
+        <div class="help-content">
+            <h2>راهنما</h2>
+            <ul>
+                <li><kbd>↑</kbd> و <kbd>↓</kbd> → حرکت </li>
+                <li><kbd>Delete</kbd> → حذف تراکنش</li>
+                <li><kbd>Shift + S</kbd> → سرچ</li>
+                <li><kbd>Ctrl + Enter</kbd> → ذخیره سند</li>
+                <li><kbd>Enter</kbd> → افزوردن ردیف</li>
+                <li><kbd>Shift + H</kbd> → باز / بسته کردن راهنما</li>
+            </ul>
+            <button onclick="closeHelp()">بستن</button>
+        </div>
+    </div>
+    <a href="@Url.Action("Index", "Transactions")" class="btn-gradient-secondary mt-4">بازگشت</a>
+</div>
+
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="~/lib/bootstrap-rtl-4.3.1-dist/js/bootstrap.min.js"></script>
+
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+    <script>
+        $(document).ready(function () {
+            let selectedIndex = -1;
+            let currentResults = [];
+            let currentRowIndex = -1;
+
+            $(document).on('click', '.open-search-modal', function () {
+                currentRowIndex = $(this).closest('tr').index();
+
+                $('#searchInput').val('');
+                $('#tafzil2ResultsBody').empty();
+                $('#searchResults, #noResults').hide();
+
+                $('#searchModal').modal('show');
+                $('#searchInput').focus();
+            });
+
+            $(document).on('keydown', function (e) {
+                if (e.shiftKey && e.key === 'S') {
+                    e.preventDefault();
+                    $('#searchInput').val('');
+                    $('#tafzil2ResultsBody').empty();
+                    $('#searchResults, #noResults').hide();
+                    $('#searchModal').modal('show');
+                    setTimeout(() => {
+                        $('#searchInput').focus();
+                    }, 200);
+                }
+            });
+
+            function renderRows(data) {
+                currentResults = data;
+                selectedIndex = -1;
+
+                if (data.length === 0) {
+                    $('#searchResults').hide();
+                    $('#noResults').show();
+                    return;
+                }
+
+                const html = data.map((item, idx) => `
+                    <tr data-index="${idx}">
+                        <td>${item.kolCode} - ${item.kolName}</td>
+                        <td>${item.moienCode} - ${item.moienName}</td>
+                        <td>${item.tafzil1Code} - ${item.tafzil1Name}</td>
+                        <td>${item.tafzil2Code} - ${item.tafzil2Name}</td>
+                    </tr>`).join('');
+                $('#tafzil2ResultsBody').html(html);
+                $('#searchResults').show();
+                $('#noResults').hide();
+            }
+
+            function debounce(fn, delay) {
+                let timeout;
+                return function (...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => fn.apply(this, args), delay);
+                };
+            }
+
+            $('#searchInput').on('input', debounce(function () {
+                const term = $(this).val().trim();
+                if (!term) {
+                    console.warn("⚠️ ورودی خالی است، نمایش نتایج متوقف شد");
+                    $('#searchResults, #noResults').hide();
+                    return;
+                }
+
+                $.getJSON('/Transactions/SearchTafzil2', { searchTerm: term })
+                    .done(function (data) {
+                        renderRows(data);
+                    })
+                    .fail(function (err) {
+                        console.error("🚫 خطا در دریافت داده‌ها:", err);
+                    });
+            }, 300));
+
+            $('#transactionsTable tbody').on('click', 'tr', function () {
+                currentRowIndex = $(this).index();
+            });
+
+            $('#searchModal').on('keydown', function (e) {
+                const rows = $('#tafzil2ResultsBody tr');
+                if (!rows.length) {
+                    console.warn("❌ هیچ ردیفی در جدول نتایج وجود ندارد");
+                    return;
+                }
+
+                switch (e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, rows.length - 1);
+                        highlightRow(rows);
+                        break;
+
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, 0);
+                        highlightRow(rows);
+                        break;
+
+                    case 'Enter':
+                        e.preventDefault();
+                        const item = currentResults?.[selectedIndex];
+                        if (!item) {
+                            return;
+                        }
+                        selectTafzil2(
+                            item.kolCode,
+                            item.moienCode,
+                            item.tafzil1Code,
+                            item.tafzil2Id,
+                            item.tafzil2Code,
+                            item.tafzil2Name,
+                            item.kolName,
+                            item.moienName,
+                            item.tafzil1Name
+                        );
+                        break;
+                }
+            });
+
+            function highlightRow(rows) {
+                rows.removeClass('table-active').css('background-color', '');
+                if (selectedIndex >= 0) {
+                    $(rows[selectedIndex]).addClass('table-active').css('background-color', '#d0ebff');
+                }
+            }
+
+            $(document).on('click', '#tafzil2ResultsBody tr', function () {
+                selectedIndex = $(this).data('index');
+                highlightRow($('#tafzil2ResultsBody tr'));
+                if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+                    const item = currentResults[selectedIndex];
+                    selectTafzil2(
+                        item.kolCode,
+                        item.moienCode,
+                        item.tafzil1Code,
+                        item.tafzil2Id,
+                        item.tafzil2Code,
+                        item.tafzil2Name,
+                        item.kolName,
+                        item.moienName,
+                        item.tafzil1Name
+                    );
+                }
+            });
+
+            function selectTafzil2(mainId, subId, detail1Id, detail2Id, code, name, mainName, subName, detail1Name) {
+                if (currentRowIndex < 0) {
+                    console.warn("⚠️ currentRowIndex نامعتبر است");
+                    return;
+                }
+
+                const $row = $('#transactionsTable tbody tr').eq(currentRowIndex);
+                if (!$row.length) {
+                    console.warn("⚠️ ردیف انتخاب‌شده در جدول تراکنش‌ها یافت نشد");
+                    return;
+                }
+
+                let $selectMain = $row.find('select[name^="Transactions["][name$=".MainAccountId"]');
+                if ($selectMain.find(`option[value="${mainId}"]`).length === 0) {
+                    $selectMain.append(`<option value="${mainId}">${mainName}</option>`);
+                }
+                $selectMain.val(mainId).trigger('change');
+
+                let $selectSub = $row.find('select[name^="Transactions["][name$=".SubAccountId"]');
+                if ($selectSub.find(`option[value="${subId}"]`).length === 0) {
+                    $selectSub.append(`<option value="${subId}">${subName}</option>`);
+                }
+                $selectSub.val(subId).trigger('change');
+
+                let $selectDetail1 = $row.find('select[name^="Transactions["][name$=".DetailAccount1Id"]');
+                if ($selectDetail1.find(`option[value="${detail1Id}"]`).length === 0) {
+                    $selectDetail1.append(`<option value="${detail1Id}">${detail1Name}</option>`);
+                }
+                $selectDetail1.val(detail1Id).trigger('change');
+
+                let $selectDetail2 = $row.find('select[name^="Transactions["][name$=".DetailAccount2Id"]');
+                if ($selectDetail2.find(`option[value="${detail2Id}"]`).length === 0) {
+                    $selectDetail2.append(`<option value="${detail2Id}">${code} - ${name}</option>`);
+                }
+                $selectDetail2.val(detail2Id).trigger('change');
+
+                $('#searchModal').modal('hide');
+            }
+        });
+
+
+        $(document).ready(function () {
+            const subAccounts = @Html.Raw(Json.Serialize(Model.SubAccounts));
+            const detailAccounts1 = @Html.Raw(Json.Serialize(Model.DetailAccounts1));
+            const detailAccounts2 = @Html.Raw(Json.Serialize(Model.DetailAccounts2));
+            let rowCount = $('#transactionsTable tbody tr').length;
+            let currentRowIndex = null;
+
+            // Add new row
+            window.addNewRow = function () {
+                const newRow = `
+                                            <tr>
+                                                <td>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm open-search-modal" data-row-index="${rowCount}" title="جستجو">
+                                                        <i class="fas fa-search"></i>
+                                                    </button>
+                                                </td>
+                                                <td>${rowCount + 1}</td>
+                                                <td>
+                                                    <select name="Transactions[${rowCount}].MainAccountId" class="custom-input main-account" data-index="${rowCount}">
+                                                        <option value="">انتخاب حساب کل</option>
+                                                        ${$('#transactionsTable tbody tr:first select.main-account option').clone().filter(':gt(0)').map(function () {
+                    return `<option value="${this.value}">${this.text}</option>`;
+                }).get().join('')}
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select name="Transactions[${rowCount}].SubAccountId" class="custom-input sub-account" data-index="${rowCount}">
+                                                        <option value="">انتخاب حساب معین</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select name="Transactions[${rowCount}].DetailAccount1Id" class="custom-input detail-account1" data-index="${rowCount}">
+                                                        <option value="">انتخاب تفصیل ۱</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <select name="Transactions[${rowCount}].DetailAccount2Id" class="custom-input detail-account2" data-index="${rowCount}">
+                                                        <option value="">انتخاب تفصیل ۲</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="Transactions[${rowCount}].DescriptionTran" class="custom-input" />
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="Transactions[${rowCount}].Debit" class="custom-input text-danger" step="0.01" min="0" />
+                                                </td>
+                                                <td>
+                                                    <input type="number" name="Transactions[${rowCount}].Credit" class="custom-input text-success" step="0.01" min="0" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn-gradient-danger btn-sm" onclick="deleteRow(this)">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>`;
+                $('#transactionsTable tbody').append(newRow);
+                rowCount++;
+            };
+
+            // Delete row
+            window.deleteRow = function (button) {
+                const row = $(button).closest('tr');
+                row.fadeOut(200, function () {
+                    row.remove();
+                    $('#transactionsTable tbody tr').each(function (index) {
+                        $(this).find('td:eq(1)').text(index + 1);
+                    });
+                });
+            };
+
+            // Handle MainAccountId change
+            $(document).on('change', '.main-account', function () {
+                const index = $(this).data('index');
+                const mainAccountId = $(this).val();
+                const subAccountSelect = $(`select[name='Transactions[${index}].SubAccountId']`);
+                const detailAccount1Select = $(`select[name='Transactions[${index}].DetailAccount1Id']`);
+                const detailAccount2Select = $(`select[name='Transactions[${index}].DetailAccount2Id']`);
+
+                subAccountSelect.empty().append('<option value="">انتخاب حساب معین</option>');
+                detailAccount1Select.empty().append('<option value="">انتخاب تفصیل ۱</option>');
+                detailAccount2Select.empty().append('<option value="">انتخاب تفصیل ۲</option>');
+
+                if (mainAccountId && subAccounts[mainAccountId]) {
+                    subAccounts[mainAccountId].forEach(sa => {
+                        subAccountSelect.append(`<option value="${sa.value}">${sa.text}</option>`);
+                    });
+                }
+            });
+
+            // Handle SubAccountId change
+            $(document).on('change', '.sub-account', function () {
+                const index = $(this).data('index');
+                const subAccountId = $(this).val();
+                const detailAccount1Select = $(`select[name='Transactions[${index}].DetailAccount1Id']`);
+                const detailAccount2Select = $(`select[name='Transactions[${index}].DetailAccount2Id']`);
+
+                detailAccount1Select.empty().append('<option value="">انتخاب تفصیل ۱</option>');
+                detailAccount2Select.empty().append('<option value="">انتخاب تفصیل ۲</option>');
+
+                if (subAccountId && detailAccounts1[subAccountId]) {
+                    detailAccounts1[subAccountId].forEach(item => {
+                        if (item && item.value && item.text) {
+                            detailAccount1Select.append(`<option value="${item.value}">${item.text}</option>`);
+                        }
+                    });
+                }
+            });
+
+            // Handle DetailAccount1Id change
+            $(document).on('change', '.detail-account1', function () {
+                const index = $(this).data('index');
+                const detailAccount1Id = $(this).val();
+                const detailAccount2Select = $(`select[name='Transactions[${index}].DetailAccount2Id']`);
+
+                detailAccount2Select.empty().append('<option value="">انتخاب تفصیل ۲</option>');
+
+                if (detailAccount1Id && detailAccounts2[detailAccount1Id]) {
+                    detailAccounts2[detailAccount1Id].forEach(item => {
+                        if (item && item.value && item.text) {
+                            detailAccount2Select.append(`<option value="${item.value}">${item.text}</option>`);
+                        }
+                    });
+                }
+            });
+
+        });
+
+
+
+
+       
+        document.addEventListener("keydown", function (e) {
+            const active = document.activeElement;
+            const isInputOrSelect = active.tagName === "INPUT" || active.tagName === "SELECT";
+            if (!isInputOrSelect) return;
+
+            const currentCell = active.closest("td");
+            const currentRow = active.closest("tr");
+            if (!currentCell || !currentRow) return;
+
+            const tableBody = document.querySelector("#transactionsTable tbody");
+            const allRows = Array.from(tableBody.querySelectorAll("tr"));
+            const cells = Array.from(currentRow.querySelectorAll("input, select"));
+            const cellIndex = cells.indexOf(active);
+            const rowIndex = allRows.indexOf(currentRow);
+
+            let target;
+
+            switch (e.key) {
+                case "ArrowRight":
+                    if (cellIndex > 0) {
+                        target = cells[cellIndex - 1];
+                    }
+                    break;
+
+                case "ArrowLeft":
+                    if (cellIndex < cells.length - 1) {
+                        target = cells[cellIndex + 1];
+                    }
+                    break;
+
+                case "Enter":
+                    e.preventDefault();
+                    if (cellIndex < cells.length - 1) {
+                        target = cells[cellIndex + 1];
+                    } else if (rowIndex === allRows.length - 1) {
+                        const newRow = currentRow.cloneNode(true);
+
+                        // پاک کردن مقادیر
+                        newRow.querySelectorAll("input").forEach(inp => inp.value = "");
+                        newRow.querySelectorAll("select").forEach(sel => sel.selectedIndex = 0);
+
+                        tableBody.appendChild(newRow);
+
+                        const newFirstInput = newRow.querySelector("input, select");
+                        if (newFirstInput) newFirstInput.focus();
+                    }
+                    break;
+
+                case "ArrowDown":
+                    const nextRow = currentRow.nextElementSibling;
+                    if (nextRow) {
+                        const nextInputs = Array.from(nextRow.querySelectorAll("input, select"));
+                        if (nextInputs[cellIndex]) target = nextInputs[cellIndex];
+                    }
+                    break;
+
+                case "ArrowUp":
+                    const prevRow = currentRow.previousElementSibling;
+                    if (prevRow) {
+                        const prevInputs = Array.from(prevRow.querySelectorAll("input, select"));
+                        if (prevInputs[cellIndex]) target = prevInputs[cellIndex];
+                    }
+                    break;
+
+                case "Delete":
+                case "Del": // برخی مرورگرها ممکن است به این صورت ارسال کنند
+                    e.preventDefault();
+
+                    if (allRows.length > 1) {
+                        const nextFocusRow = currentRow.nextElementSibling || currentRow.previousElementSibling;
+                        const nextFocusInput = nextFocusRow?.querySelector("input, select");
+
+                        currentRow.remove();
+
+                        if (nextFocusInput) nextFocusInput.focus();
+                    }
+                    break;
+            }
+
+            if (target) {
+                e.preventDefault();
+                target.focus();
+            }
+        });
+
+
+        document.addEventListener("keydown", function (e) {
+            // ذخیره با Ctrl + Enter
+            if (e.ctrlKey && e.key === "Enter") {
+                e.preventDefault();
+                const saveBtn = document.querySelector(".btn-gradient-save");
+                if (saveBtn) saveBtn.click();
+            }
+
+            // باز یا بسته کردن راهنما با Shift + H
+            else if (e.shiftKey && e.key.toLowerCase() === "h") {
+                e.preventDefault();
+                const modal = document.getElementById("helpModal");
+                if (modal) {
+                    const isVisible = modal.style.display === "flex";
+                    modal.style.display = isVisible ? "none" : "flex";
+                }
+            }
+
+            // بستن مودال با Escape
+            if (e.key === "Escape") {
+                const modal = document.getElementById("helpModal");
+                if (modal && modal.style.display === "flex") {
+                    modal.style.display = "none";
+                }
+            }
+        });
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const firstInput = document.querySelector("#transactionsTable tbody tr:first-child input, #transactionsTable tbody tr:first-child select");
+            if (firstInput) {
+                firstInput.focus();
+            }
+        });
+
+
+
+
+    </script>
+} 

@@ -1,30 +1,32 @@
 ﻿@model IMS.Application.WarehouseManagement.DTOs.WarehouseDto
 
 @{
-    ViewData["Title"] = " انبار جدید";
+    ViewData["Title"] = "انبار جدید";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
-                    </h4>
-                    <a asp-action="Index" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
-                </div>
+<div class="header-sidebar-wrapper">
+    @await Html.PartialAsync("_Sidebar")
 
-                <div class="card-body">
-                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Code" class="form-label fw-bold">
-                                        <i class="fas fa-barcode me-1 text-muted"></i> کد 
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary border-0 shadow" style="box-shadow: var(--card-shadow);">
+                    <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-white">
+                            <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
+                        </h4>
+                        <a asp-action="Index" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Code" class="form-label fw-bold text-white">
+                                        <i class="fas fa-barcode me-1 text-muted"></i> کد
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
@@ -32,12 +34,10 @@
                                     </div>
                                     <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
                                 </div>
-                            </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Name" class="form-label fw-bold">
-                                        <i class="fas fa-tag me-1 text-muted"></i> نام 
+                                <div class="col-md-6">
+                                    <label asp-for="Name" class="form-label fw-bold text-white">
+                                        <i class="fas fa-tag me-1 text-muted"></i> نام
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light"><i class="fas fa-building text-primary"></i></span>
@@ -46,12 +46,10 @@
                                     <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Location" class="form-label fw-bold">
+                            <div class="row g-3 mt-3">
+                                <div class="col-md-6">
+                                    <label asp-for="Location" class="form-label fw-bold text-white">
                                         <i class="fas fa-map-marker-alt me-1 text-muted"></i> موقعیت مکانی
                                     </label>
                                     <div class="input-group">
@@ -60,11 +58,9 @@
                                     </div>
                                     <span asp-validation-for="Location" class="text-danger small mt-1 d-block"></span>
                                 </div>
-                            </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Manager" class="form-label fw-bold">
+                                <div class="col-md-6">
+                                    <label asp-for="Manager" class="form-label fw-bold text-white">
                                         <i class="fas fa-user-tie me-1 text-muted"></i> مدیر انبار
                                     </label>
                                     <div class="input-group">
@@ -74,91 +70,51 @@
                                     <span asp-validation-for="Manager" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-group mb-4">
-                            <label asp-for="StorageConditions" class="form-label fw-bold">
-                                <i class="fas fa-temperature-low me-1 text-muted"></i> شرایط نگهداری
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-info-circle text-primary"></i></span>
-                                <textarea asp-for="StorageConditions" class="form-control form-control-lg" rows="3" placeholder="شرایط دما، رطوبت و سایر موارد مهم"></textarea>
+                            <div class="form-group mt-4">
+                                <label asp-for="StorageConditions" class="form-label fw-bold text-white">
+                                    <i class="fas fa-temperature-low me-1 text-muted"></i> شرایط نگهداری
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-info-circle text-primary"></i></span>
+                                    <textarea asp-for="StorageConditions" class="form-control form-control-lg" rows="3" placeholder="شرایط دما، رطوبت و سایر موارد مهم"></textarea>
+                                </div>
+                                <span asp-validation-for="StorageConditions" class="text-danger small mt-1 d-block"></span>
+                                <div class="form-text small text-muted">حداکثر 500 کاراکتر</div>
                             </div>
-                            <span asp-validation-for="StorageConditions" class="text-danger small mt-1 d-block"></span>
-                            <div class="form-text small text-muted">حداکثر 500 کاراکتر</div>
-                        </div>
 
-                        <div class="form-group mb-4">
-                            <label asp-for="Description" class="form-label fw-bold">
-                                <i class="fas fa-align-left me-1 text-muted"></i> توضیحات
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="fas fa-comment text-primary"></i></span>
-                                <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="توضیحات تکمیلی درباره انبار"></textarea>
+                            <div class="form-group mt-4">
+                                <label asp-for="Description" class="form-label fw-bold text-white">
+                                    <i class="fas fa-align-left me-1 text-muted"></i> توضیحات
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-comment text-primary"></i></span>
+                                    <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="توضیحات تکمیلی درباره انبار"></textarea>
+                                </div>
+                                <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                                <div class="form-text small text-muted">حداکثر 1000 کاراکتر</div>
                             </div>
-                            <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
-                            <div class="form-text small text-muted">حداکثر 1000 کاراکتر</div>
-                        </div>
 
-                        <div class="form-footer border-top pt-4 mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
-                                <i class="fas fa-save me-2"></i> ثبت انبار
-                            </button>
-                            <a asp-action="Index" class="btn btn-outline-secondary btn-lg me-2">
-                                <i class="fas fa-times me-2"></i> انصراف
-                            </a>
-                        </div>
-                    </form>
+                            <div class="form-footer border-top pt-4 mt-4 d-flex gap-3">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="fas fa-save me-2"></i> ثبت انبار
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i> انصراف
+                                </a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-    <style>
-        .form-control-lg {
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            border-radius: 0.375rem;
-        }
-
-        .input-group-text {
-            min-width: 45px;
-            justify-content: center;
-        }
-
-        .form-footer {
-            display: flex;
-            justify-content: flex-start;
-            gap: 1rem;
-        }
-
-        .card {
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .card-header {
-            border-bottom: none;
-        }
-
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .form-label {
-            margin-bottom: 0.5rem;
-            color: #495057;
-        }
-    </style>
-
-
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
     <script>
         // فعال سازی اعتبارسنجی فرم
         (function () {

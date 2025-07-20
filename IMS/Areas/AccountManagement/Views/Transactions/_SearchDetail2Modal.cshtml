@@ -1,0 +1,50 @@
+﻿@using IMS.Areas.AccountManagement.Models
+@model List<AccountSearchResultViewModel>
+@{
+    Layout = null;
+    var rowIndex = ViewBag.RowIndex ?? 0;
+}
+
+<div class="modal-body p-0">
+    <div class="table-responsive">
+        <table class="table table-hover table-bordered table-striped text-center align-middle" id="detail2Table">
+            <thead class="table-dark">
+                <tr>
+                    <th>حساب کل</th>
+                    <th>حساب معین</th>
+                    <th>تفصیل ۱</th>
+                    <th>تفصیل ۲</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr onclick="selectDetail2('@item.MainAccount', '@item.SubAccount', '@item.Detail1', '@item.Detail2', @rowIndex)">
+                        <td>@item.MainAccount</td>
+                        <td>@item.SubAccount</td>
+                        <td>@item.Detail1</td>
+                        <td>@item.Detail2</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function selectDetail2(main, sub, detail1, detail2, rowIndex) {
+        // نمونه‌ای از نحوه ارسال داده به inputها یا فرم اصلی
+        const prefix = `details[${rowIndex}]`;
+
+        document.querySelector(`#${prefix}_MainAccount`).value = main;
+        document.querySelector(`#${prefix}_SubAccount`).value = sub;
+        document.querySelector(`#${prefix}_Detail1`).value = detail1;
+        document.querySelector(`#${prefix}_Detail2`).value = detail2;
+
+        // بستن مدال (در صورت استفاده از Bootstrap)
+        if (window.bootstrap) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('searchDetail2Modal'));
+            modal.hide();
+        }
+    }
+</script>

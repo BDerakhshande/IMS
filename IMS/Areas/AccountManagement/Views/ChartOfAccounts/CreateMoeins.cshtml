@@ -1,0 +1,54 @@
+﻿@model IMS.Areas.AccountManagement.Models.Moein
+
+<link rel="stylesheet" href="~/css/transactionstyle.css">
+@{
+    var errorMessage = TempData["ErrorMessage"];
+}
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger">
+        @errorMessage
+    </div>
+}
+<div class="container">
+    <h2>@ViewData["Title"]</h2>
+    <form asp-action="CreateMoeins" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- فیلد کد حساب معین -->
+        <div class="form-group">
+            <label for="Code">کد حساب معین</label>
+            <input type="text" id="Code" name="Code" class="form-control" value="@Model.Code" required maxlength="50" />
+            <span class="text-danger" asp-validation-for="Code"></span>
+        </div>
+
+        <!-- فیلد نام حساب معین -->
+        <div class="form-group">
+            <label for="Name">نام حساب معین</label>
+            <input type="text" id="Name" name="Name" class="form-control" value="@Model.Name" required maxlength="200" />
+            <span class="text-danger" asp-validation-for="Name"></span>
+        </div>
+
+        <!-- فیلد حساب کل (حساب کلی انتخابی برای معین) -->
+        <div class="form-group">
+            <label for="AccountId">حساب کل</label>
+            @Html.DropDownListFor(
+                     model => model.AccountId,
+                     new SelectList(ViewBag.Accounts as List<IMS.Areas.AccountManagement.Models.Account>, "Id", "Name", Model.AccountId),
+                     "انتخاب حساب کل",
+                     new { @class = "form-control" }
+                     )
+            <span class="text-danger" asp-validation-for="AccountId"></span>
+        </div>
+
+        <!-- دکمه ارسال -->
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-primary">ذخیره</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
