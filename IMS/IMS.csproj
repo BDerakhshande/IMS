@@ -34,4 +34,9 @@
     <ProjectReference Include="..\IMS.Infrastructure\IMS.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\font\" />
+    <Folder Include="wwwroot\icon\" />
+  </ItemGroup>
+
 </Project>
