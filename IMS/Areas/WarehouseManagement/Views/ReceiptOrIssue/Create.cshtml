@@ -57,6 +57,21 @@
                         <span asp-validation-for="Type" class="text-danger small"></span>
                     </div>
                 </div>
+
+                <!-- پروژه را هم داخل همین ردیف قرار دهید -->
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="ProjectId" class="form-label fw-bold">پروژه</label>
+                        <select asp-for="ProjectId" class="form-select select2">
+                            <option value="">انتخاب پروژه...</option>
+                            @foreach (var item in ViewBag.Projects as SelectList)
+                            {
+                                <option value="@item.Value" selected="@(item.Value == Model.ProjectId?.ToString())">@item.Text</option>
+                            }
+                        </select>
+                        <span asp-validation-for="ProjectId" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
 
             <hr class="my-4" />

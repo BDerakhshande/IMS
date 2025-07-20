@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore.Options;
 using Rotativa.AspNetCore;
+using IMS.Application.ProjectManagement.Service;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -21,15 +22,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IGroupService _groupService;
         private readonly IStatusService _statusService;
         private readonly IWarehouseDbContext _context;
-
+        private readonly IApplicationDbContext _projectContext;
+        private readonly IProjectService _projectService;
         public ReceiptOrIssueController(IReceiptOrIssueService service, IWarehouseService warehouseService, IProductService productService
-            , ICategoryService categoryService ,IGroupService groupService ,IStatusService statusService , IWarehouseDbContext context)
+            , ICategoryService categoryService ,IGroupService groupService ,IStatusService statusService , IWarehouseDbContext context, IApplicationDbContext projectContext , IProjectService projectService)
         {
             _service = service;
             _warehouseService = warehouseService;
             _productService = productService;
             _categoryService = categoryService; _groupService = groupService; _statusService = statusService;
             _context = context;
+            _projectContext = projectContext;_projectService = projectService;
         }
 
 
@@ -148,11 +151,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ViewBag.Sections = new SelectList(Enumerable.Empty<SelectListItem>());
             }
 
+            // حالا پروژه‌ها را از DbContext پروژه‌ها بگیر
+            var projects = await _projectContext.Projects
+                .Select(p => new { p.Id, p.ProjectName })
+                .ToListAsync();
+
+            ViewBag.Projects = new SelectList(projects, "Id", "ProjectName");
+
             // برای DropDownهای آبشاری مقادیر خالی می‌گذاریم (فقط برای View آماده‌سازی می‌کنیم)
             ViewBag.Groups = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Statuses = new SelectList(Enumerable.Empty<SelectListItem>());
             ViewBag.Products = new SelectList(Enumerable.Empty<SelectListItem>());
         }
+
 
 
 
@@ -287,6 +298,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Type = vm.Type,
                 Description = vm.Description,
                 DocumentNumber = vm.DocumentNumber,
+                ProjectId = vm.ProjectId,
+                ProjectTitle = vm.ProjectTitle,
                 Items = vm.Items.Select(i => new ReceiptOrIssueItemDto
                 {
                     Quantity = i.Quantity,
@@ -316,6 +329,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Type = dto.Type,
                 Description = dto.Description,
                 DocumentNumber = dto.DocumentNumber,
+                ProjectId = dto.ProjectId,         
+                ProjectTitle = dto.ProjectTitle,
                 Items = new List<ReceiptOrIssueItemViewModel>()
             };
 
@@ -462,14 +477,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             foreach (var item in model.Items)
             {
-
-                //await FillSourceWarehouseAndZoneIfMissing(item);
                 await PopulateItemDependencies(item);
-              
             }
-    
+
+            var projects = await _projectService.GetAllProjectsAsync();
+            model.AvailableProjects = projects.Select(p =>
+                new SelectListItem { Value = p.Id.ToString(), Text = p.ProjectName }).ToList();
+
+            model.ProjectId = dto.ProjectId;
+
             return View(model);
         }
+
 
 
 

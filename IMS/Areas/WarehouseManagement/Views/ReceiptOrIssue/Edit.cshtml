@@ -85,6 +85,16 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-4">
+                <div class="form-group mb-3">
+                    <label asp-for="ProjectId" class="form-label fw-bold">پروژه</label>
+                    <select asp-for="ProjectId" asp-items="Model.AvailableProjects" class="form-select select2">
+                        <option value="">انتخاب پروژه...</option>
+                    </select>
+
+                    <span asp-validation-for="ProjectId" class="text-danger small"></span>
+                </div>
+            </div>
 
             <hr class="my-4" />
 

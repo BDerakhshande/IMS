@@ -41,55 +41,73 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         {
             base.OnModelCreating(modelBuilder);
 
+            // --- ConversionConsumedItem ---
             modelBuilder.Entity<ConversionConsumedItem>()
-    .HasOne(ci => ci.Product)
-    .WithMany()
-    .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<ConversionConsumedItem>()
+                .HasOne(ci => ci.Zone)
+                .WithMany()
+                .HasForeignKey(ci => ci.ZoneId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ConversionConsumedItem>()
+                .HasOne(ci => ci.Section)
+                .WithMany()
+                .HasForeignKey(ci => ci.SectionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ConversionConsumedItem>()
+                .HasOne(ci => ci.ConversionDocument)
+                .WithMany(d => d.ConsumedItems)
+                .HasForeignKey(ci => ci.ConversionDocumentId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // --- ConversionProducedItem ---
             modelBuilder.Entity<ConversionProducedItem>()
                 .HasOne(pi => pi.Product)
                 .WithMany()
                 .HasForeignKey(pi => pi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
+            // --- Inventory ---
             modelBuilder.Entity<Inventory>(entity =>
             {
                 entity.ToTable("Inventories");
-
                 entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.Quantity)
-                      .IsRequired()
-                      .HasColumnType("decimal(18,2)");
+                    .IsRequired()
+                    .HasColumnType("decimal(18,2)");
 
                 entity.HasOne(e => e.Warehouse)
-                      .WithMany(w => w.Inventories)
-                      .HasForeignKey(e => e.WarehouseId)
-                      .OnDelete(DeleteBehavior.NoAction);
+                    .WithMany(w => w.Inventories)
+                    .HasForeignKey(e => e.WarehouseId)
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Zone)
-                      .WithMany(z => z.Inventories)
-                      .HasForeignKey(e => e.ZoneId)
-                      .OnDelete(DeleteBehavior.NoAction);
+                    .WithMany(z => z.Inventories)
+                    .HasForeignKey(e => e.ZoneId)
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Section)
-                      .WithMany(s => s.Inventories)
-                      .HasForeignKey(e => e.SectionId)
-                      .OnDelete(DeleteBehavior.NoAction);
+                    .WithMany(s => s.Inventories)
+                    .HasForeignKey(e => e.SectionId)
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasOne(e => e.Product)
-                      .WithMany(p => p.Inventories)
-                      .HasForeignKey(e => e.ProductId)
-                      .OnDelete(DeleteBehavior.NoAction);
+                    .WithMany(p => p.Inventories)
+                    .HasForeignKey(e => e.ProductId)
+                    .OnDelete(DeleteBehavior.NoAction);
 
                 entity.HasIndex(e => new { e.WarehouseId, e.ZoneId, e.SectionId, e.ProductId })
-                      .IsUnique();
+                    .IsUnique();
             });
 
-
-
-            // Warehouse
+            // --- Warehouse ---
             modelBuilder.Entity<Warehouse>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -123,15 +141,10 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 entity.HasMany(e => e.Zones)
                     .WithOne(z => z.Warehouse)
                     .HasForeignKey(z => z.WarehouseId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                //entity.HasMany(e => e.ReceiptOrIssues)
-                //    .WithOne(r => r.Warehouse)
-                //    .HasForeignKey(r => r.WarehouseId)
-                //    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade); // حذف cascade برای Zones از Warehouse صحیح است
             });
 
-            // StorageZone
+            // --- StorageZone ---
             modelBuilder.Entity<StorageZone>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -150,10 +163,10 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 entity.HasMany(z => z.Sections)
                     .WithOne(s => s.Zone)
                     .HasForeignKey(s => s.ZoneId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                    .OnDelete(DeleteBehavior.Restrict); // برای جلوگیری از مشکلات cascade بهتر است Restrict باشد
             });
 
-            // StorageSection
+            // --- StorageSection ---
             modelBuilder.Entity<StorageSection>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -176,12 +189,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .HasMaxLength(300);
             });
 
-         
-          
-
-
-
-            // Category
+            // --- Category ---
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -196,7 +204,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Group
+            // --- Group ---
             modelBuilder.Entity<Group>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -216,7 +224,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Status
+            // --- Status ---
             modelBuilder.Entity<Status>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -236,7 +244,15 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Product
+            // --- ReceiptOrIssue ---
+            modelBuilder.Entity<ReceiptOrIssue>()
+     .HasOne(r => r.Project)
+     .WithMany()
+     .HasForeignKey(r => r.ProjectId)
+     .OnDelete(DeleteBehavior.Restrict);
+
+
+            // --- Product ---
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -257,13 +273,13 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 entity.Property(e => e.Price)
                     .HasColumnType("decimal(18,2)");
 
-              
                 entity.HasOne(p => p.Status)
                     .WithMany(s => s.Products)
                     .HasForeignKey(p => p.StatusId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }
+
 
     }
 }

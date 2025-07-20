@@ -1,5 +1,6 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Domain.WarehouseManagement.Enums;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace IMS.Models.ProMan
 {
@@ -11,6 +12,10 @@ namespace IMS.Models.ProMan
         public DateTime Date { get; set; }
         public ReceiptOrIssueType Type { get; set; }
         public string? Description { get; set; }
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
+        public IEnumerable<SelectListItem>? AvailableProjects { get; set; }
+
         public List<ReceiptOrIssueItemViewModel> Items { get; set; } = new();
     }
 }
