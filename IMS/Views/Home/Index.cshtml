@@ -10,7 +10,7 @@
     <div class="subsystems-row">
         <div class="subsystem-card projects">
             <div class="card-icon">
-                <i class="fas fa-tasks"></i>
+                <img src="../icon/icons8-checklist-50.png" alt="Management Icon" />
             </div>
             <div class="card-content">
                 <h2>مدیریت پروژه‌ها</h2>
@@ -23,7 +23,7 @@
 
         <div class="subsystem-card inventory">
             <div class="card-icon">
-                <i class="fas fa-boxes"></i>
+                <img src="../icon/icons8-warehouse-50.png" alt="User" />
             </div>
             <div class="card-content">
                 <h2>سیستم انبارداری</h2>
@@ -39,23 +39,27 @@
     <div class="subsystems-row">
         <div class="subsystem-card accounting">
             <div class="card-icon">
-                <i class="fas fa-calculator"></i>
+                <img src="../icon/icons8-calculator-64 (1).png" alt="Calculator Icon" />
             </div>
             <div class="card-content">
                 <h2>سیستم حسابداری</h2>
                 <p>دفتر کل، حساب‌های تفضیلی، گزارشات مالی</p>
-                <button class="access-btn">ورود به سیستم <i class="fas fa-arrow-left"></i></button>
+                <a class="access-btn px-4" asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index">
+                    <i class="fas fa-arrow-left"></i> ورود به سیستم
+                </a>
             </div>
         </div>
 
         <div class="subsystem-card procurement">
             <div class="card-icon">
-                <i class="fas fa-clipboard-list"></i>
+                <img src="../icon/icons8-computer-80.png" alt="" />
             </div>
             <div class="card-content">
                 <h2>سیستم تدارکات</h2>
                 <p>خرید، سفارشات، مدیریت تامین کنندگان</p>
-                <button class="access-btn">ورود به سیستم <i class="fas fa-arrow-left"></i></button>
+                <a class="access-btn px-4" asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index">
+                    <i class="fas fa-arrow-left"></i> ورود به سیستم
+                </a>
             </div>
         </div>
     </div>

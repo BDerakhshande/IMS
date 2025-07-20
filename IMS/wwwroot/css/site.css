@@ -1,4 +1,11 @@
-﻿:root {
+﻿@font-face {
+    font-family: 'Vazirmatn';
+    src: url('../font/Vazirmatn-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+:root {
     --primary-color: #1a4a5a;
     --secondary-color: #1aada2;
     --accent-color: #1aada2;
@@ -47,6 +54,7 @@
     .access-btn:hover {
         background: linear-gradient(45deg, #14857b, #1aada2);
         box-shadow: 0 0 10px rgba(26, 173, 162, 0.6);
+        color:white;
     }
 
 body {
@@ -58,7 +66,7 @@ body {
 }
 
     body.dark-mode {
-        background-color: #0d2b36;
+        background-color: #083344;
     }
 
 .system-access-container {
@@ -195,6 +203,7 @@ body {
     }
 
 .access-btn {
+    text-decoration:none;
     background-color: var(--accent-color);
     color: white;
     border: none;
