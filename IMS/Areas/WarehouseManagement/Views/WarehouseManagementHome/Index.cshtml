@@ -2,19 +2,6 @@
     ViewData["Title"] = "صفحه اصلی مدیریت پروژه";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"]</title>
-
-    <!-- فونت و آیکون‌ها -->
-    <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-    <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/management.css" />
-</head>
-<body>
     <div class="header-bar">
         <button class="toggle-btn" id="toggleBtn">☰</button>
         <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
@@ -70,6 +57,11 @@
         <h1>Main Content ...drhsh</h1>
     </div>
 
+@section Styles {
+    <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/management.css" />
+}
+
+@section Scripts {
     <script src="~/js/management.js"></script>
-</body>
-</html>
+}
