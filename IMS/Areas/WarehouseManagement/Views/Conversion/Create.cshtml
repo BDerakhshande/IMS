@@ -25,29 +25,42 @@
                     </div>
                 }
 
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group mb-3">
-                            <label asp-for="DateString" class="form-label fw-bold">تاریخ</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                                <input asp-for="DateString" class="form-control persian-datepicker" placeholder="تاریخ را انتخاب کنید" />
-                            </div>
-                            <span asp-validation-for="DateString" class="text-danger small"></span>
+            <div class="row">
+                <!-- تاریخ -->
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="DateString" class="form-label fw-bold text-primary">تاریخ</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                            <input asp-for="DateString" class="form-control persian-datepicker" placeholder="تاریخ را انتخاب کنید" />
                         </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group mb-3">
-                            <label asp-for="DocumentNumber" class="form-label fw-bold">شماره سند</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
-                                <input asp-for="DocumentNumber" class="form-control" placeholder="شماره سند را وارد کنید" />
-                            </div>
-                            <span asp-validation-for="DocumentNumber" class="text-danger small"></span>
-                        </div>
+                        <span asp-validation-for="DateString" class="text-danger small"></span>
                     </div>
                 </div>
+
+                <!-- شماره سند -->
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="DocumentNumber" class="form-label fw-bold text-primary">شماره سند</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
+                            <input asp-for="DocumentNumber" class="form-control" placeholder="شماره سند را وارد کنید" />
+                        </div>
+                        <span asp-validation-for="DocumentNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="ProjectId" class="form-label fw-bold text-primary">پروژه</label>
+                        <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select" required>
+                            <option value="">انتخاب کنید...</option>
+                        </select>
+                        <span asp-validation-for="ProjectId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+
 
                 <hr class="my-4" />
 

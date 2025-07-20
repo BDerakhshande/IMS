@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore.Options;
 using Rotativa.AspNetCore;
+using IMS.Application.ProjectManagement.Service;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -15,11 +16,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     {
         private readonly IConversionService _conversionService;
         private readonly IWarehouseDbContext _warehouseDbContext;
+        private readonly IApplicationDbContext _projectContext;
+        private readonly IProjectService _projectService;
 
-        public ConversionController(IConversionService conversionService, IWarehouseDbContext warehouseDbContext)
+        public ConversionController(IConversionService conversionService, IWarehouseDbContext warehouseDbContext,
+            IApplicationDbContext projectContext , IProjectService projectService)
         {
             _conversionService = conversionService;
             _warehouseDbContext = warehouseDbContext;
+            _projectContext = projectContext;
+            _projectService = projectService;
         }
 
         [HttpGet]
@@ -98,6 +104,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     ZoneId = s.ZoneId
                 }).ToListAsync();
 
+
+            var projects = await _projectContext.Projects
+    .Select(p => new SelectListItem
+    {
+        Value = p.Id.ToString(),
+        Text = p.ProjectName
+    }).ToListAsync();
+
             // Persian date setup
             PersianCalendar pc = new PersianCalendar();
             DateTime now = DateTime.Now;
@@ -115,7 +129,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ConsumedItems = new List<ConversionConsumedItemDto> { new ConversionConsumedItemDto() },
                 ProducedItems = new List<ConversionProducedItemDto> { new ConversionProducedItemDto() },
                 DateString = persianDateString,
-                DocumentNumber = await _conversionService.GetNextConversionDocumentNumberAsync()
+                DocumentNumber = await _conversionService.GetNextConversionDocumentNumberAsync(),
+                Projects = projects,
+                ProjectId = null
 
             };
 
@@ -168,20 +184,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             ModelState.Remove(nameof(model.Categories));
             ModelState.Remove(nameof(model.Warehouses));
 
-            if (!ModelState.IsValid)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
-                });
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return Json(new
+            //    {
+            //        success = false,
+            //        errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+            //    });
+            //}
 
             try
             {
                 var (documentId, documentNumber) = await _conversionService.ConvertAndRegisterDocumentAsync(
                     model.ConsumedItems,
-                    model.ProducedItems
+                    model.ProducedItems,
+                    model.ProjectId
                 );
 
                 return Json(new
@@ -234,6 +251,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             model.Sections = await _warehouseDbContext.StorageSections
                 .Select(s => new StorageSectionDto { Id = s.Id, Name = s.Name, ZoneId = s.ZoneId })
                 .ToListAsync();
+
+            model.Projects = await _projectContext.Projects
+    .Select(p => new SelectListItem
+    {
+        Value = p.Id.ToString(),
+        Text = p.ProjectName
+    }).ToListAsync();
+
         }
 
 
@@ -394,6 +419,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var pc = new PersianCalendar();
             var persianDate = $"{pc.GetYear(document.CreatedAt):0000}/{pc.GetMonth(document.CreatedAt):00}/{pc.GetDayOfMonth(document.CreatedAt):00}";
 
+            // --- اینجا، قبل از مقداردهی مدل، پروژه‌ها را بارگذاری کن
+            var projects = await _projectContext.Projects
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.ProjectName
+                }).ToListAsync();
+
             var model = new ConversionCreateViewModel
             {
                 DocumentId = document.Id,
@@ -423,22 +456,69 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     WarehouseId = i.WarehouseId,
                     ZoneId = i.ZoneId,
                     SectionId = i.SectionId
-                }).ToList()
+                }).ToList(),
+
+                // اضافه کردن پروژه‌ها به مدل برای Dropdown
+                Projects = projects,
+
+                // مقدار پروژه انتخاب شده در سند
+                ProjectId = document.ProjectId
             };
 
-            await PopulateSelectListsAsync(model);
-            return View("Edit", model); // از همان View ایجاد استفاده می‌کنیم
+            await PopulateSelectListsAsync(model); // اگر لیست‌های دیگر هم لازم است بارگذاری شوند
+
+            return View("Edit", model);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ConversionCreateViewModel model)
         {
-           
-
             if (!model.DocumentId.HasValue)
             {
                 return Json(new { success = false, errors = new[] { "شناسه سند معتبر نیست." } });
+            }
+
+            // اعتبارسنجی تاریخ
+            if (!string.IsNullOrEmpty(model.DateString))
+            {
+                var parts = model.DateString.Split('/');
+                if (parts.Length == 3 &&
+                    int.TryParse(parts[0], out int year) &&
+                    int.TryParse(parts[1], out int month) &&
+                    int.TryParse(parts[2], out int day))
+                {
+                    try
+                    {
+                        PersianCalendar pc = new PersianCalendar();
+                        model.Date = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+                    }
+                    catch
+                    {
+                        ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
+                }
+            }
+
+            // اعتبارسنجی اقلام
+            if (model.ConsumedItems == null || !model.ConsumedItems.Any())
+                ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
+
+            if (model.ProducedItems == null || !model.ProducedItems.Any())
+                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
+
+            if (!ModelState.IsValid)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -447,15 +527,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     model.DocumentId.Value,
                     model.ConsumedItems,
                     model.ProducedItems,
-                    CancellationToken.None);
+                    model.ProjectId // ✅ ارسال ProjectId
+                );
 
-                return Json(new { success = true, documentId });
+                return Json(new { success = true, documentId, documentNumber });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, errors = new[] { "خطا در ویرایش سند: " + ex.Message } });
             }
         }
+
 
 
 

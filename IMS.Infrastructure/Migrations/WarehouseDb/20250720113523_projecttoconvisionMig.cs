@@ -5,7 +5,7 @@
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     /// <inheritdoc />
-    public partial class projectaddreceiptfix : Migration
+    public partial class projecttoconvisionMig : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

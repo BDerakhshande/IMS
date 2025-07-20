@@ -264,7 +264,12 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("conversionDocuments");
                 });
@@ -761,6 +766,16 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Navigation("Warehouse");
 
                     b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionDocument", b =>
+                {
+                    b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionProducedItem", b =>

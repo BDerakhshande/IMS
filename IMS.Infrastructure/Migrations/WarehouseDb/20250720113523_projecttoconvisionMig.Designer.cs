@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    [Migration("20250720084946_projectaddreceiptfix")]
-    partial class projectaddreceiptfix
+    [Migration("20250720113523_projecttoconvisionMig")]
+    partial class projecttoconvisionMig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -267,7 +267,12 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("conversionDocuments");
                 });
@@ -764,6 +769,16 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Navigation("Warehouse");
 
                     b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionDocument", b =>
+                {
+                    b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionProducedItem", b =>

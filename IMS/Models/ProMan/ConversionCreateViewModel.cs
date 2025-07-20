@@ -25,6 +25,9 @@ namespace IMS.Models.ProMan
         public List<ProductDto> Products { get; set; }
         public List<StorageZoneDto> Zones { get; set; }
         public List<StorageSectionDto> Sections { get; set; }
+        public int? ProjectId { get; set; }
+
+        public List<SelectListItem> Projects { get; set; } // برای DropDown در فرم
 
         public List<ConversionConsumedItemDto> ConsumedItems { get; set; }
         public List<ConversionProducedItemDto> ProducedItems { get; set; }

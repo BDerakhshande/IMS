@@ -43,6 +43,7 @@
                         <tr>
                             <th class="text-center">شناسه سند</th>
                             <th class="text-center">تاریخ ایجاد</th>
+                            <th class="text-center">پروژه</th> <!-- ستون پروژه جدید -->
                             <th class="text-center">مواد مصرفی</th>
                             <th class="text-center">محصولات تولیدی</th>
                             <th class="text-center">عملیات</th>
@@ -58,6 +59,9 @@
                                     <td class="text-center">
                                         <span>@doc.CreatedAt.ToString("yyyy/MM/dd")</span>
                                         <small class="d-block text-muted">@doc.CreatedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td class="text-center text-dark fw-semibold">
+                                        @(string.IsNullOrEmpty(doc.ProjectTitle) ? "—" : doc.ProjectTitle)
                                     </td>
                                     <td>
                                         @if (doc.ConsumedProducts.Any())

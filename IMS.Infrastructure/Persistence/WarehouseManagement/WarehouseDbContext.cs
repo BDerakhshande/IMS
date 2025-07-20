@@ -73,6 +73,17 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 .HasForeignKey(pi => pi.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+
+
+
+            modelBuilder.Entity<ConversionDocument>()
+    .HasOne(cd => cd.Project)
+    .WithMany()
+    .HasForeignKey(cd => cd.ProjectId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+
+
             // --- Inventory ---
             modelBuilder.Entity<Inventory>(entity =>
             {

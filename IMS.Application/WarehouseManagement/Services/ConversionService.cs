@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
+using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -13,15 +14,24 @@ namespace IMS.Application.WarehouseManagement.Services
     public class ConversionService : IConversionService
     {
         private readonly IWarehouseDbContext _dbContext;
-
-        public ConversionService(IWarehouseDbContext dbContext)
+        private readonly IApplicationDbContext _projectContext;
+        public ConversionService(IWarehouseDbContext dbContext , IApplicationDbContext projectContext)
         {
             _dbContext = dbContext;
+            _projectContext = projectContext;
         }
 
 
         public async Task<List<ConversionDocumentDto>> GetConversionDocumentsAsync()
         {
+            // 1. همه پروژه‌ها را از کانتکست پروژه‌ها بگیر
+            var projects = await _projectContext.Projects
+                .Select(p => new { p.Id, p.ProjectName })
+                .ToListAsync();
+
+            var projectDict = projects.ToDictionary(p => p.Id, p => p.ProjectName);
+
+            // 2. اسناد تبدیل را بگیر
             var documents = await _dbContext.conversionDocuments
                 .Include(d => d.ConsumedItems)
                     .ThenInclude(ci => ci.Product)
@@ -32,24 +42,28 @@ namespace IMS.Application.WarehouseManagement.Services
                 {
                     Id = d.Id,
                     CreatedAt = d.CreatedAt,
-                    DocumentNumber = d.DocumentNumber, // ✅ این خط درست است
-
+                    DocumentNumber = d.DocumentNumber,
                     ConsumedProducts = d.ConsumedItems.Select(ci => new ProductInfoDto
                     {
                         ProductName = ci.Product.Name,
                         Quantity = ci.Quantity
                     }).ToList(),
-
                     ProducedProducts = d.ProducedItems.Select(pi => new ProductInfoDto
                     {
                         ProductName = pi.Product.Name,
                         Quantity = pi.Quantity
-                    }).ToList()
+                    }).ToList(),
+
+                    ProjectId = d.ProjectId,
+                    ProjectTitle = d.ProjectId.HasValue && projectDict.ContainsKey(d.ProjectId.Value)
+                        ? projectDict[d.ProjectId.Value]
+                        : null
                 })
                 .ToListAsync();
 
             return documents;
         }
+
 
 
         public async Task<string> GetNextConversionDocumentNumberAsync()
@@ -78,11 +92,10 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
         public async Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
-    List<ConversionConsumedItemDto> consumedItems,
-    List<ConversionProducedItemDto> producedItems)
+     List<ConversionConsumedItemDto> consumedItems,
+     List<ConversionProducedItemDto> producedItems,
+     int? projectId = null)
         {
-           
-
             if (consumedItems == null || producedItems == null)
                 throw new ArgumentException("اقلام مصرفی یا تولیدی نمی‌تواند خالی باشد.");
 
@@ -92,6 +105,7 @@ namespace IMS.Application.WarehouseManagement.Services
             {
                 DocumentNumber = nextDocNumber,
                 CreatedAt = DateTime.Now,
+                ProjectId = projectId,
                 ConsumedItems = new List<ConversionConsumedItem>(),
                 ProducedItems = new List<ConversionProducedItem>()
             };
@@ -103,6 +117,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     i.ZoneId == consumed.ZoneId &&
                     i.SectionId == consumed.SectionId &&
                     i.ProductId == consumed.ProductId);
+
                 if (inventory == null)
                 {
                     var productName = await _dbContext.Products
@@ -124,9 +139,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 }
 
                 inventory.Quantity -= consumed.Quantity;
-
                 ((DbContext)_dbContext).Entry(inventory).Property(i => i.Quantity).IsModified = true;
-
 
                 conversionDocument.ConsumedItems.Add(new ConversionConsumedItem
                 {
@@ -141,19 +154,18 @@ namespace IMS.Application.WarehouseManagement.Services
                 });
             }
 
-            // گرفتن نام همه کالاهای مرتبط در یک کوئری قبل از حلقه
             var productIds = producedItems.Select(p => p.ProductId).Distinct().ToList();
-
             var productNames = await _dbContext.Products
-    .Where(p => productIds.Contains(p.Id))
-    .ToDictionaryAsync(p => p.Id, p => p.Name);
+                .Where(p => productIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.Name);
+
             foreach (var produced in producedItems)
             {
                 var inventory = await _dbContext.Inventories.FirstOrDefaultAsync(i =>
-        i.WarehouseId == produced.WarehouseId &&
-        i.ZoneId == produced.ZoneId &&
-        i.SectionId == produced.SectionId &&
-        i.ProductId == produced.ProductId);
+                    i.WarehouseId == produced.WarehouseId &&
+                    i.ZoneId == produced.ZoneId &&
+                    i.SectionId == produced.SectionId &&
+                    i.ProductId == produced.ProductId);
 
                 if (inventory == null)
                 {
@@ -187,6 +199,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
             return (conversionDocument.Id, nextDocNumber);
         }
+
 
         public async Task<bool> DeleteConversionDocumentAsync(int documentId)
         {
@@ -246,10 +259,11 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
         public async Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
-        int documentId,
-        List<ConversionConsumedItemDto> consumedItems,
-        List<ConversionProducedItemDto> producedItems,
-        CancellationToken cancellationToken = default)
+     int documentId,
+     List<ConversionConsumedItemDto> consumedItems,
+     List<ConversionProducedItemDto> producedItems,
+     int? projectId = null,
+     CancellationToken cancellationToken = default)
         {
             if (consumedItems == null || !consumedItems.Any())
                 throw new ArgumentException("اقلام مصرفی نمی‌تواند خالی باشد.");
@@ -263,6 +277,10 @@ namespace IMS.Application.WarehouseManagement.Services
 
             if (document == null)
                 throw new InvalidOperationException("سند تبدیل یافت نشد.");
+
+            // ✅ اگر projectId جدیدی ارسال شده باشد، آن را به‌روزرسانی کن
+            if (projectId.HasValue)
+                document.ProjectId = projectId;
 
             var allProductIds = consumedItems.Select(x => x.ProductId)
                 .Concat(producedItems.Select(x => x.ProductId))
@@ -279,7 +297,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Where(p => allProductIds.Contains(p.Id))
                 .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
 
-            // بازگرداندن موجودی‌ها
+            // بازگرداندن موجودی‌های مصرف‌شده
             foreach (var consumed in document.ConsumedItems)
             {
                 var inv = inventories.FirstOrDefault(i =>
@@ -291,6 +309,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     inv.Quantity += consumed.Quantity;
             }
 
+            // کاهش موجودی‌های تولیدشده
             foreach (var produced in document.ProducedItems)
             {
                 var inv = inventories.FirstOrDefault(i =>
@@ -305,11 +324,13 @@ namespace IMS.Application.WarehouseManagement.Services
                 }
             }
 
+            // حذف اقلام قبلی
             _dbContext.conversionConsumedItems.RemoveRange(document.ConsumedItems);
             _dbContext.conversionProducedItems.RemoveRange(document.ProducedItems);
             document.ConsumedItems.Clear();
             document.ProducedItems.Clear();
 
+            // افزودن اقلام مصرفی جدید
             foreach (var item in consumedItems)
             {
                 var inv = inventories.FirstOrDefault(i =>
@@ -339,6 +360,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 });
             }
 
+            // افزودن اقلام تولیدی جدید
             foreach (var item in producedItems)
             {
                 var inv = inventories.FirstOrDefault(i =>
@@ -377,9 +399,9 @@ namespace IMS.Application.WarehouseManagement.Services
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-
             return (document.Id, document.DocumentNumber);
         }
+
 
 
 

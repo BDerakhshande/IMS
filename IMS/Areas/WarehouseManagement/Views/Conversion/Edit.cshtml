@@ -84,6 +84,16 @@
                         <span asp-validation-for="DocumentNumber" class="text-danger small"></span>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="form-group mb-3">
+                        <label asp-for="ProjectId" class="form-label fw-bold text-primary">پروژه</label>
+                        <select asp-for="ProjectId" asp-items="Model.Projects" class="form-select" required>
+                            <option value="">انتخاب کنید...</option>
+                        </select>
+
+                        <span asp-validation-for="ProjectId" class="text-danger small"></span>
+                    </div>
+                </div>
             </div>
 
             <hr class="my-4" />
