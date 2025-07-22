@@ -11,8 +11,8 @@ namespace IMS.Application.WarehouseManagement.Services
     public interface IWarehouseService
     {
         Task<IEnumerable<SelectListItem>> GetSelectListAsync();
-
-        Task<int> CreateWarehouseAsync(WarehouseDto dto);
+        Task<bool> IsCodeDuplicateAsync(string code, int? excludeId = null);
+        Task<int?> CreateWarehouseAsync(WarehouseDto dto);
         Task<List<StorageZoneDto>> GetAllZonesAsync();
         Task<List<StorageSectionDto>> GetSectionsByZoneAsync(int zoneId);
         Task<int> CreateZoneAsync(StorageZoneDto dto);

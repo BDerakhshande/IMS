@@ -26,9 +26,9 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public List<StorageZoneDto>? Zones { get; set; }
 
         // ✅ کد با فرمت استاندارد دو رقمی مثل: 01، 02، ...
-        public string CodePadded => (Code ?? "").PadLeft(2, '0');
+        public string CodePadded => Code ?? "";
 
-        // ✅ کد کامل برای نمایش، در صورت نیاز به فرمت استاندارد
+
         public string DisplayCode => $"{CodePadded}";
 
 

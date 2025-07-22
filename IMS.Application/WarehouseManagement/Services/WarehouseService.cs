@@ -19,8 +19,21 @@ namespace IMS.Application.WarehouseManagement.Services
             _context = context;
         }
 
-        public async Task<int> CreateWarehouseAsync(WarehouseDto dto)
+        public async Task<bool> IsCodeDuplicateAsync(string code, int? excludeId = null)
         {
+            return await _context.Warehouses
+                .AnyAsync(w => w.Code == code && (!excludeId.HasValue || w.Id != excludeId.Value));
+        }
+
+
+        public async Task<int?> CreateWarehouseAsync(WarehouseDto dto)
+        {
+            var existing = await _context.Warehouses
+                .AnyAsync(w => w.Code == dto.Code);
+
+            if (existing)
+                return null;
+
             var warehouse = new Warehouse
             {
                 Name = dto.Name,
