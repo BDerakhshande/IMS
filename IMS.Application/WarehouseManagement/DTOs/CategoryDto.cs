@@ -11,7 +11,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Code { get; set; } = null!;
-        // برای نمایش سلسله مراتبی
+     
         public List<GroupDto>? Groups { get; set; }
 
         public string CodePadded

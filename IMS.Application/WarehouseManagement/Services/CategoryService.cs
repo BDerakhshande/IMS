@@ -59,10 +59,17 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<CategoryDto> CreateAsync(CategoryDto dto)
         {
+            // بررسی تکراری بودن در همین‌جا
+            var isDuplicate = await _context.Categories
+                .AnyAsync(c => c.Code == dto.Code);
+
+            if (isDuplicate)
+                throw new InvalidOperationException("کد وارد شده قبلاً استفاده شده است.");
+
             var entity = new Category
             {
                 Name = dto.Name,
-                Code = dto.Code?.Trim() ?? "" // اطمینان از اینکه خالی نیست
+                Code = dto.Code?.Trim() ?? ""
             };
 
             _context.Categories.Add(entity);
@@ -72,9 +79,10 @@ namespace IMS.Application.WarehouseManagement.Services
             {
                 Id = entity.Id,
                 Name = entity.Name,
-                Code = entity.Code // ✅ باید از entity گرفته شود
+                Code = entity.Code
             };
         }
+
 
 
 
