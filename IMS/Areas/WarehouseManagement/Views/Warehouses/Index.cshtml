@@ -80,46 +80,16 @@
                                                         <i class="fas fa-edit me-1"></i>
                                                     </a>
 
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deleteModal-@warehouse.Id">
-                                                        <i class="fas fa-trash-alt me-1"></i>
-                                                    </button>
+                                                    <form asp-controller="Warehouses" asp-action="Delete" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@warehouse.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف انبار مطمئن هستید؟');">
+                                                            <i class="fas fa-trash-alt me-1"></i>
+                                                        </button>
+                                                    </form>
+
                                                 </div>
 
-                                                <!-- Modal for Delete Confirmation -->
-                                                <div class="modal fade" id="deleteModal-@warehouse.Id" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-danger text-white">
-                                                                <h5 class="modal-title">
-                                                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                                                    تایید حذف انبار
-                                                                </h5>
-                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="alert alert-warning">
-                                                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                                                    آیا از حذف انبار <strong>@warehouse.Name</strong> با کد <strong>@warehouse.DisplayCode</strong> مطمئن هستید؟
-                                                                </div>
-                                                                <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام اطلاعات مرتبط با این انبار نیز حذف خواهند شد.</p>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                    <i class="fas fa-times me-1"></i> انصراف
-                                                                </button>
-                                                                <form asp-action="Delete" asp-controller="Warehouses" method="post">
-                                                                    <input type="hidden" name="id" value="@warehouse.Id" />
-                                                                    <button type="submit" class="btn btn-danger">
-                                                                        <i class="fas fa-trash-alt me-1"></i> تایید حذف
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                              
                                             </td>
                                         </tr>
                                     }

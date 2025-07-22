@@ -52,6 +52,15 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<int> CreateZoneAsync(StorageZoneDto dto)
         {
+            // بررسی تکراری بودن ZoneCode برای انبار مشخص
+            bool isDuplicate = await _context.StorageZones
+                .AnyAsync(z => z.ZoneCode == dto.ZoneCode && z.WarehouseId == dto.WarehouseId);
+
+            if (isDuplicate)
+            {
+                throw new InvalidOperationException("کد وارد شده قبلاً برای این انبار ثبت شده است.");
+            }
+
             var zone = new StorageZone
             {
                 Name = dto.Name,
@@ -64,9 +73,17 @@ namespace IMS.Application.WarehouseManagement.Services
             return zone.Id;
         }
 
+
         public async Task<int> CreateSectionAsync(StorageSectionDto dto)
         {
-           
+            bool isDuplicate = await _context.StorageSections
+                .AnyAsync(s => s.ZoneId == dto.ZoneId && s.SectionCode == dto.SectionCode);
+
+            if (isDuplicate)
+            {
+                throw new InvalidOperationException("این کد بخش قبلاً ثبت شده، لطفاً کد دیگری وارد کنید.");
+            }
+
             var section = new StorageSection
             {
                 Name = dto.Name,
@@ -80,6 +97,7 @@ namespace IMS.Application.WarehouseManagement.Services
             await _context.SaveChangesAsync(CancellationToken.None);
             return section.Id;
         }
+
 
 
 
@@ -193,12 +211,22 @@ namespace IMS.Application.WarehouseManagement.Services
             if (zone == null)
                 throw new Exception("ناحیه ذخیره‌سازی یافت نشد.");
 
+            // بررسی تکراری بودن کد قسمت در همان انبار و به جز رکورد جاری
+            bool isDuplicate = await _context.StorageZones.AnyAsync(z =>
+                z.WarehouseId == dto.WarehouseId &&
+                z.ZoneCode == dto.ZoneCode &&
+                z.Id != dto.Id);
+
+            if (isDuplicate)
+                throw new Exception("کد قسمت وارد شده قبلاً برای این انبار ثبت شده است.");
+
             zone.Name = dto.Name;
             zone.ZoneCode = dto.ZoneCode;
 
             _context.StorageZones.Update(zone);
             await _context.SaveChangesAsync(CancellationToken.None);
         }
+
 
         public async Task DeleteWarehouseAsync(int id)
         {
