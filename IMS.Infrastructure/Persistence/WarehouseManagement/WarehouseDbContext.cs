@@ -155,7 +155,6 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .OnDelete(DeleteBehavior.Cascade); // حذف cascade برای Zones از Warehouse صحیح است
             });
 
-            // --- StorageZone ---
             modelBuilder.Entity<StorageZone>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -168,16 +167,19 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .IsRequired()
                     .HasMaxLength(50);
 
-                entity.HasIndex(e => e.ZoneCode)
-                    .IsUnique();
+                // حذف ایندکس unique روی فقط ZoneCode
 
                 entity.HasMany(z => z.Sections)
                     .WithOne(s => s.Zone)
                     .HasForeignKey(s => s.ZoneId)
-                    .OnDelete(DeleteBehavior.Restrict); // برای جلوگیری از مشکلات cascade بهتر است Restrict باشد
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // --- StorageSection ---
+            modelBuilder.Entity<StorageZone>()
+                .HasIndex(z => new { z.WarehouseId, z.ZoneCode })
+                .IsUnique();
+
+
             modelBuilder.Entity<StorageSection>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -190,15 +192,18 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .IsRequired()
                     .HasMaxLength(50);
 
-                entity.HasIndex(e => e.SectionCode)
-                    .IsUnique();
+                
 
                 entity.Property(e => e.Capacity)
                     .HasPrecision(18, 2);
 
                 entity.Property(e => e.Dimensions)
                     .HasMaxLength(300);
+
+                // ✅ ایندکس یونیک ترکیبی درست
+                entity.HasIndex(e => new { e.ZoneId, e.SectionCode }).IsUnique();
             });
+
 
             // --- Category ---
             modelBuilder.Entity<Category>(entity =>

@@ -2,6 +2,7 @@
 using IMS.Application.WarehouseManagement.Services;
 using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -16,7 +17,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             _warehouseService = warehouseService;
         }
 
-        public async Task<IActionResult> Index(int id) // id = ZoneId
+        public async Task<IActionResult> Index(int id) 
         {
             var allSections = await _warehouseService.GetAllSectionsAsync();
 
@@ -47,7 +48,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(StorageSectionDto dto)
@@ -60,13 +60,20 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     return View(dto);
                 }
 
-                await _warehouseService.CreateSectionAsync(dto);
-
-                // به صفحه Index با ZoneId برگرد
-                return RedirectToAction(nameof(Index), new { id = dto.ZoneId });
+                try
+                {
+                    await _warehouseService.CreateSectionAsync(dto);
+                    return RedirectToAction(nameof(Index), new { id = dto.ZoneId });
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError(nameof(dto.SectionCode), ex.Message);
+                }
             }
+
             return View(dto);
         }
+
 
 
 
@@ -93,17 +100,42 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 try
                 {
                     await _warehouseService.UpdateSectionAsync(dto);
+                    return RedirectToAction(nameof(Index), new { id = dto.ZoneId });
+                }
+                catch (DbUpdateException ex)
+                {
+                    // بررسی خطای تکراری بودن کلید یکتا از دیتابیس
+                    if (ex.InnerException != null)
+                    {
+                        var message = ex.InnerException.Message;
+
+                        if (message.Contains("IX_StorageSections_ZoneId_SectionCode"))
+                        {
+                            ModelState.AddModelError("SectionCode", "کد بخش در این قسمت قبلاً ثبت شده است.");
+                        }
+                        else if (message.Contains("IX_StorageSections_SectionCode"))
+                        {
+                            ModelState.AddModelError("SectionCode", "این کد بخش قبلاً ثبت شده است.");
+                        }
+                        else
+                        {
+                            ModelState.AddModelError("", $"خطا در بروزرسانی: {ex.Message}");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError("", $"خطا در بروزرسانی: {ex.Message}");
+                    }
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", $"خطا در بروزرسانی: {ex.Message}");
-                    return View(dto);
                 }
-
-                return RedirectToAction(nameof(Index));
             }
+
             return View(dto);
         }
+
 
         // GET: Sections/Delete/5
         public async Task<IActionResult> Delete(int id)

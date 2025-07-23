@@ -4,107 +4,152 @@
     ViewData["Title"] = "انبار جدید";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Warehouses.css" />
 
-<div class="header-sidebar-wrapper">
-    @await Html.PartialAsync("_Sidebar")
+<style>
+    .form-label i,
+    .input-group-text i {
+        color: #000 !important;
+    }
 
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-primary border-0 shadow" style="box-shadow: var(--card-shadow);">
-                    <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 text-white">
-                            <i class="fas fa-warehouse me-2"></i>@ViewData["Title"]
-                        </h4>
-                        <a asp-action="Index" class="btn btn-light btn-sm">
-                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                        </a>
-                    </div>
+    .form-label {
+        color: #000 !important;
+    }
 
-                    <div class="card-body">
-                        <form asp-action="Create" method="post" class="needs-validation" novalidate>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label asp-for="Code" class="form-label fw-bold text-white">
-                                        <i class="fas fa-barcode me-1 text-muted"></i> کد
+    .form-text {
+        color: #6c757d !important;
+    }
+</style>
+
+<div class="container-fluid py-4" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary border-0 shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-warehouse me-2"></i> @ViewData["Title"]
+                    </h4>
+                    <a asp-action="Index" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
+                </div>
+
+                <div class="card-body">
+                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                        <!-- ردیف اول: کد و نام انبار -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Code" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-barcode me-1"></i> کد انبار
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
-                                        <input asp-for="Code" class="form-control form-control-lg" placeholder="کد منحصر به فرد انبار" />
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
+                                        <input asp-for="Code" class="form-control" placeholder="کد منحصر به فرد انبار" />
                                     </div>
                                     <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
                                 </div>
+                            </div>
 
-                                <div class="col-md-6">
-                                    <label asp-for="Name" class="form-label fw-bold text-white">
-                                        <i class="fas fa-tag me-1 text-muted"></i> نام
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Name" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-tag me-1"></i> نام انبار
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-building text-primary"></i></span>
-                                        <input asp-for="Name" class="form-control form-control-lg" placeholder="نام کامل انبار را وارد کنید" />
+                                        <span class="input-group-text bg-light"><i class="fas fa-building"></i></span>
+                                        <input asp-for="Name" class="form-control" placeholder="نام کامل انبار را وارد کنید" />
                                     </div>
                                     <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="row g-3 mt-3">
-                                <div class="col-md-6">
-                                    <label asp-for="Location" class="form-label fw-bold text-white">
-                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i> موقعیت مکانی
+                        <!-- ردیف دوم: موقعیت و مدیر انبار -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Location" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-map-marker-alt me-1"></i> موقعیت مکانی
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-location-arrow text-primary"></i></span>
-                                        <input asp-for="Location" class="form-control form-control-lg" placeholder="موقعیت فیزیکی انبار" />
+                                        <span class="input-group-text bg-light"><i class="fas fa-location-arrow"></i></span>
+                                        <input asp-for="Location" class="form-control" placeholder="موقعیت فیزیکی انبار" />
                                     </div>
                                     <span asp-validation-for="Location" class="text-danger small mt-1 d-block"></span>
                                 </div>
+                            </div>
 
-                                <div class="col-md-6">
-                                    <label asp-for="Manager" class="form-label fw-bold text-white">
-                                        <i class="fas fa-user-tie me-1 text-muted"></i> مدیر انبار
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Manager" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-user-tie me-1"></i> مدیر انبار
                                     </label>
                                     <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-user text-primary"></i></span>
-                                        <input asp-for="Manager" class="form-control form-control-lg" placeholder="نام و نام خانوادگی مدیر" />
+                                        <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                                        <input asp-for="Manager" class="form-control" placeholder="نام و نام خانوادگی مدیر" />
                                     </div>
                                     <span asp-validation-for="Manager" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="form-group mt-4">
-                                <label asp-for="StorageConditions" class="form-label fw-bold text-white">
-                                    <i class="fas fa-temperature-low me-1 text-muted"></i> شرایط نگهداری
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-info-circle text-primary"></i></span>
-                                    <textarea asp-for="StorageConditions" class="form-control form-control-lg" rows="3" placeholder="شرایط دما، رطوبت و سایر موارد مهم"></textarea>
+                        <!-- ردیف سوم: وضعیت فعال بودن -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" asp-for="IsActive" checked>
+                                        <label class="form-check-label fw-bold text-dark" asp-for="IsActive">
+                                            <i class="fas fa-power-off me-1"></i> انبار فعال
+                                        </label>
+                                    </div>
+                                    <div class="form-text text-muted mt-1">
+                                        در صورت غیرفعال بودن، امکان استفاده از این انبار وجود نخواهد داشت
+                                    </div>
                                 </div>
-                                <span asp-validation-for="StorageConditions" class="text-danger small mt-1 d-block"></span>
-                                <div class="form-text small text-muted">حداکثر 500 کاراکتر</div>
                             </div>
+                        </div>
 
-                            <div class="form-group mt-4">
-                                <label asp-for="Description" class="form-label fw-bold text-white">
-                                    <i class="fas fa-align-left me-1 text-muted"></i> توضیحات
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-comment text-primary"></i></span>
-                                    <textarea asp-for="Description" class="form-control form-control-lg" rows="3" placeholder="توضیحات تکمیلی درباره انبار"></textarea>
-                                </div>
-                                <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
-                                <div class="form-text small text-muted">حداکثر 1000 کاراکتر</div>
+                        <!-- شرایط نگهداری -->
+                        <div class="form-group mb-4">
+                            <label asp-for="StorageConditions" class="form-label fw-bold mb-2">
+                                <i class="fas fa-temperature-low me-1"></i> شرایط نگهداری
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-info-circle"></i></span>
+                                <textarea asp-for="StorageConditions" class="form-control" rows="3" placeholder="شرایط دما، رطوبت و سایر موارد مهم"></textarea>
                             </div>
+                            <span asp-validation-for="StorageConditions" class="text-danger small mt-1 d-block"></span>
+                            <div class="form-text small text-muted">حداکثر 500 کاراکتر</div>
+                        </div>
 
-                            <div class="form-footer border-top pt-4 mt-4 d-flex gap-3">
-                                <button type="submit" class="btn btn-primary btn-lg px-5">
-                                    <i class="fas fa-save me-2"></i> ثبت انبار
-                                </button>
-                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                                    <i class="fas fa-times me-2"></i> انصراف
-                                </a>
+                        <!-- توضیحات -->
+                        <div class="form-group mb-4">
+                            <label asp-for="Description" class="form-label fw-bold mb-2">
+                                <i class="fas fa-align-left me-1"></i> توضیحات
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-comment"></i></span>
+                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="توضیحات تکمیلی درباره انبار"></textarea>
                             </div>
-                        </form>
-                    </div>
+                            <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
+                            <div class="form-text small text-muted">حداکثر 1000 کاراکتر</div>
+                        </div>
+
+                        <!-- دکمه‌های اقدام -->
+                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i> ثبت انبار
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

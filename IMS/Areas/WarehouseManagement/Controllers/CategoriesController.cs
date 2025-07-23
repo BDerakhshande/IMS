@@ -35,18 +35,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         {
             if (ModelState.IsValid)
             {
-                // بررسی کد تکراری
-                if (await _categoryService.IsCodeExistsAsync(dto.Code))
+                try
                 {
-                    ModelState.AddModelError("Code", "کد وارد شده قبلا استفاده شده است.");
-                    return View(dto);
+                    await _categoryService.CreateAsync(dto);
+                    return RedirectToAction(nameof(Index));
                 }
-
-                await _categoryService.CreateAsync(dto);
-                return RedirectToAction(nameof(Index));
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("Code", ex.Message);
+                }
             }
             return View(dto);
         }
+
 
 
         // GET: WarehouseManagement/Categories/Edit/5

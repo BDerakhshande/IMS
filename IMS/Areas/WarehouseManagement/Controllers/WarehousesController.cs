@@ -33,9 +33,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (!ModelState.IsValid)
                 return View(dto);
 
-            await _warehouseService.CreateWarehouseAsync(dto);
+            var result = await _warehouseService.CreateWarehouseAsync(dto);
+
+            if (result == null)
+            {
+                ModelState.AddModelError("Code", "این شناسه (کد) قبلاً استفاده شده است. لطفاً یک شناسه دیگر وارد کنید.");
+                return View(dto);
+            }
+
             return RedirectToAction(nameof(Index));
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
@@ -48,10 +56,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(WarehouseDto dto)
         {
-           
+            //if (!ModelState.IsValid)
+            //    return View(dto);
+
+            if (await _warehouseService.IsCodeDuplicateAsync(dto.Code, dto.Id))
+            {
+                ModelState.AddModelError("Code", "کد وارد شده تکراری است. لطفاً کد دیگری وارد کنید.");
+                return View(dto);
+            }
+
             await _warehouseService.UpdateWarehouseAsync(dto);
-            return RedirectToAction(nameof(Index)); // به صفحه لیست انبارها برگرد
+            return RedirectToAction(nameof(Index));
         }
+
 
 
 

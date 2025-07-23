@@ -19,6 +19,6 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         // فقط تا سطح Zone کد بده
         public string FullCode =>
-            $"{(WarehouseCode ?? "").PadLeft(2, '0')}-{(ZoneCode ?? "").PadLeft(2, '0')}";
+            $"{(WarehouseCode ?? "")}{(ZoneCode ?? "").PadLeft(2, '0')}";
     }
 }

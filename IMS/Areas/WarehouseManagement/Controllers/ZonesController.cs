@@ -1,6 +1,7 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -36,7 +37,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return View(dto);
         }
 
-        // اکشن POST برای دریافت داده‌ها و ایجاد منطقه جدید
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(StorageZoneDto dto)
@@ -46,11 +46,36 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return View(dto);
             }
 
-            int newZoneId = await _warehouseService.CreateZoneAsync(dto);
+            try
+            {
+                int newZoneId = await _warehouseService.CreateZoneAsync(dto);
+                return RedirectToAction(nameof(Index), new { id = dto.WarehouseId });
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError("ZoneCode", ex.Message);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // بررسی خطای تکراری بودن کلید
+                if (dbEx.InnerException?.Message.Contains("Cannot insert duplicate key row") == true)
+                {
+                    ModelState.AddModelError("ZoneCode", "کد وارد شده قبلاً ثبت شده است.");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "خطایی در ثبت اطلاعات رخ داد.");
+                }
+            }
+            catch (Exception)
+            {
+                ModelState.AddModelError(string.Empty, "خطای غیرمنتظره‌ای رخ داده است.");
+            }
 
-            // بعد از ایجاد منطقه جدید، معمولا به صفحه لیست مناطق همان انبار برمی‌گردیم
-            return RedirectToAction(nameof(Index), new { id = dto.WarehouseId });
+            return View(dto);
         }
+
+
 
 
 
@@ -70,12 +95,20 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(StorageZoneDto dto)
         {
-            if (!ModelState.IsValid)
+ 
+            try
+            {
+                await _warehouseService.UpdateZoneAsync(dto);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("ZoneCode", ex.Message);
                 return View(dto);
+            }
 
-            await _warehouseService.UpdateZoneAsync(dto);
             return RedirectToAction(nameof(Index), new { id = dto.WarehouseId });
         }
+
 
 
         [HttpPost]
@@ -91,8 +124,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction("Index", new { id = warehouseId });
+            return RedirectToAction("Index", "Zones", new { area = "WarehouseManagement", id = warehouseId });
         }
+
 
 
 

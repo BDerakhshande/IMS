@@ -19,8 +19,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? WarehouseCode { get; set; }
 
         public string FullCode =>
-            $"{(WarehouseCode ?? "").PadLeft(2, '0')}-" +
-            $"{(ZoneCode ?? "").PadLeft(2, '0')}-" +
-            $"{(SectionCode ?? "").PadLeft(2, '0')}";
+            $"{(WarehouseCode ?? "")}"+
+            $"{(ZoneCode ?? "").PadLeft(2, '0')}" +
+            $"{(SectionCode ?? "").PadLeft(3, '0')}";
     }
 }

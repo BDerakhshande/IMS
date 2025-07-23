@@ -1,6 +1,6 @@
 ﻿@model List<IMS.Application.WarehouseManagement.DTOs.StorageSectionDto>
 @{
-    ViewData["Title"] = "مدیریت بخش‌های انبار";
+    ViewData["Title"] = "مدیریت بخش‌ها";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var zoneId = ViewBag.ZoneId;
     var warehouseId = ViewBag.WarehouseId;
@@ -15,23 +15,23 @@
 @await Html.PartialAsync("_Sidebar")
 
 
-<div class="container-fluid py-4">
+<div class="container-fluid py-4" dir="rtl">
     <div class="row">
         <div class="col-12">
             <div class="card card-primary border-0 shadow">
                 <div class="card-header bg-custom-dark py-3 d-flex justify-content-between align-items-center">
                     <div>
                         <h4 class="mb-0 text-white">
-                            <i class="fas fa-layer-group me-2"></i>@ViewData["Title"]
+                            <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
                         </h4>
-                        <small class="text-white-50">قسمت: @ViewBag.ZoneName</small>
+
                     </div>
                     <div>
                         <a asp-action="Index" asp-controller="Zones" asp-route-id="@warehouseId" class="btn btn-light btn-sm me-2">
                             <i class="fas fa-arrow-right me-1"></i> بازگشت به قسمت‌ها
                         </a>
                         <a asp-action="Create" asp-controller="Sections" asp-route-zoneId="@zoneId" class="btn btn-light btn-sm">
-                            <i class="fas fa-plus me-1"></i> افزودن بخش جدید
+                            <i class="fas fa-plus me-1"></i> افزودن بخش 
                         </a>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                             <table class="table table-hover table-striped table-bordered">
                                 <thead class="table-primary">
                                     <tr>
-                                        <th class="text-center">کد</th>
+                                        <th class="text-center">کد بخش</th>
                                         <th class="text-center">نام بخش</th>
                                         <th class="text-center">ظرفیت</th>
                                         <th class="text-center">ابعاد</th>
@@ -83,46 +83,18 @@
                                                         <i class="fas fa-edit me-1"></i>
                                                     </a>
 
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-outline-danger"
-                                                            data-bs-toggle="modal"
-                                                            data-bs-target="#deleteModal-@sec.Id">
-                                                        <i class="fas fa-trash-alt me-1"></i> 
-                                                    </button>
+                                                        <form asp-controller="Sections" asp-action="Delete" asp-area="WarehouseManagement" method="post" class="d-inline">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@sec.Id" />
+                                                            <input type="hidden" name="zoneId" value="@sec.ZoneId" />
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف بخش @sec.Name مطمئن هستید؟');">
+                                                                <i class="fas fa-trash-alt me-1"></i>
+                                                            </button>
+                                                        </form>
+
+
                                                 </div>
-                                                <!-- Modal for Delete Confirmation -->
-                                                <div class="modal fade" id="deleteModal-@sec.Id" tabindex="-1" aria-hidden="true">
-                                                    <div class="modal-dialog modal-dialog-centered">
-                                                        <div class="modal-content shadow rounded-3 border-0">
-                                                            <div class="modal-header bg-danger text-white">
-                                                                <h5 class="modal-title">
-                                                                    <i class="fas fa-exclamation-triangle me-2"></i>
-                                                                    تایید حذف بخش
-                                                                </h5>
-                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="alert alert-warning">
-                                                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                                                    آیا از حذف بخش <strong>@sec.Name</strong> با کد <strong>@sec.FullCode</strong> مطمئن هستید؟
-                                                                </div>
-                                                                <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام اطلاعات مرتبط با این بخش نیز حذف خواهند شد.</p>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                    <i class="fas fa-times me-1"></i> انصراف
-                                                                </button>
-                                                                <form asp-controller="Sections" asp-action="Delete" method="post">
-                                                                    <input type="hidden" name="id" value="@sec.Id" />
-                                                                    <input type="hidden" name="zoneId" value="@ViewBag.ZoneId" />
-                                                                    <button type="submit" class="btn btn-danger">
-                                                                        <i class="fas fa-trash-alt me-1"></i> تایید حذف
-                                                                    </button>
-                                                                </form>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                
                                             </td>
                                         </tr>
                                     }
