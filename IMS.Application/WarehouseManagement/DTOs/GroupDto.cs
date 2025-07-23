@@ -16,7 +16,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         public List<StatusDto>? Statuses { get; set; }
 
-        public string GroupCode => $"{CategoryCode}-G{(Code ?? "").PadLeft(2, '0')}";
+        public string GroupCode => $"{CategoryCode}G{(Code ?? "")}";
 
     }
 }

@@ -21,13 +21,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-        [HttpGet]
         public async Task<IActionResult> Index(int statusId)
         {
             var allProducts = await _productsService.GetAllAsync(statusId);
 
+            var status = await _statusService.GetStatusByIdAsync(statusId);
+            if (status == null)
+            {
+                return NotFound();
+            }
+
             ViewBag.StatusId = statusId;
+            ViewBag.GroupId = status.GroupId; // 👈 این را اضافه کن
+
             return View(allProducts);
         }
 

@@ -107,13 +107,22 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
 
-        public async Task<GroupDto> CreateAsync(GroupDto dto)
+        public async Task<GroupDto?> CreateAsync(GroupDto dto)
         {
+            // بررسی کد تکراری
+            var isDuplicate = await _context.Groups
+                .AnyAsync(g => g.Code == dto.Code && g.CategoryId == dto.CategoryId);
+
+            if (isDuplicate)
+            {
+                return null; // در صورت تکراری بودن کد، هیچ گروهی ساخته نمی‌شود
+            }
+
             var entity = new Group
             {
                 Name = dto.Name,
                 CategoryId = dto.CategoryId,
-                Code = dto.Code  
+                Code = dto.Code
             };
 
             _context.Groups.Add(entity);
@@ -125,11 +134,11 @@ namespace IMS.Application.WarehouseManagement.Services
                 .FirstOrDefaultAsync();
 
             dto.Id = entity.Id;
-            dto.Code = entity.Code;   
-            dto.CategoryCode = $"C{categoryCode?.PadLeft(2, '0')}";
+            dto.CategoryCode = $"C{categoryCode}";
 
             return dto;
         }
+
 
 
 
@@ -151,7 +160,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
 
-
+        // در سرویس
         public async Task<GroupDto?> UpdateAsync(int id, GroupDto dto)
         {
             var entity = await _context.Groups.FindAsync(id);
@@ -172,10 +181,17 @@ namespace IMS.Application.WarehouseManagement.Services
             if (category == null)
                 throw new InvalidOperationException("کد دسته‌بندی وارد شده وجود ندارد.");
 
-            // به‌روزرسانی تمام فیلدها
+            bool isDuplicate = await _context.Groups.AnyAsync(g =>
+                g.Id != id &&
+                g.CategoryId == category.Id &&
+                g.Code == dto.Code);
+
+            if (isDuplicate)
+                throw new InvalidOperationException("کد وارد شده در این دسته‌بندی قبلاً استفاده شده است.");
+
             entity.Name = dto.Name;
             entity.CategoryId = category.Id;
-            entity.Code = dto.Code; // ← اضافه کردن به‌روزرسانی Code
+            entity.Code = dto.Code;
 
             await _context.SaveChangesAsync(CancellationToken.None);
 
@@ -184,7 +200,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Id = entity.Id,
                 Name = entity.Name,
                 CategoryId = category.Id,
-                CategoryCode = int.TryParse(category.Code, out var n) ? $"C{n:D2}" : $"C{category.Code}",
+                CategoryCode = int.TryParse(category.Code, out var n) ? $"C{n}" : $"C{category.Code}",
                 Code = entity.Code
             };
         }

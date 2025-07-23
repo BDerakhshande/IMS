@@ -1,73 +1,15 @@
 ﻿@model IMS.Application.WarehouseManagement.DTOs.GroupDto
 @{
-    ViewData["Title"] = " گروه جدید";
+    ViewData["Title"] = "گروه جدید";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-<div class="container-fluid py-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-object-group me-2"></i>@ViewData["Title"]
-                    </h4>
-                    <a asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
-                </div>
-
-                <div class="card-body">
-                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
-                        <input type="hidden" asp-for="CategoryId" />
-                        <div class="row">
-                            <!-- کد گروه -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Code" class="form-label fw-bold">
-                                        <i class="fas fa-hashtag me-1 text-muted"></i> کد 
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-key text-primary"></i></span>
-                                        <input asp-for="Code" class="form-control form-control-lg"
-                                               placeholder="کد منحصر به فرد گروه را وارد کنید"
-                                               required minlength="1" maxlength="10" />
-                                    </div>
-                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
-                                    <div class="form-text small text-muted">کد باید بین 1 تا 10 کاراکتر باشد</div>
-                                </div>
-                            </div>
-                            <!-- نام گروه -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-4">
-                                    <label asp-for="Name" class="form-label fw-bold">
-                                        <i class="fas fa-tag me-1 text-muted"></i> نام 
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-font text-primary"></i></span>
-                                        <input asp-for="Name" class="form-control form-control-lg" placeholder="نام کامل گروه را وارد کنید" required />
-                                    </div>
-                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
-                                    <div class="form-text small text-muted">مثال: گروه A، گروه B، گروه ویژه</div>
-                                </div>
-                            </div>
-                        <div class="form-footer border-top pt-4 mt-3">
-                            <button type="submit" class="btn btn-primary btn-lg px-5">
-                                <i class="fas fa-save me-2"></i> ذخیره 
-                            </button>
-                            <a asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="btn btn-outline-secondary btn-lg me-2">
-                                <i class="fas fa-times me-2"></i> انصراف
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Warehouses.css" />
 
 <style>
-    .form-control-lg {
+    .form-control {
         padding: 0.75rem 1rem;
         font-size: 1rem;
         border-radius: 0.375rem;
@@ -95,7 +37,19 @@
 
     .form-label {
         margin-bottom: 0.5rem;
-        color: #495057;
+    }
+
+        .form-label i,
+        .input-group-text i {
+            color: #000 !important;
+        }
+
+    .form-label {
+        color: #000 !important;
+    }
+
+    .form-text {
+        color: #6c757d !important;
     }
 
     .was-validated .form-control:invalid,
@@ -109,18 +63,89 @@
     }
 </style>
 
+<div class="header-sidebar-wrapper">
+    @await Html.PartialAsync("_Sidebar")
+
+    <div class="container-fluid py-4" dir="rtl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-primary border-0 shadow">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 text-white">
+                            <i class="fas fa-object-group me-2"></i> @ViewData["Title"]
+                        </h4>
+                        <a asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
+
+                    <div class="card-body">
+                        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                            <input type="hidden" asp-for="CategoryId" />
+
+                            <div class="row g-3 mb-4">
+                                <!-- کد گروه -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Code" class="form-label fw-bold mb-2">
+                                            <i class="fas fa-hashtag me-1"></i> کد گروه
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
+                                            <input asp-for="Code" class="form-control"
+                                                   placeholder="کد منحصر به فرد گروه را وارد کنید"
+                                                   required minlength="1" maxlength="10" />
+                                        </div>
+                                        <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                        <div class="form-text small text-muted">کد باید بین 1 تا 10 کاراکتر باشد</div>
+                                    </div>
+                                </div>
+
+                                <!-- نام گروه -->
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="form-label fw-bold mb-2">
+                                            <i class="fas fa-tag me-1"></i> نام گروه
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-light"><i class="fas fa-font"></i></span>
+                                            <input asp-for="Name" class="form-control"
+                                                   placeholder="نام کامل گروه را وارد کنید"
+                                                   required />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                  
+                                    </div>
+                                </div>
+                            </div>
+
+                        
+
+                            <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-2"></i> ذخیره
+                                </button>
+                                <a asp-action="Index" asp-route-categoryId="@Model.CategoryId" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i> انصراف
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-
     <script>
         // فعال سازی اعتبارسنجی فرم
         (function () {
             'use strict'
-
             var forms = document.querySelectorAll('.needs-validation')
-
             Array.prototype.slice.call(forms)
                 .forEach(function (form) {
                     form.addEventListener('submit', function (event) {
@@ -128,7 +153,6 @@
                             event.preventDefault()
                             event.stopPropagation()
                         }
-
                         form.classList.add('was-validated')
                     }, false)
                 })

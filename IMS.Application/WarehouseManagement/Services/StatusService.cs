@@ -21,7 +21,7 @@ namespace IMS.Application.WarehouseManagement.Services
         public async Task<List<StatusDto>> GetAllAsync(int groupId)
         {
             var rawData = await _context.Statuses
-                .Where(s => s.GroupId == groupId) // فیلتر بر اساس groupId
+                .Where(s => s.GroupId == groupId) 
                 .Include(s => s.Group)
                     .ThenInclude(g => g.Category)
                 .Select(s => new
@@ -31,7 +31,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     s.Code,
                     GroupId = s.Group.Id,
                     GroupName = s.Group.Name,
-                    GroupCode = s.Group.Code, // اضافه شده
+                    GroupCode = s.Group.Code, 
                     CategoryId = s.Group.Category.Id,
                     CategoryName = s.Group.Category.Name,
                     CategoryCodeRaw = s.Group.Category.Code
@@ -101,6 +101,13 @@ namespace IMS.Application.WarehouseManagement.Services
             if (group == null)
                 throw new Exception("گروه مورد نظر یافت نشد.");
 
+            // بررسی تکراری نبودن کد وضعیت در همان گروه
+            var isDuplicateCode = await _context.Statuses
+                .AnyAsync(s => s.GroupId == dto.GroupId && s.Code == dto.Code);
+
+            if (isDuplicateCode)
+                throw new Exception("کد طبقه تکراری است. لطفاً یک کد دیگر وارد کنید.");
+
             // ایجاد موجودیت وضعیت
             var status = new Status
             {
@@ -115,10 +122,11 @@ namespace IMS.Application.WarehouseManagement.Services
             // مقداردهی نهایی DTO
             dto.Id = status.Id;
             dto.Code = status.Code;
-            dto.GroupCode = $"G{group.Code.PadLeft(2, '0')}";
+            dto.GroupCode = $"G{group.Code}";
 
             return dto;
         }
+
 
 
 
@@ -146,55 +154,44 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<StatusDto> UpdateStatusAsync(StatusDto dto)
         {
-            // بررسی ورودی
-            if (dto.Id <= 0)
-                throw new ArgumentException("شناسه وضعیت نامعتبر است");
-
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                throw new ArgumentException("نام وضعیت نمی‌تواند خالی باشد");
-
             var status = await _context.Statuses
                 .Include(s => s.Group)
                     .ThenInclude(g => g.Category)
                 .FirstOrDefaultAsync(s => s.Id == dto.Id);
 
             if (status == null)
-                throw new ArgumentException("وضعیتی با این شناسه یافت نشد");
+                throw new InvalidOperationException("وضعیت مورد نظر یافت نشد."); // اگر دوست نداری این خطا را هم بده، می‌توانی حذفش کنی.
 
-            // بررسی وجود گروه
-            var group = await _context.Groups
-                .Include(g => g.Category)
-                .FirstOrDefaultAsync(g => g.Id == dto.GroupId);
+            // فقط چک کن کد طبقه تکراری نباشه
+            bool isCodeDuplicate = await _context.Statuses
+                .AnyAsync(s => s.Id != dto.Id && s.GroupId == dto.GroupId && s.Code == dto.Code);
 
-            if (group == null)
-                throw new ArgumentException("گروه انتخاب‌شده معتبر نیست");
+            if (isCodeDuplicate)
+                throw new InvalidOperationException("کد طبقه تکراری است. لطفاً یک کد دیگر وارد کنید.");
 
-            // بررسی تکراری نبودن نام در همان گروه (به جز خودش)
-            bool isDuplicate = await _context.Statuses
-                .AnyAsync(s => s.Id != dto.Id && s.GroupId == dto.GroupId && s.Name == dto.Name.Trim());
-
-            if (isDuplicate)
-                throw new InvalidOperationException("وضعیت دیگری با این نام در همین گروه وجود دارد");
-
-            // به‌روزرسانی وضعیت
-            status.Name = dto.Name.Trim();
-            status.GroupId = dto.GroupId;
+            // به‌روزرسانی مقادیر بدون هیچ بررسی دیگری
+            status.Name = dto.Name; // می‌تونی Trim هم بکنی اگر خواستی
             status.Code = dto.Code;
+            status.GroupId = dto.GroupId;
 
             await _context.SaveChangesAsync(CancellationToken.None);
 
-            // بازگرداندن نتیجه
+            var group = status.Group;
+            var category = group?.Category;
+
             return new StatusDto
             {
                 Id = status.Id,
                 Name = status.Name,
-                GroupId = group.Id,
-                GroupName = group.Name,
-                CategoryId = group.Category.Id,
-                CategoryName = group.Category.Name,
-                Code = dto.Code
+                GroupId = group?.Id ?? dto.GroupId,
+                GroupName = group?.Name,
+                CategoryId = category?.Id ?? 0,
+                CategoryName = category?.Name,
+                Code = status.Code
             };
         }
+
+
 
         public async Task<bool> DeleteAsync(int id)
         {
