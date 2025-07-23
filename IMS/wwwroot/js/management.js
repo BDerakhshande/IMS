@@ -3,6 +3,7 @@ const sidebar = document.getElementById('sidebar');
 const logo = document.getElementById('logo');
 
 toggleBtn.addEventListener('click', () => {
+
     sidebar.classList.toggle('expanded');
     toggleBtn.innerHTML = sidebar.classList.contains('expanded') ? '✕' : '☰';
     logo.style.display = sidebar.classList.contains('expanded') ? 'inline-block' : 'none';

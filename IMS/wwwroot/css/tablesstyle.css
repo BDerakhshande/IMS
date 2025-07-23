@@ -1,0 +1,292 @@
+﻿/* استایل کلی کارت و هدر */
+.card-primary {
+    background-color: #ffffff;
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 0.075);
+}
+
+.bg-custom-dark {
+    background-color: #1c2b36 !important;
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: none;
+}
+
+    .card-header h4 {
+        font-weight: 700;
+        font-size: 1.25rem;
+    }
+
+.bg-custom-dark {
+    background-color: #1a4a5a !important;
+    color: #ffffff !important;
+}
+
+.btn-light {
+    background-color: #f8f9fa;
+    color: #212529;
+    border: 1px solid #ced4da;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-light:hover {
+        background-color: #e2e6ea;
+    }
+
+/* جدول */
+.table {
+    width: 100%;
+    margin-bottom: -10px;
+    color: #212529;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: center;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f5f5f5;
+    cursor: pointer;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #dee2e6;
+        vertical-align: middle;
+    }
+
+.table td,
+.table th {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+    text-align: center !important;
+    vertical-align: middle !important;
+}
+
+.table tbody tr:last-child td .btn-outline-warning,
+.table tbody tr:last-child td .btn-outline-danger {
+    position: relative;
+    top: -4px;
+}
+
+
+.table-header-dark {
+    background-color: #1a4a5a; /* هم‌رنگ نوار بالا */
+    color: #ffffff;
+}
+.table-primary {
+    background-color: #1c2b36;
+    color: #084298;
+}
+
+.text-center {
+    text-align: center !important;
+    align-items: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* دکمه‌های جدول */
+.btn-add-account {
+    background-color: #ffffff;
+    color: #212529;
+    border: 1px solid #ced4da;
+    transition: background-color 0.3s ease;
+}
+
+    .btn-add-account:hover {
+        background-color: #f0f0f0;
+        color: #212529;
+    }
+
+
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+    .btn-outline-warning:hover {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+/* فاصله بین دکمه‌ها */
+.d-flex.gap-2 > *:not(:last-child) {
+    margin-right: 0.5rem;
+}
+
+/* Pagination */
+.pagination .page-item .page-link {
+    background-color: #ffffff;
+    color: #1a4a5a;
+    border: 1px solid #1a4a5a;
+    border-radius: 0.5rem;
+    margin: 0 0.15rem;
+    transition: all 0.3s ease;
+}
+
+    .pagination .page-item .page-link:hover {
+        background-color: #e6eef0;
+        color: #1a4a5a;
+    }
+
+.pagination .page-item.active .page-link {
+    background-color: #1a4a5a;
+    border-color: #1a4a5a;
+    color: #ffffff;
+}
+
+.card-body {
+    padding-bottom: 0.5rem;
+}
+
+.card-footer {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+/* حالت تاریک */
+body.dark-mode .pagination .page-item .page-link {
+    background-color: #0d2b36;
+    color: #f8f9fa;
+    border: 1px solid #14857b;
+}
+
+    body.dark-mode .pagination .page-item .page-link:hover {
+        background-color: #14857b;
+        color: #ffffff;
+    }
+
+body.dark-mode .pagination .page-item.active .page-link {
+    background-color: #1aada2;
+    border-color: #1aada2;
+    color: #ffffff;
+}
+
+/* ورودی جستجو */
+#searchInput {
+    border-radius: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s ease;
+}
+
+    #searchInput:focus {
+        outline: none;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgb(13 110 253 / 0.25);
+    }
+
+/* متن اطلاعات جدول */
+#tableInfo {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* متن داخل کارد */
+.text-muted {
+    color: #6c757d !important;
+    font-size: 0.875rem;
+}
+
+.clickable-row:hover {
+    background-color: rgba(0, 123, 255, 0.08);
+}
+
+header-sidebar-wrapper {
+    display: flex;
+}
+
+/* === Sidebar Styles === */
+
+.toggle-btn {
+    position: fixed;
+    right: 8px;
+    top: 19px;
+    background: white;
+    color: #1a4a5a;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.header-bar {
+    position: fixed;
+    top: 16px;
+    right: 64px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.logo-icon {
+    display: none;
+    width: 50px;
+    height: 50px;
+    margin-right: 40px;
+    transition: opacity 0.3s ease;
+    position: relative;
+    top: -4px;
+}
+
+/* کلاس Sidebar معمولی (بسته) */
+.sidebar {
+    width: 70px; /* عرض سایدبار بسته */
+    transition: width 0.3s ease;
+}
+
+.sidebar-content {
+    padding: 50px 0 20px 0;
+    width: 100%;
+    margin-left: 10px;
+}
+
+/* وقتی سایدبار باز است */
+.sidebar.expanded {
+    width: 220px; /* عرض سایدبار باز */
+}
+
+/* محتوای اصلی */
+.container-fluid {
+    flex-grow: 1;
+    transition: margin-right 0.3s ease;
+    margin-right: 60px; /* وقتی سایدبار بسته */
+}
+
+/* وقتی سایدبار باز است، محتوا جابجا میشه */
+.sidebar.expanded + .container-fluid {
+    margin-right: 220px;
+}
+
+
