@@ -3,54 +3,35 @@
     ViewData["Title"] = "بخش جدید";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
 
-<style>
-    .form-label i,
-    .input-group-text i {
-        color: #000 !important;
-    }
+<div>
+    
 
-    .form-label {
-        color: #000 !important;
-    }
-
-    .form-text {
-        color: #6c757d !important;
-    }
-</style>
-
-<div class="header-sidebar-wrapper">
-    @await Html.PartialAsync("_Sidebar")
-
-    <div class="container-fluid py-4" dir="rtl">
+    <div class="container-fluid py-3" dir="rtl">
         <div class="row">
             <div class="col-12">
-                <div class="card card-primary border-0 shadow">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 text-white">
+                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0 text-white">
                             <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
-                        </h4>
+                        </h5>
                         <a asp-action="Index" asp-route-id="@Model.ZoneId" class="btn btn-light btn-sm">
                             <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
                         </a>
                     </div>
 
-                    <div class="card-body">
+                    <div class="card-body" style="background-color: white;">
                         <form asp-action="Create" method="post" class="needs-validation" novalidate>
                             <input type="hidden" asp-for="ZoneId" />
 
-                            <div class="row g-3 mb-4">
+                            <div class="row g-2 mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label asp-for="SectionCode" class="form-label fw-bold mb-2">
-                                            <i class="fas fa-barcode me-1"></i> کد بخش
+                                        <label asp-for="SectionCode" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-barcode me-1 text-muted"></i> کد بخش
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
                                             <input asp-for="SectionCode" class="form-control" placeholder="کد منحصر به فرد بخش را وارد کنید" />
                                         </div>
                                         <span asp-validation-for="SectionCode" class="text-danger small mt-1 d-block"></span>
@@ -59,11 +40,11 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label asp-for="Name" class="form-label fw-bold mb-2">
-                                            <i class="fas fa-tag me-1"></i> نام بخش
+                                        <label asp-for="Name" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-tag me-1 text-muted"></i> نام بخش
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light"><i class="fas fa-layer-group"></i></span>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-layer-group text-primary"></i></span>
                                             <input asp-for="Name" class="form-control" placeholder="نام کامل بخش را وارد کنید" />
                                         </div>
                                         <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
@@ -72,16 +53,16 @@
                                 </div>
                             </div>
 
-                            <div class="row g-3 mb-4">
+                            <div class="row g-2 mb-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label asp-for="Capacity" class="form-label fw-bold mb-2">
-                                            <i class="fas fa-boxes me-1"></i> ظرفیت
+                                        <label asp-for="Capacity" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-boxes me-1 text-muted"></i> ظرفیت
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light"><i class="fas fa-weight"></i></span>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-weight text-primary"></i></span>
                                             <input asp-for="Capacity" type="number" class="form-control" placeholder="ظرفیت بخش را وارد کنید" />
-                                            <span class="input-group-text">عدد</span>
+                                            <span class="input-group-text bg-light">عدد</span>
                                         </div>
                                         <span asp-validation-for="Capacity" class="text-danger small mt-1 d-block"></span>
                                         <div class="form-text small text-muted">حداکثر تعداد اقلام قابل ذخیره</div>
@@ -90,11 +71,11 @@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label asp-for="Dimensions" class="form-label fw-bold mb-2">
-                                            <i class="fas fa-ruler-combined me-1"></i> ابعاد
+                                        <label asp-for="Dimensions" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-ruler-combined me-1 text-muted"></i> ابعاد
                                         </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-light"><i class="fas fa-arrows-alt"></i></span>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-arrows-alt text-primary"></i></span>
                                             <input asp-for="Dimensions" class="form-control" placeholder="ابعاد بخش را وارد کنید" />
                                         </div>
                                         <span asp-validation-for="Dimensions" class="text-danger small mt-1 d-block"></span>
@@ -103,11 +84,11 @@
                                 </div>
                             </div>
 
-                            <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
-                                <button type="submit" class="btn btn-primary px-4">
+                            <div class="form-footer border-top pt-3 mt-3 d-flex justify-content-end gap-2" style="border-top-color: #dee2e6 !important;">
+                                <button type="submit" class="btn btn-primary px-3" style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.875rem;">
                                     <i class="fas fa-save me-2"></i> ثبت بخش
                                 </button>
-                                <a asp-action="Index" asp-route-id="@Model.ZoneId" class="btn btn-outline-secondary">
+                                <a asp-action="Index" asp-route-id="@Model.ZoneId" class="btn btn-outline-secondary" style="color: #6c757d; border-color: #6c757d; font-size: 0.875rem;">
                                     <i class="fas fa-times me-2"></i> انصراف
                                 </a>
                             </div>

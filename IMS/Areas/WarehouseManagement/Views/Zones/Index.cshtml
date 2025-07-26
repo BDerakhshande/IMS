@@ -4,126 +4,118 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var warehouseId = ViewBag.WarehouseId;
 }
-<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css//Zones.css"/>
 
-<div class="header-sidebar-wrapper">
-@await Html.PartialAsync("_Sidebar")
+<div >
 
-    <div class="container-fluid py-4" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header bg-custom-dark py-3 d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="mb-0 text-white">
+
+    <div class="container-fluid py-3" dir="rtl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0 text-white">
                             <i class="fas fa-map-marked-alt me-2"></i> @ViewData["Title"]
-                        </h4>
-                       
+                        </h5>
+                        <div>
+                            <a asp-action="Index" asp-controller="Warehouses" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-warehouse me-1"></i> بازگشت به انبارها
+                            </a>
+                            <a asp-action="Create" asp-controller="Zones" asp-route-warehouseId="@warehouseId" class="btn btn-light btn-sm">
+                                <i class="fas fa-plus me-1"></i> افزودن قسمت
+                            </a>
+                        </div>
                     </div>
-                    <div>
-                        <a asp-action="Index" asp-controller="Warehouses" class="btn btn-light btn-sm me-2">
-                            <i class="fas fa-warehouse me-1"></i> بازگشت به انبارها
-                        </a>
-                        <a asp-action="Create" asp-controller="Zones" asp-route-warehouseId="@warehouseId" class="btn btn-light btn-sm">
-                            <i class="fas fa-plus me-1"></i> افزودن قسمت 
-                        </a>
-                    </div>
-                </div>
 
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="fas fa-exclamation-circle me-1"></i>
-                        @TempData["ErrorMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="fas fa-check-circle me-1"></i>
-                        @TempData["SuccessMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
-                <div class="card-body">
-                    @if (!Model.Any())
+                    @if (TempData["ErrorMessage"] != null)
                     {
-                        <div class="alert alert-info rounded-3 text-center py-4">
-                            <i class="fas fa-info-circle fa-2x mb-3"></i>
-                            <h5 class="fw-bold">هیچ قسمتی برای این انبار ثبت نشده است</h5>
-                            <p class="mb-0">برای افزودن قسمت جدید روی دکمه "افزودن قسمت جدید" کلیک کنید</p>
+                        <div class="alert alert-danger alert-dismissible fade show m-2 small" role="alert">
+                            <i class="fas fa-exclamation-circle me-1"></i>
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
-                    else
+                    @if (TempData["SuccessMessage"] != null)
                     {
-                        <div class="table-responsive">
-                            <table class="table table-hover table-striped table-bordered">
-                                <thead class="table-primary">
-                                    <tr>
-                                        <th class="text-center">کد قسمت</th>
-                                        <th class="text-center">نام قسمت</th>
-                                        
-                                        <th class="text-center">عملیات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var zone in Model)
-                                    {
-                                        <tr class="clickable-row" style="cursor:pointer;" data-href="@Url.Action("Index", "Sections", new { area = "WarehouseManagement", id = zone.Id })">
-                                            <td class="fw-bold">@zone.FullCode</td>
-                                            <td>@zone.Name</td>
-                                         
-                                            <td>
-                                                <div class="d-flex justify-content-center gap-2">
-                                                    <a asp-action="Edit"
-                                                       asp-controller="Zones"
-                                                       asp-area="WarehouseManagement"
-                                                       asp-route-id="@zone.Id"
-                                                       class="btn btn-sm btn-outline-warning">
-                                                        <i class="fas fa-edit me-1"></i> 
-                                                    </a>
+                        <div class="alert alert-success alert-dismissible fade show m-2 small" role="alert">
+                            <i class="fas fa-check-circle me-1"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="card-body p-2">
+                        @if (!Model.Any())
+                        {
+                            <div class="alert alert-info rounded-3 text-center py-3 small">
+                                <i class="fas fa-info-circle mb-2"></i>
+                                <h6 class="fw-bold">هیچ قسمتی برای این انبار ثبت نشده است</h6>
+                                <p class="mb-0">برای افزودن قسمت جدید روی دکمه "افزودن قسمت جدید" کلیک کنید</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
+                                    <thead style="background-color: #f8f9fa;">
+                                        <tr>
+                                            <th class="text-center small">کد قسمت</th>
+                                            <th class="text-center small">نام قسمت</th>
+                                            <th class="text-center small">عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var zone in Model)
+                                        {
+                                            <tr class="clickable-row" style="cursor:pointer;" data-href="@Url.Action("Index", "Sections", new { area = "WarehouseManagement", id = zone.Id })">
+                                                <td class="text-center small fw-bold">@zone.FullCode</td>
+                                                <td class="text-center small">@zone.Name</td>
+                                                <td class="text-center small">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <a asp-action="Edit"
+                                                           asp-controller="Zones"
+                                                           asp-area="WarehouseManagement"
+                                                           asp-route-id="@zone.Id"
+                                                           class="btn btn-sm btn-outline-warning py-0 px-2">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
                                                         <form asp-controller="Zones" asp-action="Delete" asp-area="WarehouseManagement" method="post" class="d-inline">
                                                             <input type="hidden" name="id" value="@zone.Id" />
                                                             <input type="hidden" name="warehouseId" value="@zone.WarehouseId" />
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف قسمت @zone.Name مطمئن هستید؟');">
-                                                                <i class="fas fa-trash-alt me-1"></i>
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('آیا از حذف قسمت @zone.Name مطمئن هستید؟');">
+                                                                <i class="fas fa-trash-alt"></i>
                                                             </button>
                                                         </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
 
-                                                </div> 
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                </div>
-
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            <i class="fas fa-info-circle me-1"></i>
-                            تعداد قسمت‌ها: @Model.Count
-                        </div>
-                        <div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">بعدی</a>
-                                    </li>
-                                </ul>
-                            </nav>
+                    <div class="card-footer bg-light py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                تعداد قسمت‌ها: @Model.Count
+                            </div>
+                            <div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">بعدی</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -131,51 +123,13 @@
         </div>
     </div>
 </div>
-</div>
-
-
-
-
-
-
-
 
 @section Scripts {
-  
-
-    <script src="~/js/management.js"></script>
     <script>
-        // فعال سازی tooltip برای دکمه‌ها
         $(document).ready(function () {
-            $('[data-bs-toggle="tooltip"]').tooltip();
-
-            $('tbody tr[data-url]').on('click', function (e) {
-                if ($(e.target).closest('a, button').length === 0) {
-                    window.location.href = $(this).data('url');
-                }
-            });
-            // اضافه کردن کلیک به ردیف جدول
             $(".clickable-row").click(function () {
                 window.location = $(this).data("href");
             });
-
         });
-
-
-        $(document).ready(function() {
-    $('#deleteModal').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget); // دکمه‌ای که مودال رو باز کرده
-        var id = button.data('id');
-        var name = button.data('name');
-        var code = button.data('code');
-
-        var modal = $(this);
-        modal.find('#modalSectionName').text(name);
-        modal.find('#modalSectionCode').text(code);
-        modal.find('#modalSectionId').val(id);
-    });
-});
-
-
     </script>
 }
