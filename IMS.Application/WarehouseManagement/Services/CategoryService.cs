@@ -93,14 +93,21 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
 
-        // ویرایش دسته‌بندی
         public async Task<bool> UpdateAsync(int id, CategoryDto dto)
         {
             var entity = await _context.Categories.FindAsync(id);
             if (entity == null) return false;
 
+            // بررسی تکراری بودن Code (به‌جز آیتم جاری)
+            var isDuplicate = await _context.Categories
+                .AnyAsync(c => c.Code == dto.Code && c.Id != id);
+
+            if (isDuplicate)
+                throw new InvalidOperationException("کد وارد شده تکراری است.");
+
             entity.Name = dto.Name;
             entity.Code = dto.Code;
+
             await _context.SaveChangesAsync(CancellationToken.None);
             return true;
         }

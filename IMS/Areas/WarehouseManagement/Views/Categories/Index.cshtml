@@ -34,7 +34,7 @@
                             <i class="fas fa-tags me-2"></i> @ViewData["Title"]
                         </h4>
                         <a asp-action="Create" asp-controller="Categories" class="btn btn-light btn-sm">
-                            <i class="fas fa-plus me-1"></i> دسته‌بندی جدید
+                            <i class="fas fa-plus me-1"></i> افزودن دسته‌بندی 
                         </a>
                     </div>
 
@@ -90,46 +90,16 @@
                                                             <i class="fas fa-edit"></i>
                                                         </a>
 
-                                                        <button type="button"
-                                                                class="btn btn-sm btn-outline-danger"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#deleteModal-@category.Id">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
+                                                        <form asp-action="Delete" asp-route-id="@category.Id" method="post" class="d-inline">
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این مورد مطمئن هستید؟');">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </form>
+
                                                     </div>
 
-                                                    <!-- Modal for Delete Confirmation -->
-                                                    <div class="modal fade" id="deleteModal-@category.Id" tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog modal-dialog-centered">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header bg-danger text-white">
-                                                                    <h5 class="modal-title">
-                                                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                                                        تایید حذف دسته‌بندی
-                                                                    </h5>
-                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <div class="alert alert-warning">
-                                                                        <i class="fas fa-exclamation-circle me-2"></i>
-                                                                        آیا از حذف دسته‌بندی <strong>@category.Name</strong> با کد <strong>@category.DisplayCode</strong> مطمئن هستید؟
-                                                                    </div>
-                                                                    <p class="text-muted small">این عمل غیرقابل بازگشت است و تمام گروه‌های این دسته‌بندی نیز حذف خواهند شد.</p>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                                                        <i class="fas fa-times me-1"></i> انصراف
-                                                                    </button>
-                                                                    <form asp-action="Delete" method="post">
-                                                                        <input type="hidden" name="id" value="@category.Id" />
-                                                                        <button type="submit" class="btn btn-danger">
-                                                                            <i class="fas fa-trash-alt me-1"></i> تایید حذف
-                                                                        </button>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                 
+
                                                 </td>
                                             </tr>
                                         }

@@ -37,23 +37,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
 
-        // POST: WarehouseManagement/Groups/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(GroupDto dto)
         {
-            try
+            var createdGroup = await _groupService.CreateAsync(dto);
+
+            if (createdGroup == null)
             {
-                var createdGroup = await _groupService.CreateAsync(dto);
-                return RedirectToAction(nameof(Index), new { categoryId = createdGroup.CategoryId });
-            }
-            catch (Exception ex)
-            {
-                // لاگ کردن خطا در صورت نیاز
-                ModelState.AddModelError(string.Empty, "در فرآیند ایجاد گروه خطایی رخ داده است.");
+                ModelState.AddModelError(nameof(dto.Code), "کد وارد شده تکراری است.");
                 return View(dto);
             }
+
+            return RedirectToAction(nameof(Index), new { categoryId = createdGroup.CategoryId });
         }
+
 
 
         // GET: WarehouseManagement/Groups/Edit/5
@@ -82,7 +80,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                         return NotFound();
 
                     return RedirectToAction(nameof(Index), new { categoryId = updatedDto.CategoryId });
-
+                }
+                catch (InvalidOperationException ex)
+                {
+                    ModelState.AddModelError("Code", ex.Message);
                 }
                 catch (Exception ex)
                 {
@@ -92,6 +93,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             return View(dto);
         }
+
 
 
 

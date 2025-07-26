@@ -55,11 +55,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                // نمایش خطا در ویو
-                ModelState.AddModelError(string.Empty, ex.Message);
+                if (ex.Message.Contains("کد طبقه تکراری"))
+                    ModelState.AddModelError(nameof(dto.Code), ex.Message); // این خط تغییر یافته
+                else
+                    ModelState.AddModelError(string.Empty, ex.Message);
+
                 return View(dto);
             }
         }
+
 
 
         [HttpGet]
@@ -79,18 +83,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(StatusDto dto)
         {
-           
-
             try
             {
                 await _statusService.UpdateStatusAsync(dto);
                 return RedirectToAction("Index", new { groupId = dto.GroupId });
-
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
-             
+                ModelState.AddModelError("Code", ex.Message);
+
                 return View(dto);
             }
         }
@@ -101,25 +102,13 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                var result = await _statusService.DeleteAsync(id);
-                if (!result)
-                {
-                    return NotFound();
-                }
+            var status = await _statusService.GetStatusByIdAsync(id);
+            var groupId = status.GroupId;
 
-                return RedirectToAction("Index", new { groupId = id });
-            }
-            catch (InvalidOperationException ex)
-            {
-                // پیام خطا را به ویو ارسال کنید یا در TempData بگذارید
-                TempData["ErrorMessage"] = ex.Message;
-
-                // به صفحه لیست یا هر صفحه دلخواه هدایت کنید
-                return RedirectToAction("Index", new { groupId = id });
-            }
+            await _statusService.DeleteAsync(id);
+            return RedirectToAction("Index", new { groupId });
         }
+
 
 
 

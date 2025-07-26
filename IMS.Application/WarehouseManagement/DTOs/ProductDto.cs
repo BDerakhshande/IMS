@@ -25,7 +25,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public decimal Price { get; set; }
 
 
-        public string ProductsFullCode => $"C{(CategoryCode ?? "").PadLeft(2, '0')}-G{(GroupCode ?? "").PadLeft(2, '0')}-S{(StatusCode ?? "").PadLeft(2, '0')}-P{(Code ?? "").PadLeft(2, '0')}";
+        public string ProductsFullCode => $"C{(CategoryCode ?? "").PadLeft(2, '0')}G{(GroupCode ?? "")}S{(StatusCode ?? "")}P{(Code ?? "")}";
 
 
 

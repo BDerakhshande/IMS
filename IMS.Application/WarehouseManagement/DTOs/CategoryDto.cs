@@ -19,7 +19,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
             get
             {
                 if (int.TryParse(Code, out int num))
-                    return num.ToString("D2");
+                    return num.ToString("");
                 return Code ?? "";
             }
         }

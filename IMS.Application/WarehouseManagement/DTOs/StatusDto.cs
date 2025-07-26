@@ -22,7 +22,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string CategoryCode { get; set; } = null!;
 
        
-        public string FullCode => $"C{(CategoryCode ?? "").PadLeft(2, '0')}-G{(GroupCode ?? "").PadLeft(2, '0')}-S{(Code ?? "").PadLeft(2, '0')}";
+        public string FullCode => $"C{(CategoryCode ?? "")}G{(GroupCode ?? "")}S{(Code ?? "")}";
         public List<ProductDto>? Products { get; set; }
         public int ProductsCount => Products?.Count ?? 0;
     }

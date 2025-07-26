@@ -60,9 +60,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return View(category);
         }
 
-       
-        
-        // POST: WarehouseManagement/Categories/Edit/5
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, CategoryDto dto)
@@ -77,24 +76,30 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     var updated = await _categoryService.UpdateAsync(id, dto);
                     if (!updated)
                         return NotFound();
+
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // نمایش پیام خطای "کد تکراری"
+                    ModelState.AddModelError(nameof(dto.Code), ex.Message);
                 }
                 catch (Exception ex)
                 {
                     ModelState.AddModelError("", $"خطا در بروزرسانی: {ex.Message}");
-                    return View(dto);
                 }
-
-                return RedirectToAction(nameof(Index));
             }
+
             return View(dto);
         }
-        
-        
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
