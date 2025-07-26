@@ -4,6 +4,17 @@
     ViewData["Title"] = "ویرایش حساب معین";
 }
 
+<style>
+    .btn-edit-moeins{
+        background: #1a4a5a !important;
+        border: none;
+        color: #fff;
+        padding: 8px 15px;
+        margin-top: 5px; /* فاصله از بالا */
+        border-radius: 5px;
+    }
+</style>
+
 @if (ViewBag.ErrorMessage != null)
 {
     <div class="alert alert-danger">
@@ -55,7 +66,7 @@
 
             <!-- دکمه ارسال -->
             <div class="form-group text-center mt-4">
-                <button type="submit" class="btn btn-primary btn-sm">ویرایش حساب معین</button>
+                <button type="submit" class="btn btn-edit-moeins btn-sm">ویرایش حساب معین</button>
             </div>
         </form>
     </div>

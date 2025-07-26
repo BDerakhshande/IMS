@@ -6,10 +6,6 @@
     box-shadow: 0 0.125rem 0.25rem rgb(0 0 0 / 0.075);
 }
 
-.bg-custom-dark {
-    background-color: #1c2b36 !important;
-}
-
 .card-header {
     padding: 1rem 1.5rem;
     border-bottom: none;
@@ -104,12 +100,35 @@
     color: #212529;
     border: 1px solid #ced4da;
     transition: background-color 0.3s ease;
+    text-align: center !important;
+    display: flex;
+    align-items: center !important;
+    justify-content: center;
+    padding: 0.8rem 1rem;
+    font-weight: 500;
+    gap:10px;
 }
 
     .btn-add-account:hover {
         background-color: #f0f0f0;
         color: #212529;
     }
+
+.btn-secondary {
+    background-color: #1a4a5a !important;
+    color: #ffffff !important;
+}
+
+
+.btn-icon {
+    width: 45px; /* عرض دلخواه */
+    height: 45px; /* ارتفاع دلخواه */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* آیکون کاملاً وسط قرار می‌گیرد */
+    border-radius: 50%; /* دکمه دایره‌ای می‌ماند */
+    font-size: 1.2rem; /* آیکون کمی بزرگتر */
+}
 
 
 .btn-outline-warning {
@@ -278,15 +297,78 @@ header-sidebar-wrapper {
 }
 
 /* محتوای اصلی */
-.container-fluid {
+.main-content {
     flex-grow: 1;
-    transition: margin-right 0.3s ease;
-    margin-right: 60px; /* وقتی سایدبار بسته */
+    transition: margin-right 0.3s;
+    margin-right: 60px;
 }
 
-/* وقتی سایدبار باز است، محتوا جابجا میشه */
-.sidebar.expanded + .container-fluid {
-    margin-right: 220px;
+.sidebar.expanded ~ .main-content {
+    margin-right: 200px;
+}
+/* ===========================
+   استایل مودال‌ها
+   =========================== */
+.modal-content {
+    border-radius: 12px;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    animation: modalFadeIn 0.3s ease-out;
+    font-family: 'Vazirmatn', sans-serif;
 }
 
+.modal-header {
+    background: #1a4a5a;
+    color: #fff;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
 
+.btn-close-custom {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #ffffff; /* رنگ آیکون */
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+    .btn-close-custom:hover {
+        transform: scale(1.2);
+        color: #ffffff; /* کمی تیره‌تر موقع هاور */
+    }
+
+
+.modal-body {
+    padding: 1.2rem 1.5rem;
+    color: #333;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.modal-footer {
+    background: #f8f9fa;
+    border-top: none;
+    padding: 0.75rem 1.5rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* انیمیشن نمایش مودال */
+@keyframes modalFadeIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
