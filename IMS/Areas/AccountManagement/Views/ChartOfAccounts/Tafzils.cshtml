@@ -1,17 +1,14 @@
 ﻿@model List<IMS.Areas.AccountManagement.Models.Tafzil>
 
-<!-- افزودن CSS DataTables -->
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
-<link href="~/css/tablesstyle.css" rel="stylesheet" />
-<style>
-    .selected {
-        background-color: #d1f2eb !important;
-    }
+@{
+    ViewData["Title"] = "مدیریت تفصیلها";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
 
-</style>
-<!-- افزودن JS DataTables -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link href="~/css/tablesstyle.css" rel="stylesheet" />
+
 
 @{
     var moeinName = ViewBag.MoeinName as string;  // دریافت نام معین از ViewBag
@@ -24,157 +21,135 @@
     </div>
 }
 
+<div class="d-flex">
 
-<!-- دکمه‌ها -->
-<div class="button-container d-flex justify-content-between mb-3">
-    <button class="btn btn-gradient-add" onclick="window.location='@Url.Action("CreateTafzil1", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.MoeinId })'">
-        <i class="fa fa-plus-circle"></i> افزودن
-    </button>
-    <a href="@Url.Action("Index", "ChartOfAccounts")" class="btn btn-secondary">
-        <i class="fa fa-arrow-left"></i> بازگشت
-    </a>
-</div>
+    <div class="header-bar">
+        <button class="toggle-btn" id="toggleBtn">☰</button>
+        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
+    </div>
 
-<!-- جدول تفصیل‌ها -->
-<table id="tafzilTable" class="table luxury-table">
-    <thead>
-        <tr>
-            <th>کد کل</th>
-            <th>کد معین</th>
-            <th>کد تفصیل</th>
-            <th>نام تفصیل</th>
-            <th>عملیات</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr onclick="window.location='@Url.Action("SecondTafzils", "ChartOfAccounts", new { tafzilId = item.Id })'" style="cursor:pointer;">
-                <td>@item.Moein?.Account?.Code</td>
-                <td>@item.Moein?.Code</td>
-                <td>@item.Code</td>
-                <td>@item.Name</td>
-                <td>
-                    <div class="action-buttons">
-                        <a class="btn-icon edit-btn" href="@Url.Action("EditSecondTafzil", "ChartOfAccounts", new { id = item.Id })">
-                            <i class="fa fa-edit"></i>
-                        </a>
-                        <a class="btn-icon delete-btn" onclick="return confirm('آیا از حذف این تفصیل ۲ مطمئن هستید؟');"
-                           href="@Url.Action("DeleteSecondTafzil", "ChartOfAccounts", new { id = item.Id })">
-                            <i class="fa fa-trash"></i>
-                        </a>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            <div class="menu-item has-submenu">
+                <i class="fas fa-user"></i>
+                <span>تعاریف</span>
+                <i class="submenu-toggle fas fa-chevron-down"></i>
+            </div>
+            <div class="submenu">
+                <a class="submenu-item" href="/AccountManagement/Definitions/CostCenter"><i class="fas fa-box"></i> <span>مدیریت مراکز هزینه</span></a>
+                <a class="submenu-item" href="/AccountManagement/ChartOfAccounts/Index"><i class="fas fa-tags"></i> <span>مدیریت حساب ها</span></a>
+            </div>
+            <a href="/AccountManagement/Transactions/Index" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>تراکنش‌ها</span>
+            </a>
+
+
+
+            <a href="/AccountManagement/Reports/Index" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>گزارشات</span>
+            </a>
+
+            <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
+                <i class="fas fa-right-from-bracket"></i>
+                <span>خروج</span>
+            </a>
+        </div>
+    </div>
+
+
+
+    <!-- دکمه‌ها -->
+    <div class="main-content flex-grow-1 p-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">مدیریت تفصیل‌ها</h4>
+                <button id="addTafzilBtn" class="btn btn-success btn-sm"
+                        onclick="window.location='@Url.Action("CreateTafzil1", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.MoeinId })'">
+                    <i class="fa fa-plus-circle"></i> افزودن تفصیل
+                </button>
+            </div>
+
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(moeinName))
+                {
+                    <div class="alert alert-info">@moeinName</div>
+                }
+
+                <table class="table table-striped table-bordered text-center">
+                    <thead style="background-color:  #1a4a5a; color: white;">
+                        <tr>
+                            <th>کدکل</th>
+                            <th>کد معین</th>
+                            <th>نام تفصیل</th>
+                            <th>کدتفصیل تفصیل</th>
+                            <th>عملیات</th>
+                        </t>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Moein?.Account?.Code</td>
+                                <td>@item.Moein?.Code</td>
+                                <td>@item.Code</td>
+                                <td>@item.Name</td>
+                                <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); window.location='@Url.Action("EditTafzil1", "ChartOfAccounts", new { id = item.Id })'">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <form method="post" action="@Url.Action("Delete", "ChartOfAccounts")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این حساب مطمئن هستید؟')">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            تعداد بخش‌ها: @Model.Count
+                        </div>
+                        <div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">بعدی</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
                     </div>
-                </td>
-            </tr>
-        }
-
-    </tbody>
-</table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-    $(document).ready(function () {
-        // استفاده از DataTables برای جدول
-        var table = $('#tafzilTable').DataTable({
-            paging: true, // فعال‌سازی صفحه‌بندی
-            searching: true, // فعال‌سازی جستجو
-            ordering: true, // فعال‌سازی مرتب‌سازی
-            pageLength: 10, // تعداد رکوردهای نمایش داده شده در هر صفحه
-            lengthMenu: [5, 10, 25, 50, 100], // منوی انتخاب تعداد رکورد
-            info: true, // نمایش اطلاعات صفحه
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/fa.json" // زبان فارسی
-            },
-            columnDefs: [
-                { targets: [0, 1], orderable: true }, // فعال‌سازی مرتب‌سازی برای ستون‌های ۰ و ۱
-            ]
-        });
-
-        // افزودن تغییرات برای برجسته کردن سطر
-        $('#tafzilTable tbody').on('mouseenter', 'tr', function () {
-            $(this).css('background-color', '#e0f7fa'); // رنگ برجسته شدن سطر
-        }).on('mouseleave', 'tr', function () {
-            $(this).css('background-color', ''); // بازگشت به رنگ اصلی
-        });
-    });
-    document.addEventListener("DOMContentLoaded", function () {
-        const table = document.getElementById("tafzilTable");
-        const rows = table.querySelectorAll("tbody tr");
-        let selectedIndex = -1;
-
-        // مشخص کردن سطر انتخاب شده با کلاس CSS مثلا 'selected'
-        function highlightRow(index) {
-            rows.forEach((row, i) => {
-                row.classList.toggle("selected", i === index);
-            });
-        }
-
-        document.addEventListener("keydown", function (event) {
-            const key = event.key;
-
-            // ArrowDown → سطر بعدی
-            if (key === "ArrowDown") {
-                if (selectedIndex < rows.length - 1) {
-                    selectedIndex++;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-            }
-
-            // ArrowUp → سطر قبلی
-            if (key === "ArrowUp") {
-                if (selectedIndex > 0) {
-                    selectedIndex--;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-            }
-
-            // Enter → رفتن به صفحه مرتبط با سطر انتخاب شده
-            if (key === "Enter" && selectedIndex >= 0) {
-                const row = rows[selectedIndex];
-                if (row) {
-                    // چون در HTML هر tr روی کلیک رفتن صفحه دارد، کافیست کلیک کنیم
-                    row.click();
-                }
-            }
-
-            // Delete → حذف سطر انتخاب شده با تایید کاربر
-            if (key === "Delete" && selectedIndex >= 0) {
-                const row = rows[selectedIndex];
-                const deleteBtn = row.querySelector(".delete-btn");
-                if (deleteBtn && confirm("آیا از حذف این تفصیل ۲ مطمئن هستید؟")) {
-                    window.location.href = deleteBtn.getAttribute("href");
-                }
-            }
-
-            // Shift + E → ویرایش سطر انتخاب شده
-            if (event.shiftKey && key.toLowerCase() === "e" && selectedIndex >= 0) {
-                const row = rows[selectedIndex];
-                const editBtn = row.querySelector(".edit-btn");
-                if (editBtn) {
-                    window.location.href = editBtn.getAttribute("href");
-                    event.preventDefault();
-                }
-            }
-
-            // Alt + Shift + N → افزودن تفصیل جدید
-            if (event.altKey && event.shiftKey && key.toLowerCase() === "n") {
-                const addBtn = document.querySelector(".btn-gradient-add");
-                if (addBtn) {
-                    addBtn.click();
-                    event.preventDefault();
-                }
-            }
 
 
-
-            if (key === "Escape") {
-                history.back(); // برمی‌گرده به صفحه قبلی مرورگر
-            }
-        });
-    });
-
-</script>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/management.js"></script>
+    <script src="~/js/Tafzils.js"></script>
+}

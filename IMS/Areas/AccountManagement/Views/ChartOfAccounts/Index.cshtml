@@ -1,90 +1,138 @@
-﻿
+﻿@model List<IMS.Areas.AccountManagement.Models.Account>
+
 @{
     ViewData["Title"] = "مدیریت حساب‌ها";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
 <link href="~/css/tablesstyle.css" rel="stylesheet" />
 
+<div class="d-flex">
 
-<div class="container-fluid py-4">
-    <div class="card shadow border-0">
-        <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">مدیریت حساب‌ها</h3>
-            <button id="addAccountBtn" class="btn btn-add-account btn-sm" onclick="window.location='@Url.Action("CreateAccount", "ChartOfAccounts")'">
-                <i class="fa fa-plus-circle"></i> افزودن حساب
-            </button>
-        </div>
-        <div class="card-body">
-            <div class="mb-3 d-flex justify-content-between align-items-center">
-                <input type="text" id="searchInput" class="form-control w-25" placeholder="جستجو بر اساس نام یا کد حساب" />
-                <div id="rowInfo" class="text-muted"></div>
+    <div class="header-bar">
+        <button class="toggle-btn" id="toggleBtn">☰</button>
+        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            <div class="menu-item has-submenu">
+                <i class="fas fa-user"></i>
+                <span>تعاریف</span>
+                <i class="submenu-toggle fas fa-chevron-down"></i>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered">
-                    <thead class="table-header-dark text-center">
-                        <tr>
-                            <th>عملیات</th>
-                            <th>نام حساب</th>
-                            <th>کد حساب</th>
-                        </tr>
-                    </thead>
-                    <tbody id="accountsTableBody">
-                        @foreach(var account in Model)
-                        {
+            <div class="submenu">
+                <a class="submenu-item" href="/AccountManagement/Definitions/CostCenter"><i class="fas fa-box"></i> <span>مدیریت مراکز هزینه</span></a>
+                <a class="submenu-item" href="/AccountManagement/ChartOfAccounts/Index"><i class="fas fa-tags"></i> <span>مدیریت حساب ها</span></a>
+            </div>
+            <a href="/AccountManagement/Transactions/Index" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>تراکنش‌ها</span>
+            </a>
+
+
+
+            <a href="/AccountManagement/Reports/Index" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>گزارشات</span>
+            </a>
+
+            <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
+                <i class="fas fa-right-from-bracket"></i>
+                <span>خروج</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content flex-grow-1">
+        <div class="container-fluid py-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">مدیریت حساب‌ها</h3>
+                <button id="addAccountBtn" class="btn btn-add-account btn-sm" onclick="window.location='@Url.Action("CreateAccount", "ChartOfAccounts")'">
+                    <i class="fa fa-plus-circle"></i> افزودن حساب
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="mb-3 d-flex justify-content-between align-items-center">
+                    <input type="text" id="searchInput" class="form-control w-25" placeholder="جستجو بر اساس نام یا کد حساب" />
+                    <div id="rowInfo" class="text-muted"></div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-header-dark text-center">
                             <tr>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); window.location='@Url.Action("EditAccount", "ChartOfAccounts", new { id = account.Id })'">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        <form method="post" action="@Url.Action("Delete", "ChartOfAccounts")" style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@account.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این حساب مطمئن هستید؟')">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                                <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Name</td>
-                                <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Code</td>
+                                <th>کد حساب</th>
+                                <th>نام حساب</th>
+                                <th>عملیات</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            <i class="fas fa-info-circle me-1"></i>
-                            تعداد بخش‌ها: @Model.Count
-                        </div>
-                        <div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">بعدی</a>
-                                    </li>
-                                </ul>
-                            </nav>
+                        </thead>
+                        <tbody id="accountsTableBody">
+                            @foreach(var account in Model)
+                            {
+                                <tr>
+                                    <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Code</td>
+                                    <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Name</td>
+                                    
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); window.location='@Url.Action("EditAccount", "ChartOfAccounts", new { id = account.Id })'">
+                                                <i class="fa fa-edit"></i>
+                                            </button>
+                                            <form method="post" action="@Url.Action("Delete", "ChartOfAccounts")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@account.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این حساب مطمئن هستید؟')">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                تعداد بخش‌ها: @Model.Count
+                            </div>
+                            <div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">بعدی</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 </div>
+
 
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/management.js"></script>
     <script src="~/js/ChartOfAccounts.js"></script>
-
 }

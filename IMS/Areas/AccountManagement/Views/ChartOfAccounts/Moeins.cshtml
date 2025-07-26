@@ -7,175 +7,138 @@
 }
 
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link href="~/css/management.css" rel="stylesheet" />
 <link href="~/css/tablesstyle.css" rel="stylesheet" />
 
 
-<div class="container py-4">
-    <div class="card shadow border-0">
-        <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">موجودی مواد و کالا</h3>
-            <button id="addAccountBtn" class="btn btn-add-account btn-sm" onclick="window.location='@Url.Action("CreateMoeins", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.AccountId })'">
-                <i class="fa fa-plus-circle"></i> افزودن معین
-            </button>
+<div class="d-flex">
+
+    <div class="header-bar">
+        <button class="toggle-btn" id="toggleBtn">☰</button>
+        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            <div class="menu-item has-submenu">
+                <i class="fas fa-user"></i>
+                <span>تعاریف</span>
+                <i class="submenu-toggle fas fa-chevron-down"></i>
+            </div>
+            <div class="submenu">
+                <a class="submenu-item" href="/AccountManagement/Definitions/CostCenter"><i class="fas fa-box"></i> <span>مدیریت مراکز هزینه</span></a>
+                <a class="submenu-item" href="/AccountManagement/ChartOfAccounts/Index"><i class="fas fa-tags"></i> <span>مدیریت حساب ها</span></a>
+            </div>
+            <a href="/AccountManagement/Transactions/Index" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>تراکنش‌ها</span>
+            </a>
+
+
+
+            <a href="/AccountManagement/Reports/Index" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>گزارشات</span>
+            </a>
+
+            <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
+                <i class="fas fa-right-from-bracket"></i>
+                <span>خروج</span>
+            </a>
         </div>
+    </div>
 
-        <div class="card-body">
+    <div class="main-content flex-grow-1">
+        <div class="container-fluid py-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">موجودی مواد و کالا</h3>
+                <button id="addAccountBtn" class="btn btn-add-account btn-sm" onclick="window.location='@Url.Action("CreateMoeins", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.AccountId })'">
+                    <i class="fa fa-plus-circle"></i> افزودن معین
+                </button>
+            </div>
 
-            @if (successMessage != null)
-            {
-                <div class="alert alert-success">@successMessage</div>
-            }
+            <div class="card-body">
 
-            <div class="table-responsive">
-                <table id="moeinTable" class="table table-hover table-bordered text-center">
-                    <thead class="table-header-dark">
-                        <tr>
-                            <th>عملیات</th>
-                            <th>کد حساب کل</th>
-                            <th>نام معین</th>
-                            <th>معین</th>
+                @if (successMessage != null)
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
+                <div class="table-responsive">
+                    <table id="moeinTable" class="table table-hover table-bordered text-center">
+                        <thead class="table-header-dark">
+                            <tr>
+                                <th>معین</th>
+                                <th>کد حساب کل</th>
+                                <th>نام معین</th>
+                                <th>عملیات</th>
                             
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var moein in Model)
-                        {
-                            <tr onclick="window.location='@Url.Action("Tafzils", "ChartOfAccounts", new { moeinId = moein.Id })'">
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button class="btn btn-sm btn-outline-warning edit-btn" onclick="event.stopPropagation(); window.location='@Url.Action("EditMoeins", "ChartOfAccounts", new { id = moein.Id })'">
-                                            <i class="fa fa-edit"></i>
-                                        </button>
-                                        <form method="post" action="@Url.Action("DeleteMoeins", "ChartOfAccounts")" style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@moein.Id" />
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این معین مطمئن هستید؟')">
-                                                <i class="fa fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                                <td>@moein.Account?.Code</td>
-                                <td>@moein.Name</td>
-                                <td>@moein.Code</td>
                             </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var moein in Model)
+                            {
+                                    <tr onclick="window.location='@Url.Action("Tafzils", "ChartOfAccounts", new { moeinId = moein.Id })'">
+                                    <td>@moein.Code</td>
+                                    <td>@moein.Account?.Code</td>
+                                    <td>@moein.Name</td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button class="btn btn-sm btn-outline-warning edit-btn" onclick="event.stopPropagation(); window.location='@Url.Action("EditMoeins", "ChartOfAccounts", new { id = moein.Id })'">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+                                                <form method="post" action="@Url.Action("DeleteMoeins", "ChartOfAccounts")" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@moein.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این معین مطمئن هستید؟')">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                </tr>
 
-                        }
-                    </tbody>
-                </table>
-                <div class="card-footer bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            <i class="fas fa-info-circle me-1"></i>
-                            تعداد بخش‌ها: @Model.Count
-                        </div>
-                        <div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">بعدی</a>
-                                    </li>
-                                </ul>
-                            </nav>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted small">
+                                <i class="fas fa-info-circle me-1"></i>
+                                تعداد بخش‌ها: @Model.Count
+                            </div>
+                            <div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item disabled">
+                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                        </li>
+                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="#">بعدی</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
+    </div>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    
-
-    <script>
-        $(document).ready(function () {
-            $('#moeinTable').DataTable({
-                paging: true,
-                searching: false,         // حذف جستجو
-                ordering: false,
-                pageLength: 10,
-                lengthChange: false,      // حذف dropdown تعداد ردیف
-                language: {
-                    //url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/fa.json"
-                }
-            });
-
-            $('#moeinTable tbody').on('mouseenter', 'tr', function () {
-                $(this).css('background-color', '#e0f7fa');
-            }).on('mouseleave', 'tr', function () {
-                $(this).css('background-color', '');
-            });
-        });
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const table = document.getElementById("moeinTable");
-            const rows = table.querySelectorAll("tbody tr");
-            let selectedIndex = -1;
-
-            function highlightRow(index) {
-                rows.forEach((row, i) => {
-                    row.classList.toggle("selected", i === index);
-                });
-            }
-
-            document.addEventListener("keydown", function (event) {
-                const key = event.key;
-
-                if (key === "ArrowDown" && selectedIndex < rows.length - 1) {
-                    selectedIndex++;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-
-                if (key === "ArrowUp" && selectedIndex > 0) {
-                    selectedIndex--;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-
-                if (key === "Enter" && selectedIndex >= 0) {
-                    const row = rows[selectedIndex];
-                    if (row && row.onclick) row.onclick();
-                }
-
-                if (key === "Escape") {
-                    history.back();
-                }
-
-                if (key === "Delete" && selectedIndex >= 0) {
-                    const form = rows[selectedIndex].querySelector("form");
-                    if (form && confirm("آیا از حذف این معین مطمئن هستید؟")) {
-                        form.submit();
-                    }
-                }
-
-                if ((event.shiftKey && key.toLowerCase() === "e") && selectedIndex >= 0) {
-                    const editBtn = rows[selectedIndex].querySelector(".edit-btn");
-                    if (editBtn) {
-                        editBtn.click();
-                        event.preventDefault();
-                    }
-                }
-
-                if (event.altKey && event.shiftKey && key.toLowerCase() === "n") {
-                    const addBtn = document.getElementById("addAccountBtn");
-                    if (addBtn) {
-                        addBtn.click();
-                        event.preventDefault();
-                    }
-                }
-            });
-        });
-    </script>
+    <script src="~/js/management.js"></script>
+    <script src="~/js/Moeins.js"></script>
 }

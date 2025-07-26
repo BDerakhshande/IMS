@@ -3,13 +3,25 @@
 @{
     ViewData["Title"] = "ویرایش حساب";
 }
+
+<style>
+    .btn-edit-account {
+        background: #1a4a5a !important;
+        border: none;
+        color: #fff;
+        padding: 10px 20px;
+        margin-top: 15px; /* فاصله از بالا */
+        border-radius: 5px;
+    }
+</style>
+
 @if (ViewBag.ErrorMessage != null)
 {
     <div class="alert alert-danger">
         @ViewBag.ErrorMessage
     </div>
 }
-
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
 <link rel="stylesheet" href="~/css/transactionstyle.css">
 
 <div class="container">
@@ -35,7 +47,7 @@
 
             <!-- دکمه ارسال -->
             <div class="form-group text-center">
-                <button type="submit" class="btn btn-primary btn-sm">ویرایش حساب</button>
+                <button type="submit" class="btn btn-edit-account btn-sm">ویرایش حساب</button>
             </div>
         </form>
     </div>

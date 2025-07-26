@@ -47,6 +47,10 @@ table.table {
         color: #00796b;
     }
 
+.custom-title {
+    color: #1a4a5a !important;
+}
+
 /* تنظیمات DataTables */
 table.dataTable tbody th,
 table.dataTable tbody td {

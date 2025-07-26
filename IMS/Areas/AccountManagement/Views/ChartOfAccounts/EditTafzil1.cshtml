@@ -8,6 +8,17 @@
     var successMessage = TempData["SuccessMessage"];
 }
 
+<style>
+    .btn-edit-tafzil{
+        background: #1a4a5a !important;
+        border: none;
+        color: #fff;
+        padding: 10px 20px;
+        margin-top: 15px; /* فاصله از بالا */
+        border-radius: 5px;
+    }
+</style>
+
 @if (errorMessage != null)
 
 {
@@ -57,7 +68,7 @@
 
         <!-- دکمه ارسال -->
         <div class="form-group text-center">
-            <button type="submit" class="btn btn-primary">ویرایش</button>
+            <button type="submit" class="btn btn-edit-tafzil">ویرایش</button>
         </div>
     </form>
 </div>
