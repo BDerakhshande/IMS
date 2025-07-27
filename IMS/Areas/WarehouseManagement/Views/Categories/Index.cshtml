@@ -1,12 +1,12 @@
 ﻿@model List<IMS.Application.WarehouseManagement.DTOs.CategoryDto>
 @{
     ViewData["Title"] = "مدیریت دسته‌بندی‌ها";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
+@* <link rel="stylesheet" href="~/css/management.css" /> *@
+@* <link rel="stylesheet" href="~/css/Warehouses.css" /> *@
 
 <style>
     .clickable-row {
@@ -22,9 +22,7 @@
     }
 </style>
 
-<div class="header-sidebar-wrapper">
-    @await Html.PartialAsync("_Sidebar")
-
+    
     <div class="container-fluid py-4" dir="rtl">
         <div class="row">
             <div class="col-12">
@@ -136,7 +134,7 @@
             </div>
         </div>
     </div>
-</div>
+@* 
 
 @section Scripts {
     <script>
@@ -151,4 +149,9 @@
             });
         });
     </script>
+}
+ *@
+
+@section Scripts {
+    <script src="~/js/MenuJs.js"></script>
 }
