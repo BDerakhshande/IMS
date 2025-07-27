@@ -12,8 +12,11 @@
     <div class="container-fluid py-3" dir="rtl">
         <div class="row">
             <div class="col-12">
-                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); border-bottom: 1px solid var(--border-color);">
+                <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center"
+                         style="background-color: #1a4959; color: white;">
+                  
+
                         <h5 class="mb-0 text-white">
                             <i class="fas fa-warehouse me-2"></i> @ViewData["Title"]
                         </h5>
@@ -122,12 +125,18 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/MenuJs.js"></script>
     <script>
-        $(document).ready(function () {
-            $('tbody tr[data-url]').on('click', function (e) {
-                if ($(e.target).closest('a, button').length === 0) {
-                    window.location.href = $(this).data('url');
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('tbody tr[data-url]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (!e.target.closest('a, button')) {
+                        const url = row.dataset.url;
+                        if (url) {
+                            window.location.href = url;
+                        }
+                    }
+                });
             });
         });
     </script>

@@ -2,213 +2,147 @@
 @model List<ProductDto>
 @{
     ViewData["Title"] = "مدیریت محصولات";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
     var statusId = ViewBag.StatusId;
 }
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
 
-<style>
-    .table {
-        font-size: 0.9rem;
-    }
+<div class="container-fluid py-3" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center"
+                     style="background-color: #1a4959; color: white;">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-boxes me-2"></i> @ViewData["Title"]
+                    </h5>
+                    <div>
+                        <a asp-controller="Statuses" asp-action="Index" asp-route-groupId="@ViewBag.GroupId"
+                           class="btn btn-light btn-sm ms-2">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به طبقه
+                        </a>
+                        <a asp-action="Create" asp-controller="Products" asp-route-statusId="@ViewBag.StatusId"
+                           class="btn btn-light btn-sm">
+                            <i class="fas fa-plus me-1"></i> محصول جدید
+                        </a>
+                    </div>
+                </div>
 
-        .table th {
-            font-weight: 600;
-            white-space: nowrap;
-            background-color: #f8f9fa;
-        }
-
-    .table-hover tbody tr:hover {
-        background-color: rgba(13, 110, 253, 0.05);
-    }
-
-    .badge {
-        padding: 0.5em 0.75em;
-        font-weight: 500;
-    }
-
-    .modal-header {
-        border-bottom: none;
-    }
-
-    .modal-footer {
-        border-top: none;
-        justify-content: flex-start;
-    }
-
-    .card-footer {
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-    }
-
-    .form-label i,
-    .input-group-text i {
-        color: #000 !important;
-    }
-
-    .form-label {
-        color: #000 !important;
-    }
-
-    .form-text {
-        color: #6c757d !important;
-    }
-
-    .text-truncate {
-        max-width: 200px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .btn-group-header {
-        display: flex;
-        gap: 0.5rem;
-    }
-</style>
-
-<div class="header-sidebar-wrapper">
-    @await Html.PartialAsync("_Sidebar")
-
-    <div class="container-fluid py-4" dir="rtl">
-        <div class="row">
-            <div class="col-12">
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                    <div class="alert alert-danger alert-dismissible fade show m-2 small" role="alert">
                         <i class="fas fa-exclamation-circle me-2"></i>
                         @TempData["ErrorMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="بستن"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 }
 
-                <div class="card card-primary border-0 shadow">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 text-white">
-                            <i class="fas fa-boxes me-2"></i> @ViewData["Title"]
-                        </h4>
-                        <div class="btn-group-header">
-                            <a asp-controller="Statuses" asp-action="Index" asp-route-groupId="@ViewBag.GroupId"
-                               class="btn btn-light btn-sm">
-                                <i class="fas fa-arrow-right me-1"></i> بازگشت به طبقه
-                            </a>
-
-
-                            <a asp-action="Create" asp-controller="Products" asp-route-statusId="@ViewBag.StatusId"
-                               class="btn btn-light btn-sm">
-                                <i class="fas fa-plus me-1"></i> محصول جدید
+                <div class="card-body p-2">
+                    @if (ViewBag.GroupName != null)
+                    {
+                        <div class="alert alert-info mb-3 d-flex justify-content-between align-items-center small">
+                            <div>
+                                <i class="fas fa-filter me-2"></i>
+                                فیلتر شده بر اساس گروه: <strong>@ViewBag.GroupName</strong>
+                            </div>
+                            <a asp-action="Index" class="btn btn-sm btn-outline-info py-0 px-2">
+                                <i class="fas fa-times me-1"></i> حذف فیلتر
                             </a>
                         </div>
-                    </div>
+                    }
 
-                    <div class="card-body">
-                        @if (ViewBag.GroupName != null)
-                        {
-                            <div class="alert alert-info mb-4 d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-filter me-2"></i>
-                                    فیلتر شده بر اساس گروه: <strong>@ViewBag.GroupName</strong>
-                                </div>
-                                <a asp-action="Index" class="btn btn-sm btn-outline-info">
-                                    <i class="fas fa-times me-1"></i> حذف فیلتر
-                                </a>
-                            </div>
-                        }
-
-                        @if (!Model.Any())
-                        {
-                            <div class="alert alert-info rounded-3 text-center py-4">
-                                <i class="fas fa-box-open fa-2x mb-3"></i>
-                                <h5 class="fw-bold">هیچ محصولی ثبت نشده است</h5>
-                                <p class="mb-0">برای افزودن محصول جدید روی دکمه "محصول جدید" کلیک کنید</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-hover table-striped table-bordered">
-                                    <thead class="table-primary">
-                                        <tr>
-                                            <th class="text-center">کد</th>
-                                            <th class="text-center">نام محصول</th>
-                                            <th class="text-center">دسته‌بندی</th>
-                                            <th class="text-center">گروه</th>
-                                            <th class="text-center">طبقه</th>
-                                            <th class="text-center">توضیحات</th>
-                                            <th class="text-center">عملیات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var item in Model)
-                                        {
-                                            <tr>
-                                                <td class="fw-bold text-center">@item.ProductsFullCode</td>
-                                                <td class="text-center">@item.Name</td>
-                                                <td class="text-center">@item.CategoryName</td>
-                                                <td class="text-center">@item.GroupName</td>
-                                                <td class="text-center">@item.StatusName</td>
-                                                <td class="text-truncate text-center" style="max-width: 200px;" title="@item.Description">
-                                                    @item.Description
-                                                </td>
-                                                <td class="text-center">
-                                                    <div class="d-flex justify-content-center gap-2">
-                                                        <a asp-action="Edit"
-                                                           asp-controller="Products"
-                                                           asp-route-id="@item.Id"
-                                                           class="btn btn-sm btn-outline-warning">
-                                                            <i class="fas fa-edit me-1"></i>
-                                                        </a>
-                                                        <a asp-action="Details"
-                                                           asp-controller="Products"
-                                                           asp-route-id="@item.Id"
-                                                           class="btn btn-sm btn-outline-info">
-                                                            <i class="fas fa-info-circle me-1"></i>
-                                                        </a>
-                                                        <form asp-action="Delete" method="post" onsubmit="return confirm('آیا از حذف این مورد مطمئن هستید؟');">
-                                                            <input type="hidden" name="id" value="@item.Id" />
-                                                            <input type="hidden" name="statusId" value="@ViewBag.StatusId" />
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                                <i class="fas fa-trash-alt me-1"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                    </div>
-
-                    @if (ViewBag.TotalPages > 1)
+                    @if (!Model.Any())
                     {
-                        <div class="card-footer bg-light py-3">
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination justify-content-center mb-0">
-                                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                        <div class="alert alert-info rounded-3 text-center py-4 small">
+                            <i class="fas fa-box-open fa-2x mb-3"></i>
+                            <h5 class="fw-bold">هیچ محصولی ثبت نشده است</h5>
+                            <p class="mb-0">برای افزودن محصول جدید روی دکمه "محصول جدید" کلیک کنید</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead style="background-color: #f8f9fa;">
+                                    <tr>
+                                        <th class="text-center small">کد محصول</th>
+                                        <th class="text-center small">نام محصول</th>
+                                        <th class="text-center small">دسته‌بندی</th>
+                                        <th class="text-center small">گروه</th>
+                                        <th class="text-center small">طبقه</th>
+                                        <th class="text-center small">توضیحات</th>
+                                        <th class="text-center small">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
                                     {
-                                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                            <a class="page-link" href="@Url.Action("Index", new { page = i, groupId = ViewBag.GroupId })">@i</a>
-                                        </li>
+                                        <tr>
+                                            <td class="text-center small fw-bold">@item.ProductsFullCode</td>
+                                            <td class="text-center small">@item.Name</td>
+                                            <td class="text-center small">@item.CategoryName</td>
+                                            <td class="text-center small">@item.GroupName</td>
+                                            <td class="text-center small">@item.StatusName</td>
+                                            <td class="text-truncate text-center small" style="max-width: 200px;" title="@item.Description">
+                                                @item.Description
+                                            </td>
+                                            <td class="text-center small">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a asp-action="Edit"
+                                                       asp-controller="Products"
+                                                       asp-route-id="@item.Id"
+                                                       class="btn btn-sm btn-outline-warning py-0 px-2">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a asp-action="Details"
+                                                       asp-controller="Products"
+                                                       asp-route-id="@item.Id"
+                                                       class="btn btn-sm btn-outline-info py-0 px-2">
+                                                        <i class="fas fa-info-circle"></i>
+                                                    </a>
+                                                    <form asp-action="Delete" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@item.Id" />
+                                                        <input type="hidden" name="statusId" value="@ViewBag.StatusId" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('آیا از حذف این مورد مطمئن هستید؟');">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     }
-                                </ul>
-                            </nav>
+                                </tbody>
+                            </table>
                         </div>
                     }
                 </div>
+
+                @if (ViewBag.TotalPages > 1)
+                {
+                    <div class="card-footer bg-light py-2">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0 pagination-sm">
+                                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = i, groupId = ViewBag.GroupId })">@i</a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="~/js/MenuJs.js"></script>
     <script>
-        // فعال سازی tooltip برای دکمه‌ها
         $(document).ready(function () {
-            $('[data-bs-toggle="tooltip"]').tooltip();
+            $('[title]').tooltip();
         });
     </script>
 }

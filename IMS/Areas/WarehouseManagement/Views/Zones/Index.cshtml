@@ -1,18 +1,19 @@
 ﻿@model List<IMS.Application.WarehouseManagement.DTOs.StorageZoneDto>
 @{
     ViewData["Title"] = "مدیریت قسمت‌ها";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
     var warehouseId = ViewBag.WarehouseId;
 }
 
-<div >
 
 
     <div class="container-fluid py-3" dir="rtl">
         <div class="row">
             <div class="col-12">
-                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); border-bottom: 1px solid var(--border-color);">
+                <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center"
+                         style="background-color: #1a4959; color: white;">
+
                         <h5 class="mb-0 text-white">
                             <i class="fas fa-map-marked-alt me-2"></i> @ViewData["Title"]
                         </h5>
@@ -66,7 +67,7 @@
                                     <tbody>
                                         @foreach (var zone in Model)
                                         {
-                                            <tr class="clickable-row" style="cursor:pointer;" data-href="@Url.Action("Index", "Sections", new { area = "WarehouseManagement", id = zone.Id })">
+                                        <tr class="clickable-row" style="cursor:pointer;" data-url="@Url.Action("Index", "Sections", new { area = "WarehouseManagement", id = zone.Id })">
                                                 <td class="text-center small fw-bold">@zone.FullCode</td>
                                                 <td class="text-center small">@zone.Name</td>
                                                 <td class="text-center small">
@@ -122,14 +123,20 @@
             </div>
         </div>
     </div>
-</div>
 
 @section Scripts {
+    <script src="~/js/MenuJs.js"></script>
     <script>
-        $(document).ready(function () {
-            $(".clickable-row").click(function () {
-                window.location = $(this).data("href");
+               document.querySelectorAll('tbody tr[data-url]').forEach(function (row) {
+            row.addEventListener('click', function (e) {
+                if (!e.target.closest('a, button')) {
+                    const url = row.dataset.url;
+                    if (url) {
+                        window.location.href = url;
+                    }
+                }
             });
         });
+
     </script>
 }

@@ -5,96 +5,95 @@
     var statusId = ViewBag.StatusId;
 }
 
-<div class="header-sidebar-wrapper">
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
 
+<div class="container-fluid py-3" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center"
+                     style="background-color: #1a4959; color: white;">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-box me-2"></i> @ViewData["Title"]
+                    </h5>
+                    <a asp-route-statusId="@ViewBag.StatusId" asp-action="Index" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
+                </div>
 
-    <div class="container-fluid py-4" dir="rtl">
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
-                    <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); border-bottom: 1px solid var(--border-color);">
-                        <h4 class="mb-0 text-white">
-                            <i class="fas fa-box me-2"></i> @ViewData["Title"]
-                        </h4>
-                        <a asp-route-statusId="@ViewBag.StatusId" asp-action="Index" class="btn btn-light btn-sm">
-                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                        </a>
+                <div class="card-body p-3">
+                    <div class="row g-3 mb-3">
+                        <!-- کد کالا -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-barcode me-1 text-muted"></i> کد کالا
+                                </label>
+                                <div class="input-group input-group-sm bg-light rounded p-2">
+                                    @Model.Code
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- نام کالا -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-tag me-1 text-muted"></i> نام کالا
+                                </label>
+                                <div class="input-group input-group-sm bg-light rounded p-2">
+                                    @Model.Name
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- قیمت کالا -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-money-bill-wave me-1 text-muted"></i> قیمت
+                                </label>
+                                <div class="input-group input-group-sm bg-light rounded p-2">
+                                    @Model.Price.ToString("N0") تومان
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- وضعیت کالا -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
+                                </label>
+                                <div class="input-group input-group-sm bg-light rounded p-2">
+                                    @ViewBag.StatusName
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="card-body" style="background-color: white;">
-                        <div class="row g-3 mb-4">
-                            <!-- کد کالا -->
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <label class="form-label fw-bold mb-2 text-dark">
-                                        <i class="fas fa-barcode me-1 text-muted"></i> کد کالا
-                                    </label>
-                                    <div class="detail-value" style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; min-height: 50px; display: flex; align-items: center;">
-                                        @Model.Code
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- نام کالا -->
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <label class="form-label fw-bold mb-2 text-dark">
-                                        <i class="fas fa-tag me-1 text-muted"></i> نام کالا
-                                    </label>
-                                    <div class="detail-value" style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; min-height: 50px; display: flex; align-items: center;">
-                                        @Model.Name
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- قیمت کالا -->
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <label class="form-label fw-bold mb-2 text-dark">
-                                        <i class="fas fa-money-bill-wave me-1 text-muted"></i> قیمت
-                                    </label>
-                                    <div class="detail-value" style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; min-height: 50px; display: flex; align-items: center;">
-                                        @Model.Price.ToString("N0") تومان
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- وضعیت کالا -->
-                            <div class="col-md-6">
-                                <div class="detail-item">
-                                    <label class="form-label fw-bold mb-2 text-dark">
-                                        <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
-                                    </label>
-                                    <div class="detail-value" style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; min-height: 50px; display: flex; align-items: center;">
-                                        @ViewBag.StatusName
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- توضیحات -->
+                    <div class="form-group mb-3">
+                        <label class="form-label fw-bold mb-1 small">
+                            <i class="fas fa-align-left me-1 text-muted"></i> توضیحات
+                        </label>
+                        <div class="input-group input-group-sm bg-light rounded p-2" style="min-height: 80px;">
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                @Model.Description
+                            }
+                            else
+                            {
+                                <span class="text-muted small">توضیحاتی ثبت نشده است</span>
+                            }
                         </div>
+                    </div>
 
-                        <!-- توضیحات -->
-                        <div class="detail-item mb-4">
-                            <label class="form-label fw-bold mb-2 text-dark">
-                                <i class="fas fa-align-left me-1 text-muted"></i> توضیحات
-                            </label>
-                            <div class="detail-value" style="background-color: #f8f9fa; padding: 0.75rem 1rem; border-radius: 0.5rem; min-height: 100px; display: flex; align-items: flex-start;">
-                                @if (!string.IsNullOrEmpty(Model.Description))
-                                {
-                                    @Model.Description
-                                }
-                                else
-                                {
-                                    <span class="text-muted">توضیحاتی ثبت نشده است</span>
-                                }
-                            </div>
-                        </div>
-
-                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3" style="border-top-color: #dee2e6 !important;">
-                           
-                            <a asp-action="Index" asp-route-statusId="@ViewBag.StatusId" class="btn btn-outline-secondary" style="color: #6c757d; border-color: #6c757d;">
-                                <i class="fas fa-arrow-right me-2"></i> بازگشت
-                            </a>
-                        </div>
+                    <div class="border-top pt-3 mt-3 d-flex justify-content-end">
+                        <a asp-action="Index" asp-route-statusId="@ViewBag.StatusId" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت
+                        </a>
                     </div>
                 </div>
             </div>
