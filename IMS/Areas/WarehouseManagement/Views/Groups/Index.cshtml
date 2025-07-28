@@ -7,86 +7,105 @@
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
 
-<div class="container-fluid py-3" dir="rtl">
+<div class="container-fluid py-2" dir="rtl">
     <div class="row">
         <div class="col-12">
-            <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
-                <div class="card-header py-2" style="background-color: #1a4959; color: white;">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 text-white">
-                            <i class="fas fa-object-group me-2"></i> @ViewData["Title"]
-                        </h5>
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="search-box">
-                                <div class="input-group input-group-sm" style="width: 250px;">
-                                    <span class="input-group-text bg-white text-secondary">
-                                        <i class="fas fa-search"></i>
-                                    </span>
-                                    <input type="text"
-                                           id="globalSearch"
-                                           class="form-control form-control-sm"
-                                           placeholder="جستجو در همه فیلدها..."
-                                           dir="rtl"
-                                           style="height: 32px;">
-                                </div>
-                            </div>
-                            <div>
-                                <a asp-action="Index" asp-controller="Categories" class="btn btn-light btn-sm ms-2">
-                                    <i class="fas fa-arrow-right me-1"></i> بازگشت به دسته‌بندی‌ها
-                                </a>
-                                <a asp-action="Create" asp-route-categoryId="@categoryId" class="btn btn-light btn-sm">
-                                    <i class="fas fa-plus me-1"></i> افزودن گروه
-                                </a>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-object-group me-1" style="font-size: 0.85rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;"> @ViewData["Title"] </h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 20px; font-size: 0.8rem;">
                             </div>
                         </div>
+
+                        <a asp-action="Index" asp-controller="Categories"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas me-1" style="font-size: 0.8rem;"></i>
+                            <span>بازگشت به دسته‌بندی‌ها</span>
+                        </a>
+
+                        <a asp-action="Create"
+                           asp-route-categoryId="@categoryId"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
+                            <span>افزودن گروه</span>
+                        </a>
                     </div>
                 </div>
 
-                @if (TempData["ErrorMessage"] != null)
+                @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="alert alert-danger alert-dismissible fade show m-2 small" role="alert">
-                        <i class="fas fa-exclamation-circle me-2"></i>
-                        @TempData["ErrorMessage"]
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <div class="alert alert-success alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-check-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
                     </div>
                 }
 
-                <div class="card-body p-2">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                <div class="card-body p-1">
                     @if (!Model.Any())
                     {
-                        <div class="alert alert-info rounded-3 text-center py-4 small">
-                            <i class="fas fa-info-circle fa-2x mb-3"></i>
-                            <h5 class="fw-bold">هیچ گروهی برای این دسته‌بندی ثبت نشده است</h5>
-                            <p class="mb-0">برای افزودن گروه جدید روی دکمه "افزودن گروه" کلیک کنید</p>
+                        <div class="alert alert-info alert-dismissible fade show mx-2 my-1 py-1 text-center" role="alert" style="font-size: 0.8rem;">
+                            <i class="fas fa-info-circle me-1" style="font-size: 0.85rem;"></i>
+                            هیچ گروهی برای این دسته‌بندی ثبت نشده است
                         </div>
                     }
                     else
                     {
                         <div class="table-responsive">
-                            <table class="table table-hover table-sm">
-                                <thead style="background-color: #f8f9fa;">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                     <tr>
-                                        <th class="text-center small">کد گروه</th>
-                                        <th class="text-center small">نام گروه</th>
-                                        <th class="text-center small">عملیات</th>
+                                        <th class="text-center py-1">کد گروه</th>
+                                        <th class="text-center py-1">نام گروه</th>
+                                        <th class="text-center py-1">عملیات</th>
                                     </tr>
                                 </thead>
-                                <tbody>
+                                <tbody style="font-size: 0.8rem;">
                                     @foreach (var group in Model)
                                     {
-                                        <tr data-url="@Url.Action("Index", "Statuses", new { groupId = group.Id })" style="cursor: pointer;">
-                                            <td class="text-center small fw-bold">@group.GroupCode</td>
-                                            <td class="text-center small">@group.Name</td>
-                                            <td class="text-center small">
+                                        <tr data-url="@Url.Action("Index", "Statuses", new { groupId = group.Id })" style="cursor: pointer; height: 32px;">
+                                            <td class="text-center fw-bold py-1 align-middle">@group.GroupCode</td>
+                                            <td class="text-center py-1 align-middle">@group.Name</td>
+                                            <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">
                                                     <a asp-action="Edit"
                                                        asp-route-id="@group.Id"
-                                                       class="btn btn-sm btn-outline-warning py-0 px-2">
+                                                       class="btn btn-sm btn-outline-warning px-1"
+                                                       style="font-size: 0.75rem; min-width: 26px; height: 26px;">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                     <form asp-action="Delete" method="post" class="d-inline">
                                                         <input type="hidden" name="id" value="@group.Id" />
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('آیا از حذف این گروه مطمئن هستید؟');">
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger px-1"
+                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                                onclick="return confirm('آیا از حذف این مورد مطمئن هستید؟');">
                                                             <i class="fas fa-trash-alt"></i>
                                                         </button>
                                                     </form>
@@ -100,28 +119,10 @@
                     }
                 </div>
 
-                <div class="card-footer bg-light py-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="text-muted small">
-                            <i class="fas fa-info-circle me-1"></i>
-                            تعداد گروه‌ها: @Model.Count
-                        </div>
-                        <div>
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination pagination-sm mb-0">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">بعدی</a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
+                <div class="d-flex justify-content-center mt-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="paginationContainer"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -131,11 +132,10 @@
 @section Scripts {
     <script src="~/js/MenuJs.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // قابلیت کلیک روی سطرها
-            document.querySelectorAll('tbody tr[data-url]').forEach(function(row) {
-                row.addEventListener('click', function(e) {
-                    if (!e.target.closest('a, button, form')) {
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('tbody tr[data-url]').forEach(function (row) {
+                row.addEventListener('click', function (e) {
+                    if (!e.target.closest('a, button, input, .btn')) {
                         const url = row.dataset.url;
                         if (url) {
                             window.location.href = url;
@@ -144,129 +144,97 @@
                 });
             });
 
-            // پیاده‌سازی صفحه‌بندی و جستجو
-            const rowsPerPage = 10;
+            const globalSearch = document.getElementById('globalSearch');
             const table = document.querySelector('table');
-            if (!table) return;
+            const rows = table.querySelectorAll('tbody tr');
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = '<td colspan="3" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
 
-            const allRows = Array.from(table.querySelectorAll('tbody tr'));
-            let filteredRows = allRows;
+            globalSearch.addEventListener('input', function() {
+                const term = this.value.trim().toLowerCase();
+                let hasResults = false;
+
+                rows.forEach(row => {
+                    let rowMatches = false;
+                    const cells = row.querySelectorAll('td:not(:last-child)');
+
+                    cells.forEach(cell => {
+                        if (cell.textContent.toLowerCase().includes(term)) {
+                            rowMatches = true;
+                        }
+                    });
+
+                    if (rowMatches) {
+                        row.style.display = '';
+                        hasResults = true;
+
+                        if (term.length > 0) {
+                            cells.forEach(cell => {
+                                const text = cell.textContent;
+                                const highlighted = text.replace(
+                                    new RegExp(term, 'gi'),
+                                    match => `<span class="bg-warning">${match}</span>`
+                                );
+                                cell.innerHTML = highlighted;
+                            });
+                        }
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+
+                const existingNoResults = table.querySelector('.no-results');
+                if (existingNoResults) {
+                    existingNoResults.remove();
+                }
+
+                if (!hasResults && term.length > 0) {
+                    table.querySelector('tbody').appendChild(noResultsRow);
+                    noResultsRow.classList.add('no-results');
+                }
+            });
+
+            const rowsPerPage = 10;
             let currentPage = 1;
 
-            // ایجاد صفحه‌بندی پیشرفته
-            const cardFooter = document.querySelector('.card-footer');
-            cardFooter.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="text-muted small" id="countInfo">
-                        <i class="fas fa-info-circle me-1"></i>
-                        تعداد گروه‌ها: ${allRows.length}
-                    </div>
-                    <div>
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0" id="paginationWrapper">
-                                <li class="page-item disabled" id="prevBtn">
-                                    <a class="page-link" href="#" tabindex="-1">قبلی</a>
-                                </li>
-                                <li class="page-item" id="nextBtn">
-                                    <a class="page-link" href="#">بعدی</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-            `;
+            function paginateTable() {
+                const rows = Array.from(table.querySelectorAll('tbody tr:not(.no-results)'));
+                const totalPages = Math.ceil(rows.length / rowsPerPage);
 
-            // توابع کمکی
-            function updateTableDisplay() {
+                rows.forEach(row => row.style.display = 'none');
+
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = start + rowsPerPage;
+                rows.slice(start, end).forEach(row => row.style.display = '');
 
-                allRows.forEach(row => row.style.display = 'none');
-                filteredRows.slice(start, end).forEach(row => {
-                    row.style.display = '';
-                });
+                const paginationContainer = document.getElementById('paginationContainer');
+                paginationContainer.innerHTML = '';
 
-                updateCountInfo();
-                updatePaginationControls();
-            }
-
-            function updateCountInfo() {
-                const countElement = document.getElementById('countInfo');
-                if (countElement) {
-                    countElement.innerHTML = `
-                        <i class="fas fa-info-circle me-1"></i>
-                        تعداد گروه‌ها: ${filteredRows.length} ${filteredRows.length !== allRows.length ? `(از ${allRows.length})` : ''}
-                    `;
-                }
-            }
-
-            function updatePaginationControls() {
-                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-                const prevBtn = document.getElementById('prevBtn');
-                const nextBtn = document.getElementById('nextBtn');
-
-                prevBtn.classList.toggle('disabled', currentPage === 1);
-                nextBtn.classList.toggle('disabled', currentPage === pageCount || pageCount === 0);
-            }
-
-            function setupPagination() {
-                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-                const paginationWrapper = document.getElementById('paginationWrapper');
-                const nextBtn = document.getElementById('nextBtn');
-
-                // حذف صفحات قبلی
-                document.querySelectorAll('#paginationWrapper .page-number').forEach(el => el.remove());
-
-                // اضافه کردن صفحات جدید
-                for (let i = 1; i <= pageCount; i++) {
+                for (let i = 1; i <= totalPages; i++) {
                     const li = document.createElement('li');
-                    li.className = `page-item page-number ${i === currentPage ? 'active' : ''}`;
-                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                    li.addEventListener('click', (e) => {
+                    li.classList.add('page-item');
+                    if (i === currentPage) li.classList.add('active');
+
+                    const a = document.createElement('a');
+                    a.classList.add('page-link');
+                    a.href = '#';
+                    a.style.fontSize = '0.75rem';
+                    a.innerText = i;
+
+                    a.addEventListener('click', function (e) {
                         e.preventDefault();
-                        goToPage(i);
+                        currentPage = i;
+                        paginateTable();
                     });
-                    paginationWrapper.insertBefore(li, nextBtn);
+
+                    li.appendChild(a);
+                    paginationContainer.appendChild(li);
                 }
             }
 
-            function goToPage(page) {
-                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-                if (page < 1 || page > pageCount) return;
-                currentPage = page;
-                updateTableDisplay();
+            if (table) {
+                paginateTable();
             }
-
-            // رویدادهای صفحه‌بندی
-            document.getElementById('prevBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                goToPage(currentPage - 1);
-            });
-
-            document.getElementById('nextBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                goToPage(currentPage + 1);
-            });
-
-            // پیاده‌سازی جستجو (با استفاده از جعبه جستجوی موجود در HTML)
-            document.getElementById('globalSearch').addEventListener('input', function() {
-                const searchTerm = this.value.trim().toLowerCase();
-
-                filteredRows = allRows.filter(row => {
-                    const cells = row.querySelectorAll('td:not(:last-child)');
-                    return Array.from(cells).some(cell =>
-                        cell.textContent.toLowerCase().includes(searchTerm)
-                    );
-                });
-
-                currentPage = 1;
-                updateTableDisplay();
-                setupPagination();
-            });
-
-            // مقداردهی اولیه
-            setupPagination();
-            updateTableDisplay();
         });
     </script>
 }
