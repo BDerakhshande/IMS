@@ -82,12 +82,6 @@
                 }
 
                 <div class="card-body">
-                    <div class="mb-3 d-flex justify-content-between align-items-center">
-                        <input type="text" id="searchInput" class="form-control w-25" placeholder="جستجو بر اساس نام مرکز هزینه" />
-                        <div class="text-muted small">
-                            تعداد مراکز: @(Model?.Count() ?? 0)
-                        </div>
-                    </div>
 
                     <!-- جدول -->
                     <div class="table-responsive">
@@ -100,12 +94,15 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @{
+                                    var rowIndex = 1;
+                                }
                                 @foreach (var center in Model)
                                 {
                                     <tr class="cost-center-row"
                                         data-costcenter-id="@center.Id"
                                         style="cursor: pointer;">
-                                        <td></td>
+                                        <td>@rowIndex</td>
                                         <td>@center.Name</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
@@ -122,6 +119,7 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    rowIndex++;
                                 }
                             </tbody>
 

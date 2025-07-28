@@ -43,6 +43,7 @@ namespace IMS.Areas.AccountManagement.Controllers
                                  .ToList();
 
             ViewBag.AccountName = account.Name;
+            ViewBag.AccountId = accountId;
 
             return View(moeins);
         }

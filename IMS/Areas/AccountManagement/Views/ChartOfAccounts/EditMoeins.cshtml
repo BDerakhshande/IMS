@@ -2,76 +2,150 @@
 
 @{
     ViewData["Title"] = "ویرایش حساب معین";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Warehouses.css" />
+
 <style>
-    .btn-edit-moeins{
-        background: #1a4a5a !important;
-        border: none;
-        color: #fff;
-        padding: 8px 15px;
-        margin-top: 5px; /* فاصله از بالا */
-        border-radius: 5px;
+    .form-label i,
+    .input-group-text i {
+        color: #000 !important;
+    }
+
+    .form-label {
+        color: #000 !important;
+    }
+
+    .form-text {
+        color: #6c757d !important;
     }
 </style>
 
 @if (ViewBag.ErrorMessage != null)
 {
-    <div class="alert alert-danger">
-        @ViewBag.ErrorMessage
-    </div>
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
 }
 
-<link rel="stylesheet" href="~/css/transactionstyle.css">
+<div class="container-fluid py-4" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary border-0 shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
+                    </h4>
+                    <a asp-area="AccountManagement"
+                       asp-controller="ChartOfAccounts"
+                       asp-action="Moeins"
+                       asp-route-accountId="1"
+                       class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
+                </div>
 
-<div class="container">
-    <div class="glass-card p-4">
-        <h2 class="text-center">@ViewData["Title"]</h2>
+                <div class="card-body">
+                    <form asp-action="EditMoeins" method="post" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
 
-        <form asp-action="EditMoeins" method="post">
-            @Html.AntiForgeryToken()
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Code" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-barcode me-1"></i> کد معین
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
+                                        <input asp-for="Code" class="form-control" maxlength="50" placeholder="کد حساب معین را وارد کنید" required />
+                                    </div>
+                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
 
-          
-            <div class="form-group">
-                <label for="Code" class="form-label">کد معین</label>
-                <input type="text" id="Code" name="Code" class="form-control" value="@Model.Code" required maxlength="50" />
-                <span class="text-danger" asp-validation-for="Code"></span>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Name" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-tag me-1"></i> نام حساب معین
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-file-alt"></i></span>
+                                        <input asp-for="Name" class="form-control" maxlength="200" placeholder="نام حساب معین را وارد کنید" required />
+                                    </div>
+                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="AccountId" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-layer-group me-1"></i> حساب کل
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-list"></i></span>
+                                        @Html.DropDownListFor(
+                                        model => model.AccountId,
+                                                                                new SelectList(ViewBag.Accounts as List<IMS.Areas.AccountManagement.Models.Account>, "Id", "Name", Model.AccountId),
+                                                                                "انتخاب حساب کل",
+                                                                                new { @class = "form-control" }
+                                                                                )
+                                    </div>
+                                    <span asp-validation-for="AccountId" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="MoeinName" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-info-circle me-1"></i> نام فعلی حساب معین
+                                    </label>
+                                    <input type="text" id="MoeinName" name="MoeinName" class="form-control bg-light" value="@Model.Name" disabled />
+                                    <small class="form-text text-muted">این نام حساب معین در حال ویرایش است.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i> ذخیره تغییرات
+                            </button>
+                            <a asp-area="AccountManagement"
+                               asp-controller="ChartOfAccounts"
+                               asp-action="Moeins"
+                               asp-route-accountId="1"
+                               class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <!-- نام حساب معین -->
-            <div class="form-group">
-                <label for="Name" class="form-label">نام حساب معین</label>
-                <input type="text" id="Name" name="Name" class="form-control" value="@Model.Name" required maxlength="200" />
-                <span class="text-danger" asp-validation-for="Name"></span>
-            </div>
-
-            <!-- انتخاب حساب کل -->
-            <div class="form-group">
-                <label for="AccountId" class="form-label">حساب کل</label>
-                @Html.DropDownListFor(
-                         model => model.AccountId,
-                         new SelectList(ViewBag.Accounts as List<IMS.Areas.AccountManagement.Models.Account>, "Id", "Name", Model.AccountId),
-                         "انتخاب حساب کل",
-                         new { @class = "form-control" }
-                         )
-                <span class="text-danger" asp-validation-for="AccountId"></span>
-            </div>
-
-            <!-- نمایش فقط‌خواندنی نام فعلی -->
-            <div class="form-group">
-                <label for="MoeinName" class="form-label">نام فعلی حساب معین</label>
-                <input type="text" id="MoeinName" name="MoeinName" class="form-control" value="@Model.Name" disabled />
-                <small class="form-text text-muted">این نام حساب معین در حال ویرایش است.</small>
-            </div>
-
-            <!-- دکمه ارسال -->
-            <div class="form-group text-center mt-4">
-                <button type="submit" class="btn btn-edit-moeins btn-sm">ویرایش حساب معین</button>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        (function () {
+            'use strict';
+            var forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+        })();
+    </script>
 }
