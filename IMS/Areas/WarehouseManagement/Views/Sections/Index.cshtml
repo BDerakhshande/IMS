@@ -6,128 +6,141 @@
     var warehouseId = ViewBag.WarehouseId;
 }
 
-   
-
-    <div class="container-fluid py-3" dir="rtl">
-        <div class="row">
-            <div class="col-12">
-                <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
-                    <div class="card-header py-2 d-flex justify-content-between align-items-center"
-                         style="background-color: #1a4959; color: white;">
-                        <h5 class="mb-0 text-white">
-                            <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
-                        </h5>
-                        <div>
-                            <a asp-action="Index" asp-controller="Zones" asp-route-id="@warehouseId" class="btn btn-light btn-sm me-2">
-                                <i class="fas fa-arrow-right me-1"></i> بازگشت به قسمت‌ها
-                            </a>
-                            <a asp-action="Create" asp-controller="Sections" asp-route-zoneId="@zoneId" class="btn btn-light btn-sm">
-                                <i class="fas fa-plus me-1"></i> افزودن بخش
-                            </a>
-                        </div>
+<div class="container-fluid py-2" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-layer-group me-1" style="font-size: 0.85rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
                     </div>
 
-                    @if (TempData["DeleteError"] != null)
-                    {
-                        <div class="alert alert-danger m-2 small">
-                            @TempData["DeleteError"]
-                        </div>
-                    }
-
-                    <div class="card-body p-2">
-                        @if (!Model.Any())
-                        {
-                            <div class="alert alert-info rounded-3 text-center py-3 small">
-                                <i class="fas fa-info-circle mb-2"></i>
-                                <h6 class="fw-bold">هیچ بخشی برای این قسمت ثبت نشده است</h6>
-                                <p class="mb-0">برای افزودن بخش جدید روی دکمه "افزودن بخش جدید" کلیک کنید</p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="table-responsive">
-                                <table class="table table-hover table-sm">
-                                    <thead style="background-color: #f8f9fa;">
-                                        <tr>
-                                            <th class="text-center small">کد بخش</th>
-                                            <th class="text-center small">نام بخش</th>
-                                            <th class="text-center small">ظرفیت</th>
-                                            <th class="text-center small">ابعاد</th>
-                                            <th class="text-center small">عملیات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var sec in Model)
-                                        {
-                                            <tr>
-                                                <td class="text-center small fw-bold">@sec.FullCode</td>
-                                                <td class="text-center small">@sec.Name</td>
-                                                <td class="text-center small">
-                                                    <span class="badge rounded-pill bg-secondary small">@sec.Capacity</span>
-                                                </td>
-                                                <td class="text-center small">@sec.Dimensions</td>
-                                                <td class="text-center small">
-                                                    <div class="d-flex justify-content-center gap-1">
-                                                        <a asp-action="Edit"
-                                                           asp-controller="Sections"
-                                                           asp-route-id="@sec.Id"
-                                                           class="btn btn-sm btn-outline-warning py-0 px-2">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                        <form asp-controller="Sections" asp-action="Delete" asp-area="WarehouseManagement" method="post" class="d-inline">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="id" value="@sec.Id" />
-                                                            <input type="hidden" name="zoneId" value="@sec.ZoneId" />
-                                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('آیا از حذف بخش @sec.Name مطمئن هستید؟');">
-                                                                <i class="fas fa-trash-alt"></i>
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="card-footer bg-light py-2">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                تعداد بخش‌ها: @Model.Count
-                            </div>
-                            <div>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination pagination-sm mb-0">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                        </li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">بعدی</a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 28px; font-size: 0.8rem;">
                             </div>
                         </div>
+
+                        <a asp-action="Index"
+                           asp-controller="Zones"
+                           asp-route-id="@warehouseId"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas me-1" style="font-size: 0.8rem;"></i>
+                            <span> بازگشت به قسمت‌ها</span>
+                        </a>
+
+                        <a asp-action="Create"
+                           asp-controller="Sections"
+                           asp-route-zoneId="@zoneId"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
+                            <span>افزودن بخش</span>
+                        </a>
                     </div>
                 </div>
+
+                @if (TempData["DeleteError"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["DeleteError"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                <div class="card-body p-1">
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info rounded-3 text-center py-2" style="font-size: 0.8rem;">
+                            <i class="fas fa-info-circle mb-1" style="font-size: 0.85rem;"></i>
+                            <h6 class="fw-bold mb-1" style="font-size: 0.85rem;">هیچ بخشی برای این قسمت ثبت نشده است</h6>
+                            <p class="mb-0" style="font-size: 0.8rem;">برای افزودن بخش جدید روی دکمه "افزودن" کلیک کنید</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
+                                    <tr>
+                                        <th class="text-center py-1">کد بخش</th>
+                                        <th class="text-center py-1">نام بخش</th>
+                                        <th class="text-center py-1">ظرفیت</th>
+                                        <th class="text-center py-1">ابعاد</th>
+                                        <th class="text-center py-1">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 0.8rem;">
+                                    @foreach (var sec in Model)
+                                    {
+                                        <tr  style="cursor: pointer; height: 32px;">
+                                            <td class="text-center fw-bold py-1 align-middle">@sec.FullCode</td>
+                                            <td class="text-center py-1 align-middle">@sec.Name</td>
+                                            <td class="text-center py-1 align-middle">
+                                                <span class="badge rounded-pill bg-secondary py-1" style="font-size: 0.75rem;">@sec.Capacity</span>
+                                            </td>
+                                            <td class="text-center py-1 align-middle">@sec.Dimensions</td>
+                                            <td class="text-center py-1 align-middle">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a asp-action="Edit"
+                                                       asp-controller="Sections"
+                                                       asp-route-id="@sec.Id"
+                                                       class="btn btn-sm btn-outline-warning px-1"
+                                                       style="font-size: 0.75rem; min-width: 26px; height: 26px;">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <form asp-controller="Sections" asp-action="Delete" asp-area="WarehouseManagement" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@sec.Id" />
+                                                        <input type="hidden" name="zoneId" value="@sec.ZoneId" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger px-1"
+                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                                onclick="return confirm('آیا از حذف بخش @sec.Name مطمئن هستید؟');">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="d-flex justify-content-center mt-2">
+                            <nav>
+                                <ul class="pagination pagination-sm mb-0" id="paginationContainer"></ul>
+                            </nav>
+                        </div>
+                    }
+                </div>
+
+           
             </div>
         </div>
     </div>
-
+</div>
 
 @section Scripts {
     <script src="~/js/MenuJs.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('tbody tr[data-url]').forEach(function (row) {
-                row.addEventListener('click', function (e) {
-                    if (!e.target.closest('a, button')) {
+        document.addEventListener('DOMContentLoaded', function() {
+            // قابلیت کلیک روی سطرها
+            document.querySelectorAll('tbody tr[data-url]').forEach(function(row) {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('a, button, input, form')) {
                         const url = row.dataset.url;
                         if (url) {
                             window.location.href = url;
@@ -135,176 +148,103 @@
                     }
                 });
             });
-                 // پیاده‌سازی صفحه‌بندی و جستجو
-        const rowsPerPage = 10; // تعداد سطرها در هر صفحه
+
+                   // پیاده‌سازی جستجو با های‌لایت
+        const globalSearch = document.getElementById('globalSearch');
         const table = document.querySelector('table');
         if (!table) return;
 
         const allRows = Array.from(table.querySelectorAll('tbody tr'));
         let filteredRows = allRows;
-        let currentPage = 1;
 
-        // ایجاد صفحه‌بندی پیشرفته در فوتر کارت
-        const cardFooter = document.querySelector('.card-footer');
-        cardFooter.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="text-muted small" id="countInfo">
-                    <i class="fas fa-info-circle me-1"></i>
-                    تعداد بخش‌ها: ${allRows.length}
-                </div>
-                <div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination pagination-sm mb-0" id="paginationWrapper">
-                            <li class="page-item disabled" id="prevBtn">
-                                <a class="page-link" href="#" tabindex="-1">قبلی</a>
-                            </li>
-                            <!-- شماره صفحات اینجا قرار می‌گیرد -->
-                            <li class="page-item" id="nextBtn">
-                                <a class="page-link" href="#">بعدی</a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        `;
-
-        // اضافه کردن جعبه جستجو به هدر کارت
-        const cardHeader = document.querySelector('.card-header');
-        const searchBox = document.createElement('div');
-        searchBox.className = 'search-box me-auto ms-2';
-        searchBox.innerHTML = `
-            <div class="input-group input-group-sm" style="width: 250px;">
-                <span class="input-group-text bg-white text-secondary">
-                    <i class="fas fa-search"></i>
-                </span>
-                <input type="text"
-                       id="globalSearch"
-                       class="form-control form-control-sm"
-                       placeholder="جستجو در همه فیلدها..."
-                       dir="rtl"
-                       style="height: 32px;">
-            </div>
-        `;
-        cardHeader.insertBefore(searchBox, cardHeader.querySelector('h5').nextSibling);
-
-        // تابع به‌روزرسانی نمایش جدول
-        function updateTableDisplay() {
-            const start = (currentPage - 1) * rowsPerPage;
-            const end = start + rowsPerPage;
-
-            // مخفی کردن همه سطرها
-            allRows.forEach(row => row.style.display = 'none');
-
-            // نمایش سطرهای فیلتر شده در صفحه جاری
-            filteredRows.slice(start, end).forEach(row => {
-                row.style.display = '';
-            });
-
-            // به‌روزرسانی اطلاعات تعداد
-            updateCountInfo();
-            updatePaginationControls();
-        }
-
-        // تابع به‌روزرسانی اطلاعات تعداد
-        function updateCountInfo() {
-            const countElement = document.getElementById('countInfo');
-            if (countElement) {
-                countElement.innerHTML = `
-                    <i class="fas fa-info-circle me-1"></i>
-                    تعداد بخش‌ها: ${filteredRows.length} ${filteredRows.length !== allRows.length ? `(از ${allRows.length})` : ''}
-                `;
-            }
-        }
-
-        // تابع به‌روزرسانی کنترل‌های صفحه‌بندی
-        function updatePaginationControls() {
-            const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-            const paginationWrapper = document.getElementById('paginationWrapper');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            prevBtn.classList.toggle('disabled', currentPage === 1);
-            nextBtn.classList.toggle('disabled', currentPage === pageCount || pageCount === 0);
-        }
-
-        // تابع تنظیم صفحه‌بندی
-        function setupPagination() {
-            const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-            const paginationWrapper = document.getElementById('paginationWrapper');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-
-            // حذف صفحات قبلی (به جز دکمه‌های قبلی/بعدی)
-            const items = paginationWrapper.querySelectorAll('.page-number');
-            items.forEach(item => item.remove());
-
-            // اضافه کردن صفحات جدید
-            for (let i = 1; i <= pageCount; i++) {
-                const li = document.createElement('li');
-                li.className = `page-item page-number ${i === currentPage ? 'active' : ''}`;
-                li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-                li.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    goToPage(i);
-                });
-                paginationWrapper.insertBefore(li, nextBtn);
-            }
-
-            updatePaginationControls();
-        }
-
-        // تابع رفتن به صفحه خاص
-        function goToPage(page) {
-            const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-            if (page < 1 || page > pageCount) return;
-            currentPage = page;
-            updateTableDisplay();
-        }
-
-        // رویدادهای دکمه‌های صفحه‌بندی
-        document.getElementById('prevBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            goToPage(currentPage - 1);
+        // ذخیره نسخه اولیه متن سلول‌ها برای بازیابی پس از هر جستجو
+        allRows.forEach(row => {
+            row.dataset.original = row.innerHTML;
         });
 
-        document.getElementById('nextBtn').addEventListener('click', (e) => {
-            e.preventDefault();
-            goToPage(currentPage + 1);
-        });
-
-        // پیاده‌سازی جستجو
-        const globalSearch = document.getElementById('globalSearch');
-        globalSearch.addEventListener('input', function() {
+        globalSearch.addEventListener('input', function () {
             const searchTerm = this.value.trim().toLowerCase();
 
             filteredRows = allRows.filter(row => {
-                const cells = row.querySelectorAll('td:not(:last-child)'); // جستجو در همه ستون‌ها به جز ستون عملیات
-                return Array.from(cells).some(cell =>
-                    cell.textContent.toLowerCase().includes(searchTerm)
-                );
-            });
+                row.innerHTML = row.dataset.original; // بازگرداندن متن اصلی برای حذف های‌لایت قبلی
+                const cells = row.querySelectorAll('td:not(:last-child)');
+                let found = false;
 
-            // بازگشت به صفحه اول پس از جستجو
-            currentPage = 1;
-            updateTableDisplay();
-            setupPagination();
-        });
-
-        // قابلیت کلیک روی سطرها
-        document.querySelectorAll('tbody tr').forEach(function(row) {
-            row.addEventListener('click', function(e) {
-                if (!e.target.closest('a, button, input, form')) {
-                    const url = row.dataset.url;
-                    if (url) {
-                        window.location.href = url;
+                cells.forEach(cell => {
+                    const text = cell.textContent.toLowerCase();
+                    if (searchTerm && text.includes(searchTerm)) {
+                        const regex = new RegExp(`(${searchTerm})`, 'gi');
+                        cell.innerHTML = cell.textContent.replace(regex, `<span class="bg-warning text-dark">$1</span>`);
+                        found = true;
                     }
-                }
+                });
+
+                return found || !searchTerm;
             });
+
+            // نمایش/مخفی کردن سطرها
+            allRows.forEach(row => row.style.display = 'none');
+            filteredRows.forEach(row => row.style.display = '');
+
+            // به‌روزرسانی اطلاعات تعداد
+            document.getElementById('countInfo').textContent =
+                `تعداد بخش‌ها: ${filteredRows.length}${filteredRows.length !== allRows.length ? ` (از ${allRows.length})` : ''}`;
         });
 
-        // مقداردهی اولیه
-        setupPagination();
-        updateTableDisplay();
+
+
+
+
+
+
+
+
+
+
+               const rowsPerPage = 10;
+        let currentPage = 1;
+
+        function paginateTable() {
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+            // مخفی کردن همه ردیف‌ها
+            rows.forEach(row => row.style.display = 'none');
+
+            // فقط نمایش ردیف‌های صفحه فعلی
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            rows.slice(start, end).forEach(row => row.style.display = '');
+
+            // ایجاد دکمه‌های صفحه‌بندی
+            const paginationContainer = document.getElementById('paginationContainer');
+            paginationContainer.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const li = document.createElement('li');
+                li.classList.add('page-item');
+                if (i === currentPage) li.classList.add('active');
+
+                const a = document.createElement('a');
+                a.classList.add('page-link');
+                a.href = '#';
+                a.style.fontSize = '0.75rem';
+                a.innerText = i;
+
+                a.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    currentPage = i;
+                    paginateTable();
+                });
+
+                li.appendChild(a);
+                paginationContainer.appendChild(li);
+            }
+        }
+
+        // فراخوانی صفحه‌بندی بعد از بارگذاری
+        paginateTable();
+
         });
     </script>
 }
