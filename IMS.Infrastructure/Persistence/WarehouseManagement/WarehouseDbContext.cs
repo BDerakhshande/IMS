@@ -268,7 +268,6 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
      .OnDelete(DeleteBehavior.Restrict);
 
 
-            // --- Product ---
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -280,7 +279,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 entity.Property(e => e.Code)
                     .HasMaxLength(50);
 
-                entity.HasIndex(e => e.Code)
+                entity.HasIndex(e => new { e.Code, e.StatusId }) 
                     .IsUnique();
 
                 entity.Property(e => e.Description)
@@ -294,6 +293,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .HasForeignKey(p => p.StatusId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
+
         }
 
 

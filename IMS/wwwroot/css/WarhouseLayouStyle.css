@@ -28,9 +28,8 @@
     --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.system-header{
+.system-header {
     background-color: var(--primary-color);
-
 }
 
 .system-footer {
@@ -55,7 +54,7 @@
     .access-btn:hover {
         background: linear-gradient(45deg, #14857b, #1aada2);
         box-shadow: 0 0 10px rgba(26, 173, 162, 0.6);
-        color:white;
+        color: white;
     }
 
 body {
@@ -204,7 +203,7 @@ body {
     }
 
 .access-btn {
-    text-decoration:none;
+    text-decoration: none;
     background-color: var(--accent-color);
     color: white;
     border: none;

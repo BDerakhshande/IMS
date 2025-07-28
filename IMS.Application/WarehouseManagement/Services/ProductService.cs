@@ -63,7 +63,14 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<ProductDto> CreateAsync(ProductDto dto)
         {
-            // 1. دریافت وضعیت به همراه گروه و دسته‌بندی آن
+            // 1. بررسی تکراری بودن کد محصول در وضعیت فعلی
+            var existingProduct = await _context.Products
+                .FirstOrDefaultAsync(p => p.Code == dto.Code && p.StatusId == dto.StatusId);
+
+            if (existingProduct != null)
+                throw new Exception("کدی که وارد کرده‌اید در این وضعیت قبلاً ثبت شده است.");
+
+            // 2. دریافت وضعیت به همراه گروه و دسته‌بندی آن
             var status = await _context.Statuses
                 .Include(s => s.Group)
                 .ThenInclude(g => g.Category)
@@ -72,7 +79,7 @@ namespace IMS.Application.WarehouseManagement.Services
             if (status == null)
                 throw new Exception("وضعیت انتخاب‌شده یافت نشد.");
 
-            // 2. ایجاد موجودیت محصول
+            // 3. ایجاد موجودیت محصول
             var product = new Product
             {
                 Name = dto.Name,
@@ -83,9 +90,9 @@ namespace IMS.Application.WarehouseManagement.Services
             };
 
             _context.Products.Add(product);
-            await _context.SaveChangesAsync(CancellationToken.None); 
+            await _context.SaveChangesAsync(CancellationToken.None);
 
-            // 3. ایجاد موجودی با مقدار صفر برای تمام ترکیب‌های ممکن
+            // 4. ایجاد موجودی با مقدار صفر برای تمام ترکیب‌های ممکن
             var warehouses = await _context.Warehouses
                 .Include(w => w.Zones)
                     .ThenInclude(z => z.Sections)
@@ -117,7 +124,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 await _context.SaveChangesAsync(CancellationToken.None);
             }
 
-            // 4. بازگرداندن DTO
+            // 5. بازگرداندن DTO
             return new ProductDto
             {
                 Id = product.Id,
@@ -143,27 +150,36 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
 
-
-
         public async Task UpdateAsync(ProductDto dto)
         {
+            // 1. یافتن محصول برای ویرایش
             var product = await _context.Products
                 .FirstOrDefaultAsync(p => p.Id == dto.Id);
 
             if (product == null)
                 throw new Exception("کالای مورد نظر یافت نشد.");
 
-           
+            // 2. بررسی تکراری بودن کد محصول در وضعیت فعلی (به‌جز خود محصول)
+            var duplicateProduct = await _context.Products
+                .FirstOrDefaultAsync(p =>
+                    p.Id != dto.Id &&
+                    p.Code == dto.Code &&
+                    p.StatusId == dto.StatusId);
 
-            // به‌روزرسانی فیلدها
+            if (duplicateProduct != null)
+                throw new Exception("کدی که وارد کرده‌اید در این وضعیت قبلاً ثبت شده است.");
+
+            // 3. به‌روزرسانی فیلدها
             product.Name = dto.Name;
             product.Code = dto.Code;
             product.Description = dto.Description;
             product.StatusId = dto.StatusId;
             product.Price = dto.Price;
-           
+
+            // 4. ذخیره تغییرات
             await _context.SaveChangesAsync(CancellationToken.None);
         }
+
 
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
@@ -213,13 +229,33 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task DeleteAsync(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Inventories)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (product == null)
                 throw new Exception("محصول مورد نظر یافت نشد.");
 
+            // بررسی وجود کالای مرتبط در جداول عملیات انبار
+            bool hasOperations = await _context.conversionConsumedItems.AnyAsync(c => c.ProductId == id)
+                || await _context.conversionProducedItems.AnyAsync(c => c.ProductId == id)
+                || await _context.ReceiptOrIssueItems.AnyAsync(r => r.ProductId == id);
+
+            if (hasOperations)
+                throw new Exception("امکان حذف این کالا وجود ندارد زیرا با این کالا عملیات انجام شده است.");
+
+            // حذف موجودی‌ها (Inventory)
+            if (product.Inventories != null && product.Inventories.Any())
+            {
+                _context.Inventories.RemoveRange(product.Inventories);
+            }
+
+            // حذف محصول
             _context.Products.Remove(product);
+
             await _context.SaveChangesAsync(CancellationToken.None);
         }
+
 
 
 

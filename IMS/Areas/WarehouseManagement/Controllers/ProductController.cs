@@ -32,7 +32,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
 
             ViewBag.StatusId = statusId;
-            ViewBag.GroupId = status.GroupId; // 👈 این را اضافه کن
+            ViewBag.GroupId = status.GroupId; 
 
             return View(allProducts);
         }
@@ -64,7 +64,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(nameof(dto.Code), ex.Message);
+
                 return View(dto);
             }
         }
@@ -93,7 +94,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+          
+                if (ex.Message.Contains("کدی که وارد کرده‌اید"))
+                {
+                    ModelState.AddModelError(nameof(dto.Code), ex.Message);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, ex.Message);
+                }
+
                 ViewBag.StatusId = dto.StatusId;
                 return View(dto);
             }
