@@ -1,7 +1,7 @@
 ﻿@model List<IMS.Areas.AccountManagement.Models.Moein>
 
 @{
-    ViewData["Title"] = "موجودی مواد و کالا";
+    ViewData["Title"] = "معین ها";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var successMessage = TempData["SuccessMessage"];
 }
@@ -57,7 +57,7 @@
         <div class="container-fluid py-4">
         <div class="card shadow border-0">
             <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">موجودی مواد و کالا</h3>
+                <h3 class="mb-0">معین ها</h3>
                 <button id="addAccountBtn" class="btn btn-add-account btn-sm" onclick="window.location='@Url.Action("CreateMoeins", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.AccountId })'">
                     <i class="fa fa-plus-circle"></i> افزودن معین
                 </button>

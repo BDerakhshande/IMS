@@ -10,11 +10,10 @@
     }
 
 </style>
-<link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="~/css/management.css" rel="stylesheet" />
 <link href="~/css/tablesstyle.css" rel="stylesheet" />
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
 
 @if (!string.IsNullOrEmpty(tafzilName))
 {
@@ -23,145 +22,135 @@
     </div>
 }
 
-<div class="button-container d-flex justify-content-between mb-3">
-    <a class="btn btn-gradient-add" href="@Url.Action("CreateSecondTafzil", "ChartOfAccounts", new { tafzilId = Model.FirstOrDefault()?.TafzilId })">
-        <i class="fa fa-plus-circle"></i> افزودن تفصیل ۲
-    </a>
-    <a href="@Url.Action("Index", "ChartOfAccounts")" class="btn btn-secondary">
-        <i class="fa fa-arrow-left"></i> بازگشت
-    </a>
+
+<div class="d-flex">
+
+    <div class="header-bar">
+        <button class="toggle-btn" id="toggleBtn">☰</button>
+        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
+                <i class="fas fa-home"></i>
+                <span>داشبورد</span>
+            </a>
+
+            <div class="menu-item has-submenu">
+                <i class="fas fa-user"></i>
+                <span>تعاریف</span>
+                <i class="submenu-toggle fas fa-chevron-down"></i>
+            </div>
+            <div class="submenu">
+                <a class="submenu-item" href="/AccountManagement/Definitions/CostCenter"><i class="fas fa-box"></i> <span>مدیریت مراکز هزینه</span></a>
+                <a class="submenu-item" href="/AccountManagement/ChartOfAccounts/Index"><i class="fas fa-tags"></i> <span>مدیریت حساب ها</span></a>
+            </div>
+            <a href="/AccountManagement/Transactions/Index" class="menu-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>تراکنش‌ها</span>
+            </a>
+
+
+
+            <a href="/AccountManagement/Reports/Index" class="menu-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>گزارشات</span>
+            </a>
+
+            <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
+                <i class="fas fa-right-from-bracket"></i>
+                <span>خروج</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- دکمه‌ها -->
+    <div class="main-content flex-grow-1 p-4">
+        <div class="card shadow border-0">
+            <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">تفصیل 2</h4>
+                <a href="@Url.Action("CreateSecondTafzil", "ChartOfAccounts", new { tafzilId = Model.FirstOrDefault()?.TafzilId })"
+                   id="addTafzilBtn"
+                   class="btn btn-success btn-sm">
+                    <i class="fa fa-plus-circle"></i> افزودن تفصیل
+                </a>
+            </div>
+
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(tafzilName))
+                {
+                    <div class="alert alert-info">@tafzilName</div>
+                }
+
+                <table class="table table-striped table-bordered text-center">
+                    <thead style="background-color:  #1a4a5a; color: white;">
+                        <tr>
+                            <th>کدکل</th>
+                            <th>کد معین</th>
+                            <th>نام تفصیل</th>
+                            <th>کدتفصیل تفصیل</th>
+                            <th>عملیات</th>
+                            </t>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr onclick="window.location='@Url.Action("SecondTafzils", "ChartOfAccounts", new { id = item.Id })'" style="cursor:pointer;">
+                                <td>@item.Tafzil?Moein?.Account?.Code</td>
+                                <td>@item.Tafzil?Moein?.Code</td>
+                                <td>@item.Tafzil?.Code</td>
+                                <td>@item.Code</td>
+                                <td>@item.Name</td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); window.location='@Url.Action("EditSecondTafzil1", "ChartOfAccounts", new { id = item.Id })'">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <form method="post" action="@Url.Action("DeleteSecondTafzil", "ChartOfAccounts")" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این حساب مطمئن هستید؟')">
+                                                <i class="fa fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-info-circle me-1"></i>
+                            تعداد بخش‌ها: @Model.Count
+                        </div>
+                        <div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination pagination-sm mb-0">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">بعدی</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<table id="secondTafzilTable" class="table luxury-table">
-    <thead>
-        <tr>
-            <th>کد کل</th>
-            <th>کد معین</th>
-            <th>کد تفصیل ۱</th>
-            <th>کد تفصیل ۲</th>
-            <th>نام تفصیل ۲</th>
-            <th>عملیات</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Tafzil?.Moein?.Account?.Code</td>
-                <td>@item.Tafzil?.Moein?.Code</td>
-                <td>@item.Tafzil?.Code</td>
-                <td>@item.Code</td>
-                <td>@item.Name</td>
-                <td>
-                    <div class="action-buttons">
-                        <a class="btn-icon edit-btn" href="@Url.Action("EditSecondTafzil", "ChartOfAccounts", new { id = item.Id })">
-                            <i class="fa fa-edit"></i>
-                        </a>
-                        <a class="btn-icon delete-btn" onclick="return confirm('آیا از حذف این تفصیل ۲ مطمئن هستید؟');"
-                           href="@Url.Action("DeleteSecondTafzil", "ChartOfAccounts", new { id = item.Id })">
-                            <i class="fa fa-trash"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
 
-<script>
-    $(document).ready(function () {
-        $('#secondTafzilTable').DataTable({
-            paging: true,
-            searching: true,
-            ordering: true,
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50, 100],
-            info: true,
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/fa.json"
-            }
-        });
-
-        $('#secondTafzilTable tbody').on('mouseenter', 'tr', function () {
-            $(this).css('background-color', '#f0f9ff');
-        }).on('mouseleave', 'tr', function () {
-            $(this).css('background-color', '');
-        });
-    });
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-        const table = document.getElementById("secondTafzilTable");
-        if (!table) return;
-
-        const rows = table.querySelectorAll("tbody tr");
-        let selectedIndex = -1;
-
-        // مشخص کردن سطر انتخاب شده با کلاس CSS مثلا 'selected'
-        function highlightRow(index) {
-            rows.forEach((row, i) => {
-                row.classList.toggle("selected", i === index);
-            });
-        }
-
-        document.addEventListener("keydown", function (event) {
-            const key = event.key;
-
-            // ArrowDown → سطر بعدی
-            if (key === "ArrowDown") {
-                if (selectedIndex < rows.length - 1) {
-                    selectedIndex++;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-            }
-
-            // ArrowUp → سطر قبلی
-            if (key === "ArrowUp") {
-                if (selectedIndex > 0) {
-                    selectedIndex--;
-                    highlightRow(selectedIndex);
-                    rows[selectedIndex].scrollIntoView({ block: "center", behavior: "smooth" });
-                    event.preventDefault();
-                }
-            }
-
-            // Delete → حذف سطر انتخاب شده با تایید کاربر
-            if (key === "Delete" && selectedIndex >= 0) {
-                const row = rows[selectedIndex];
-                const deleteBtn = row.querySelector(".delete-btn");
-                if (deleteBtn && confirm("آیا از حذف این تفصیل ۲ مطمئن هستید؟")) {
-                    window.location.href = deleteBtn.getAttribute("href");
-                }
-            }
-
-            // Shift + E → ویرایش سطر انتخاب شده
-            if (event.shiftKey && key.toLowerCase() === "e" && selectedIndex >= 0) {
-                const row = rows[selectedIndex];
-                const editBtn = row.querySelector(".edit-btn");
-                if (editBtn) {
-                    window.location.href = editBtn.getAttribute("href");
-                    event.preventDefault();
-                }
-            }
-
-            // Alt + Shift + N → افزودن تفصیل جدید
-            if (event.altKey && event.shiftKey && key.toLowerCase() === "n") {
-                const addBtn = document.querySelector(".btn-gradient-add");
-                if (addBtn) {
-                    addBtn.click();
-                    event.preventDefault();
-                }
-            }
-
-
-
-
-            if (key === "Escape") {
-                history.back(); // برمی‌گرده به صفحه قبلی مرورگر
-            }
-        });
-    });
-
-</script>
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="~/js/management.js"></script>
+    <script src="~/js/Tafzils.js"></script>
+}

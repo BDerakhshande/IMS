@@ -1,7 +1,7 @@
 ﻿@model List<IMS.Areas.AccountManagement.Models.Tafzil>
 
 @{
-    ViewData["Title"] = "مدیریت تفصیلها";
+    ViewData["Title"] = "تفصیل 1";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -69,11 +69,13 @@
     <div class="main-content flex-grow-1 p-4">
         <div class="card shadow border-0">
             <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">مدیریت تفصیل‌ها</h4>
-                <button id="addTafzilBtn" class="btn btn-success btn-sm"
-                        onclick="window.location='@Url.Action("CreateTafzil1", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.MoeinId })'">
+                <h4 class="mb-0">تفصیل 1</h4>
+                <a href="@Url.Action("CreateTafzil1", "ChartOfAccounts", new { accountId = Model.FirstOrDefault()?.Moein?.AccountId })"
+                   id="addTafzilBtn"
+                   class="btn btn-success btn-sm">
                     <i class="fa fa-plus-circle"></i> افزودن تفصیل
-                </button>
+                </a>
+
             </div>
 
             <div class="card-body">
@@ -95,7 +97,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr>
+                            <tr onclick="window.location='@Url.Action("SecondTafzils", "ChartOfAccounts", new { id = item.Id })'" style="cursor:pointer;">
                                 <td>@item.Moein?.Account?.Code</td>
                                 <td>@item.Moein?.Code</td>
                                 <td>@item.Code</td>

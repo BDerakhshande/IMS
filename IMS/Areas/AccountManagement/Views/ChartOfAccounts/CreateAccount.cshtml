@@ -2,52 +2,112 @@
 
 @{
     ViewData["Title"] = "افزودن حساب کل";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/css/transactionstyle.css" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" />
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/management.css" />
+<link rel="stylesheet" href="~/css/Warehouses.css" />
+
+<style>
+    .form-label i,
+    .input-group-text i {
+        color: #000 !important;
+    }
+
+    .form-label {
+        color: #000 !important;
+    }
+
+    .form-text {
+        color: #6c757d !important;
+    }
+</style>
+
 @if (ViewBag.ErrorMessage != null)
 {
-    <div class="alert alert-danger">
-        @ViewBag.ErrorMessage
-    </div>
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
 }
-<div class="container py-5">
-    <div class="card shadow-lg border-0 rounded-4 p-4 glass-card">
-        <h2 class="text-center mb-4 fw-bold text-primary">
-            <i class="bi bi-plus-circle me-2"></i> افزودن حساب کل
-        </h2>
 
-        <!-- فرم افزودن حساب کل -->
-        <form method="post" asp-action="CreateAccount" asp-controller="ChartOfAccounts">
-            <div class="row g-4">
-                <div class="col-md-6 mx-auto">
-                    <label for="Code" class="form-label">کد حساب</label>
-                    <input type="text" class="form-control rounded-3 shadow-sm" id="Code" name="Code" value="@Model?.Code" required maxlength="50" />
-                    <span asp-validation-for="Code" class="text-danger"></span>
+<div class="container-fluid py-4" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-primary border-0 shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0 text-white">
+                        <i class="fas fa-plus-circle me-2"></i> @ViewData["Title"]
+                    </h4>
+                    <a asp-action="Index" asp-controller="ChartOfAccounts" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
                 </div>
 
-                <div class="col-md-6 mx-auto">
-                    <label for="Name" class="form-label">نام حساب</label>
-                    <input type="text" class="form-control rounded-3 shadow-sm" id="Name" name="Name" value="@Model?.Name" required maxlength="200" />
-                    <span asp-validation-for="Name" class="text-danger"></span>
+                <div class="card-body">
+                    <!-- فرم افزودن حساب کل -->
+                    <form method="post" asp-action="CreateAccount" asp-controller="ChartOfAccounts" class="needs-validation" novalidate>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Code" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-barcode me-1"></i> کد حساب
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
+                                        <input asp-for="Code" class="form-control" placeholder="کد حساب را وارد کنید" maxlength="50" required />
+                                    </div>
+                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Name" class="form-label fw-bold mb-2">
+                                        <i class="fas fa-tag me-1"></i> نام حساب
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-file-alt"></i></span>
+                                        <input asp-for="Name" class="form-control" placeholder="نام حساب را وارد کنید" maxlength="200" required />
+                                    </div>
+                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- دکمه‌های اقدام -->
+                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i> ذخیره
+                            </button>
+                            <a asp-action="Index" asp-controller="ChartOfAccounts" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <div class="text-center mt-4">
-                <button type="submit" class="btn btn-success px-5 py-2 fw-bold rounded-pill shadow-lg">
-                    <i class="bi bi-check-circle me-1"></i> ذخیره
-                </button>
-            </div>
-           
-        </form>
-
-        
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        // فعال سازی اعتبارسنجی فرم
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
 }
