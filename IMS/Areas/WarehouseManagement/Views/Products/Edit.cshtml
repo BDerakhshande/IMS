@@ -2,7 +2,7 @@
 @model ProductDto
 @{
     ViewData["Title"] = "ویرایش کالا";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
     var statusId = ViewBag.StatusId;
 }
 
@@ -105,6 +105,8 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script src="~/js/MenuJs.js"></script>
     <script>
         // فعال سازی اعتبارسنجی فرم
         (function () {

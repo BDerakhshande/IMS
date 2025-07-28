@@ -1,7 +1,7 @@
 ﻿@model IMS.Application.WarehouseManagement.DTOs.CategoryDto
 @{
     ViewData["Title"] = "ویرایش دسته‌بندی";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
@@ -72,6 +72,7 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script src="~/js/MenuJs.js"></script>
     <script>
         // فعال سازی اعتبارسنجی فرم
         (function () {
