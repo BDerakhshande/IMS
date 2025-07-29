@@ -14,7 +14,6 @@ body, html {
     margin: 0;
     padding: 0;
     font-family: 'Vazirmatn', sans-serif;
-    
     background-color: var(--background-color);
     height: 100%;
 }
@@ -40,6 +39,7 @@ body, html {
     display: flex;
     flex-direction: column;
     z-index: 1050;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
     .sidebar.expanded {
@@ -70,7 +70,7 @@ body, html {
     cursor: pointer;
     padding: 8px;
     border-radius: 6px;
-    transition: background-color var(--transition-speed);
+    transition: all var(--transition-speed);
 }
 
     .toggle-btn:hover {
@@ -88,35 +88,99 @@ body, html {
         object-fit: contain;
     }
 
-/* ===== آیتم‌های منو ===== */
-.menu-item, .submenu-item {
+/* ===== آیتم‌های منو اصلی ===== */
+.menu-item {
     display: flex;
     align-items: center;
-    padding: 10px 16px;
+    padding: 12px 16px;
     color: white;
     text-decoration: none;
     font-size: 0.95rem;
-    gap: 10px;
-    transition: background-color var(--transition-speed);
+    font-weight: 500;
+    gap: 12px;
+    transition: all var(--transition-speed);
     position: relative;
     user-select: none;
+    border-right: 3px solid transparent;
 }
 
-    .menu-item i, .submenu-item i {
-        font-size: 1rem;
-        width: 20px;
+    .menu-item i {
+        font-size: 1.1rem;
+        width: 24px;
         text-align: center;
     }
 
-    .menu-item:hover, .submenu-item:hover {
-        background-color: var(--primary-dark);
+    .menu-item:hover {
+        background-color: rgba(255, 255, 255, 0.08);
+        border-right-color: var(--primary-color);
     }
 
-    .menu-item.active, .submenu-item.active {
-        background-color: var(--primary-color);
+    .menu-item.active {
+        background-color: rgba(26, 174, 162, 0.15);
+        border-right-color: var(--primary-color);
+        color: #fff;
     }
 
-/* ===== مخفی کردن متن وقتی سایدبار بسته است ===== */
+/* ===== زیرمنوها - نسخه حرفه‌ای ===== */
+.has-submenu {
+    cursor: pointer;
+    position: relative;
+}
+
+.submenu {
+    background-color: rgba(0, 0, 0, 0.15);
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height var(--transition-speed);
+    display: flex;
+    flex-direction: column;
+}
+
+    .submenu.open {
+        max-height: 500px;
+    }
+
+.submenu-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px 8px 24px;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: normal;
+    gap: 10px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+    .submenu-item i {
+        font-size: 0.9rem;
+        width: 18px;
+        text-align: center;
+        opacity: 0.9;
+    }
+
+    .submenu-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: #fff;
+    }
+
+    .submenu-item.active {
+        background-color: rgba(26, 174, 162, 0.2);
+        color: #fff;
+    }
+
+.submenu-toggle {
+    margin-right: auto;
+    font-size: 0.8rem;
+    transition: transform var(--transition-speed);
+}
+
+.menu-item.has-submenu.active .submenu-toggle {
+    transform: rotate(180deg);
+}
+
+/* ===== حالت جمع شده سایدبار ===== */
 .sidebar:not(.expanded) .menu-item > span,
 .sidebar:not(.expanded) .submenu-item > span {
     display: none;
@@ -130,57 +194,6 @@ body, html {
 
 .sidebar:not(.expanded) .submenu-toggle {
     display: none !important;
-    width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* ===== نمایش متن و فلش هنگام باز بودن ===== */
-.sidebar.expanded .menu-item > span,
-.sidebar.expanded .submenu-item > span,
-.sidebar.expanded .submenu-toggle {
-    display: inline-block;
-}
-
-/* ===== زیرمنو ===== */
-.has-submenu {
-    cursor: pointer;
-    position: relative;
-}
-
-.submenu {
-    background-color: rgba(255,255,255,0.05);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height var(--transition-speed);
-    display: flex;
-    flex-direction: column;
-}
-
-    .submenu.open {
-        max-height: 500px;
-    }
-
-.submenu-toggle {
-    margin-right: auto;
-    transition: transform var(--transition-speed);
-}
-
-.menu-item.has-submenu.active .submenu-toggle {
-    transform: rotate(180deg);
-}
-
-/* ===== محتوای اصلی ===== */
-.main-content {
-    background-color: white;
-    padding: 20px;
-    margin-right: var(--sidebar-collapsed-width);
-    transition: margin-right var(--transition-speed);
-    width: 100%;
-}
-
-.sidebar.expanded ~ .main-content {
-    margin-right: var(--sidebar-width);
 }
 
 /* ===== Tooltip ===== */
@@ -192,13 +205,14 @@ body, html {
     transform: translateY(-50%);
     background-color: #2c3e50;
     color: white;
-    padding: 4px 10px;
+    padding: 6px 12px;
     border-radius: 4px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     white-space: nowrap;
     z-index: 9999;
     opacity: 0;
     transition: opacity 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .menu-item:hover .sidebar-tooltip,
@@ -207,17 +221,33 @@ body, html {
     opacity: 1;
 }
 
+/* ===== محتوای اصلی ===== */
+.main-content {
+    background-color: white;
+    padding: 20px;
+    margin-right: var(--sidebar-collapsed-width);
+    transition: margin-right var(--transition-speed);
+    min-height: calc(100vh - var(--header-height));
+}
+
+.sidebar.expanded ~ .main-content {
+    margin-right: var(--sidebar-width);
+}
+
 /* ===== واکنشگرایی ===== */
 @media (max-width: 768px) {
     .sidebar {
-        position: absolute;
+        position: fixed;
         width: var(--sidebar-width);
-        height: 100%;
-        right: 0;
+        right: -100%;
+        transition: right var(--transition-speed);
     }
+
+        .sidebar.expanded {
+            right: 0;
+        }
 
     .main-content {
         margin-right: 0 !important;
-        padding: 15px;
     }
 }

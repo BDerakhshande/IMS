@@ -2,100 +2,160 @@
 @using IMS.Models.ProMan
 @model ReceiptOrIssueViewModel
 @{
-    ViewData["Title"] = "ایجاد رسید / حواله";
+    ViewData["Title"] = "ایجاد رسید / حواله / انتقال";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
-<!-- Select2 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="/css/CreateReceiptOrIssue.css" rel="stylesheet" />
+<style>
 
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <h3 class="card-title mb-0">@ViewData["Title"]</h3>
+    select.form-select[dir="rtl"],
+    select.form-select.text-end {
+        direction: rtl;
+        text-align: right;
+        padding-right: 1rem;
+        padding-left: 2rem;
+        background-position: left 0.75rem center !important;
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
+    }
+
+    select.form-select,
+    select.select2-hidden-accessible {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none !important;
+    }
+
+
+    .table-sm-custom {
+        font-size: 0.85rem;
+    }
+
+        .table-sm-custom .form-select,
+        .table-sm-custom .form-control {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            height: auto;
+        }
+
+        .table-sm-custom label,
+        .table-sm-custom .accordion-button {
+            font-size: 0.82rem;
+        }
+
+        .table-sm-custom .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .table-sm-custom .accordion-body {
+            padding: 0.5rem;
+        }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+</style>
+
+<!-- Select2 CSS -->
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+
+<div class="card border-0 shadow-sm" dir="rtl">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-plus-circle ms-1" style="font-size: 0.85rem;"></i>
+            <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+        </div>
     </div>
-    <div class="card-body">
+
+    <div class="card-body p-2">
         <form asp-action="Create" method="post" id="receiptIssueForm">
             @Html.AntiForgeryToken()
             @if (!ViewData.ModelState.IsValid)
             {
-                <div class="alert alert-danger">
-                    <strong>خطا!</strong>
+                <div class="alert alert-danger small py-2 px-3 mb-3 text-end">
+                    <strong class="d-block mb-1">خطا!</strong>
                     @Html.ValidationSummary(true)
                 </div>
             }
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label asp-for="DateString" class="form-label fw-bold">تاریخ</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                            <input asp-for="DateString" class="form-control persian-datepicker" placeholder="تاریخ را انتخاب کنید" />
-                        </div>
-                        <span asp-validation-for="DateString" class="text-danger small"></span>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label asp-for="DateString" class="form-label fw-bold small text-end w-100">تاریخ</label>
+                    <div class="input-group input-group-sm">
+                        <input asp-for="DateString" class="form-control persian-datepicker text-end" placeholder="تاریخ را انتخاب کنید" />
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
                     </div>
+                    <span asp-validation-for="DateString" class="text-danger small d-block text-end"></span>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label asp-for="DocumentNumber" class="form-label fw-bold">شماره سند</label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
-                            <input asp-for="DocumentNumber" class="form-control" placeholder="شماره سند را وارد کنید" />
-                        </div>
-                        <span asp-validation-for="DocumentNumber" class="text-danger small"></span>
+                <div class="col-md-3">
+                    <label asp-for="DocumentNumber" class="form-label fw-bold small text-end w-100">شماره سند</label>
+                    <div class="input-group input-group-sm">
+                        <input asp-for="DocumentNumber" class="form-control text-end" placeholder="شماره سند را وارد کنید" />
+                        <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
                     </div>
+                    <span asp-validation-for="DocumentNumber" class="text-danger small d-block text-end"></span>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label asp-for="Type" class="form-label fw-bold">نوع</label>
-                        <select asp-for="Type" class="form-select select2">
-                            <option value="">انتخاب کنید...</option>
-                            <option value="1">رسید</option>
-                            <option value="2">حواله</option>
-                            <option value="3">انتقال</option>
-                        </select>
-                        <span asp-validation-for="Type" class="text-danger small"></span>
-                    </div>
+                <div class="col-md-3">
+                    <label asp-for="Type" class="form-label fw-bold small text-end w-100">نوع</label>
+                    <select asp-for="Type" class="form-select form-select-sm text-end">
+                        <option value="">انتخاب کنید...</option>
+                        <option value="1">رسید</option>
+                        <option value="2">حواله</option>
+                        <option value="3">انتقال</option>
+                    </select>
+                    <span asp-validation-for="Type" class="text-danger small d-block text-end"></span>
                 </div>
 
-                <!-- پروژه را هم داخل همین ردیف قرار دهید -->
-                <div class="col-md-4">
-                    <div class="form-group mb-3">
-                        <label asp-for="ProjectId" class="form-label fw-bold">پروژه</label>
-                        <select asp-for="ProjectId" class="form-select select2">
-                            <option value="">انتخاب پروژه...</option>
-                            @foreach (var item in ViewBag.Projects as SelectList)
-                            {
-                                <option value="@item.Value" selected="@(item.Value == Model.ProjectId?.ToString())">@item.Text</option>
-                            }
-                        </select>
-                        <span asp-validation-for="ProjectId" class="text-danger small"></span>
-                    </div>
+                <div class="col-md-3">
+                    <label asp-for="ProjectId" class="form-label fw-bold small text-end w-100">پروژه</label>
+                    <select asp-for="ProjectId" class="form-select form-select-sm select2-project" dir="rtl">
+                        <option value="">انتخاب پروژه...</option>
+                        @foreach (var item in ViewBag.Projects as SelectList)
+                        {
+                            <option value="@item.Value" selected="@(item.Value == Model.ProjectId?.ToString())">@item.Text</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ProjectId" class="text-danger small d-block text-end"></span>
                 </div>
             </div>
 
-            <hr class="my-4" />
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h4 class="mb-0 text-dark fw-bold">آیتم‌ها</h4>
-                <button type="button" id="addItemBtn" class="btn btn-primary rounded-pill hide-on-print">
-                    <i class="bi bi-plus-circle me-2 "></i>افزودن آیتم
+            <hr class="my-3" />
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">آیتم‌ها</h6>
+                <button type="button" id="addItemBtn" class="btn btn-sm btn-primary hide-on-print">
+                    <i class="bi bi-plus-circle ms-1"></i> افزودن آیتم
                 </button>
             </div>
-            <div class="table-responsive border rounded-3">
-                <table class="table table-hover mb-0" id="itemsTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-center py-3">کالا</th>
-                            <th class="text-center py-3">تعداد</th>
-                            <th class="text-center py-3">مبدا</th>
-                            <th class="text-center py-3">مقصد</th>
-                            <th class="text-center py-3" style="width: 80px;">عملیات</th>
+
+            <div class="table-responsive border rounded-3 mb-3">
+                <table class="table table-hover table-sm mb-0" id="itemsTable">
+                    <thead class="table-light" style="font-size: 0.8rem;">
+                        <tr class="text-center">
+                            <th class="py-2">کالا</th>
+                            <th class="py-2">تعداد</th>
+                            <th class="py-2">مبدا</th>
+                            <th class="py-2">مقصد</th>
+                            <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody class="table-sm-custom">
                         @for (int i = 0; i < Model.Items.Count; i++)
                         {
-                            <tr class="align-middle">
+                            <tr class="align-middle" data-index="@i">
+                                <!-- انتخاب کالا -->
                                 <td>
                                     <div class="accordion" id="productAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -106,28 +166,31 @@
                                             </h2>
                                             <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
                                                 <div class="accordion-body p-2">
-                                                    <select asp-for="Items[i].CategoryId" class="form-select category-select select2 shadow-sm item-select" data-index="@i">
+                                                    <select asp-for="Items[i].CategoryId" class="form-select form-select-sm category-select select2 shadow-sm item-select text-end" data-index="@i">
                                                         <option value="">انتخاب دسته‌بندی</option>
                                                         @foreach (var item in ViewBag.Categories as SelectList)
                                                         {
                                                             <option value="@item.Value" selected="@(item.Value == Model.Items[i].CategoryId.ToString())">@item.Text</option>
                                                         }
                                                     </select>
-                                                    <select asp-for="Items[i].GroupId" class="form-select group-select select2 shadow-sm item-select" data-index="@i">
+
+                                                    <select asp-for="Items[i].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select mt-2 text-end" data-index="@i">
                                                         <option value="">انتخاب گروه</option>
                                                         @foreach (var group in Model.Items[i].AvailableGroups ?? new List<SelectListItem>())
                                                         {
                                                             <option value="@group.Value" selected="@(group.Value == Model.Items[i].GroupId?.ToString())">@group.Text</option>
                                                         }
                                                     </select>
-                                                    <select asp-for="Items[i].StatusId" class="form-select status-select mb-2" data-index="@i">
+
+                                                    <select asp-for="Items[i].StatusId" class="form-select form-select-sm status-select mt-2 shadow-sm text-end" data-index="@i">
                                                         <option value="">انتخاب وضعیت</option>
                                                         @foreach (var status in Model.Items[i].AvailableStatuses ?? new List<SelectListItem>())
                                                         {
                                                             <option value="@status.Value" selected="@(status.Value == Model.Items[i].StatusId?.ToString())">@status.Text</option>
                                                         }
                                                     </select>
-                                                    <select asp-for="Items[i].ProductId" class="form-select product-select select2 shadow-sm" data-index="@i">
+
+                                                    <select asp-for="Items[i].ProductId" class="form-select form-select-sm product-select select2 shadow-sm mt-2 text-end" data-index="@i">
                                                         <option value="">انتخاب کالا</option>
                                                         @foreach (var product in Model.Items[i].AvailableProducts ?? new List<SelectListItem>())
                                                         {
@@ -139,10 +202,14 @@
                                         </div>
                                     </div>
                                 </td>
+
+                                <!-- تعداد -->
                                 <td style="width: 120px;">
-                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner" />
-                                    <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1"></span>
+                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control form-control-sm shadow-sm no-spinner text-end" />
+                                    <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1 text-end"></span>
                                 </td>
+
+                                <!-- مبدا -->
                                 <td>
                                     <div class="accordion" id="sourceAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -154,43 +221,47 @@
                                             <div id="sourceCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_@i">
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1">انبار</label>
-                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i" data-type="source">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="source">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in ViewBag.Warehouses as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].SourceWarehouseId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].SourceWarehouseId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].SourceWarehouseId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
+
                                                     <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1">قسمت</label>
-                                                        <select asp-for="@Model.Items[i].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm" data-type="source">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                        <select asp-for="Items[i].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="@i" data-type="source">
                                                             <option value="">انتخاب قسمت</option>
                                                             @foreach (var item in ViewBag.Zones as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].SourceZoneId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].SourceZoneId" class="text-danger small d-block mt-1-1"></span>
+                                                        <span asp-validation-for="Items[i].SourceZoneId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
+
                                                     <div>
-                                                        <label class="form-label small text-muted mb-1">بخش</label>
-                                                        <select asp-for="Items[i].SourceSectionId" class="form-select form-select-sm section-select shadow-sm" data-type="source">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                        <select asp-for="Items[i].SourceSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="source">
                                                             <option value="">انتخاب بخش</option>
                                                             @foreach (var item in ViewBag.Sections as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].SourceSectionId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].SourceSectionId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].SourceSectionId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
+
+                                <!-- مقصد -->
                                 <td>
                                     <div class="accordion" id="destAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -202,50 +273,54 @@
                                             <div id="destCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#destAccordion_@i">
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1">انبار</label>
-                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i" data-type="destination">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in ViewBag.Warehouses as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].DestinationWarehouseId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].DestinationWarehouseId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].DestinationWarehouseId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
+
                                                     <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1">قسمت</label>
-                                                        <select asp-for="Items[i].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="@i" data-type="destination">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                        <select asp-for="Items[i].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب قسمت</option>
                                                             @foreach (var item in ViewBag.Zones as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].DestinationZoneId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].DestinationZoneId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].DestinationZoneId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
+
                                                     <div>
-                                                        <label class="form-label small text-muted mb-1">بخش</label>
-                                                        <select asp-for="Items[i].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm" data-type="destination">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                        <select asp-for="Items[i].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="destination">
                                                             <option value="">انتخاب بخش</option>
                                                             @foreach (var item in ViewBag.Sections as SelectList)
                                                             {
                                                                 <option value="@item.Value" selected="@(item.Value == Model.Items[i].DestinationSectionId?.ToString())">@item.Text</option>
                                                             }
                                                         </select>
-                                                        <span asp-validation-for="Items[i].DestinationSectionId" class="text-danger small d-block mt-1"></span>
+                                                        <span asp-validation-for="Items[i].DestinationSectionId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </td>
+
+                                <!-- دکمه‌ها -->
                                 <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle hide-on-print" title="ثبت">
-                                            <i class="bi bi-check-lg">ثبت</i>
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print" title="ثبت">
+                                            <i class="bi bi-check-lg"></i>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle hide-on-print" title="حذف">
-                                            <i class="bi bi-trash">حذف</i>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print" title="حذف">
+                                            <i class="bi bi-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -256,16 +331,12 @@
                 </table>
             </div>
 
-
-
-            <hr class="my-4" />
-
-            <div class="d-flex justify-content-end gap-2">
-                <a asp-action="Index" class="btn btn-secondary px-4 hide-on-print">
-                    <i class="bi bi-arrow-right-circle"></i> بازگشت
+            <div class="d-flex justify-content-start gap-2 mt-3">
+                <a asp-action="Index" class="btn btn-sm btn-secondary px-3 hide-on-print">
+                    <i class="bi bi-arrow-right-circle ms-1"></i> بازگشت
                 </a>
-                <button type="submit" class="btn btn-success px-4 hide-on-print">
-                    <i class="bi bi-check-circle"></i> ثبت
+                <button type="submit" class="btn btn-sm btn-success px-3 hide-on-print">
+                    <i class="bi bi-check-circle ms-1"></i> ثبت
                 </button>
             </div>
         </form>
@@ -273,25 +344,18 @@
 </div>
 
 
-<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
-<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
-<link href="~/lib/persian-datepicker/persian-datepicker.min.css" rel="stylesheet" />
-<link href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
-
-<style>
-
-
-</style>
-
-
 
 
 @section Scripts {
-
-
+    <!-- در انتهای body یا بخش Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.full.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/MenuJs.js"></script>
     <script>
 
-
+                      
         // ارسال داده‌های ViewBag به JS به صورت JSON
         const categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories));
         const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
@@ -302,11 +366,13 @@
         const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
 
 
-                $(document).ready(function () {
+                       $(document).ready(function () {
             $('.select2').select2({
                 theme: 'bootstrap5',
                 placeholder: 'انتخاب کنید',
-                allowClear: true
+                allowClear: true,
+                dir: 'rtl', // اطمینان از پشتیبانی RTL
+                minimumResultsForSearch: 0
             });
         });
 
@@ -316,7 +382,7 @@
             return items.map(item => `<option value="${item.Value}">${item.Text}</option>`).join('');
         }
 
-              document.getElementById('addItemBtn').addEventListener('click', function () {
+                  document.getElementById('addItemBtn').addEventListener('click', function () {
             const tableBody = document.querySelector('#itemsTable tbody');
             const rowCount = tableBody.querySelectorAll('tr').length;
 
@@ -339,16 +405,20 @@
                                 </h2>
                                 <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
                                     <div class="accordion-body p-2">
+                                        <label class="form-label small text-muted mb-1">دسته بندی</label>
                                         <select name="Items[${rowCount}].CategoryId" class="form-select product-select select2 shadow-sm item-select" data-index="${rowCount}">
                                             <option value="">انتخاب دسته‌بندی</option>
                                             ${buildOptions(categories)}
                                         </select>
+                                        <label class="form-label small text-muted mb-1">گروه</label>
                                         <select name="Items[${rowCount}].GroupId" class="form-select product-select select2 shadow-sm item-select" data-index="${rowCount}">
                                             <option value="">انتخاب گروه</option>
                                         </select>
+                                        <label class="form-label small text-muted mb-1">طبقه</label>
                                         <select name="Items[${rowCount}].StatusId" class="form-select status-select mb-2" data-index="${rowCount}">
-                                            <option value="">انتخاب وضعیت</option>
+                                            <option value="">انتخاب طبقه</option>
                                         </select>
+                                        <label class="form-label small text-muted mb-1">کالا</label>
                                         <select name="Items[${rowCount}].ProductId" class="form-select product-select select2 shadow-sm" data-index="${rowCount}">
                                             <option value="">انتخاب کالا</option>
                                         </select>
@@ -436,34 +506,32 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle hide-on-print" title="ثبت">
-                                    <i class="bi bi-check-lg">ثبت</i>
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle hide-on-print" title="حذف">
-                                    <i class="bi bi-trash">حذف</i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>`;
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`;
 
-            tableBody.insertAdjacentHTML('beforeend', errorRow); // سپس ردیف خطا
-            tableBody.insertAdjacentHTML('beforeend', template); // ابتدا ردیف اصلی
+            tableBody.insertAdjacentHTML('beforeend', errorRow);
+            tableBody.insertAdjacentHTML('beforeend', template);
 
             const newRow = tableBody.querySelector(`tr.align-middle[data-index="${rowCount}"]`);
             const newErrorRow = tableBody.querySelector(`tr.validation-row[data-index="${rowCount}"]`);
 
-            // مقداردهی select2 فقط روی المان‌های جدید
-            $(newRow).find('.select2').select2();
-
-            // رویداد حذف فقط روی دکمه جدید
-            newRow.querySelector('.remove-item').onclick = function () {
-                newRow.remove();
-                newErrorRow.remove();
-            };
+            $(newRow).find('.select2').select2({
+                theme: 'bootstrap5',
+                placeholder: 'انتخاب کنید',
+                allowClear: true,
+                dir: 'rtl',
+                minimumResultsForSearch: 0
+            });
         });
 
         // مدیریت کلیک روی دکمه "ثبت"
@@ -613,12 +681,6 @@
                 }
             });
         });
-
-
-
-
-
-
 
                        // تابع کمکی برای بزرگ کردن حرف اول
         function capitalize(str) {
@@ -850,12 +912,22 @@
 
 
 
+                   $(document).on('click', '.remove-item', function () {
+            const $row = $(this).closest('tr.align-middle');
+            const index = $row.data('index');
+            const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
 
-                $(document).on('click', '.remove-item', function () {
-            // پیدا کردن نزدیک‌ترین <tr> والد و حذف آن
-            $(this).closest('tr').remove();
+            // تخریب Select2 برای جلوگیری از نشت حافظه
+            $row.find('.select2').each(function () {
+                if ($(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2('destroy');
+                }
+            });
+
+            // حذف ردیف اصلی و ردیف خطا
+            $row.remove();
+            $errorRow.remove();
         });
-
 
                 $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]');
