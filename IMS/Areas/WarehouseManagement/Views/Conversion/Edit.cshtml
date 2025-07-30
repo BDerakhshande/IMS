@@ -2,6 +2,7 @@
 @model IMS.Models.ProMan.ConversionCreateViewModel
 @{
     ViewData["Title"] = "ویرایش سند تبدیل";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 @functions {
     string FormatProductSummary(
@@ -493,7 +494,7 @@
                 </div>
 
  @section Scripts {
-
+    <script src="~/js/MenuJs.js"></script>
     <script>
                                        $(document).ready(function () {
             // Data normalization and initialization

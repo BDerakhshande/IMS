@@ -1,6 +1,7 @@
 ﻿@model IMS.Models.ProMan.ConversionCreateViewModel
 @{
     ViewData["Title"] = "ایجاد سند تبدیل جدید";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 
 <!-- Select2 CSS -->
@@ -385,6 +386,7 @@
 
 
 @section Scripts {
+    <script src="~/js/MenuJs.js"></script>
     <script>
         $(document).ready(function () {
             // --- Normalization
