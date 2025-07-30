@@ -1,4 +1,6 @@
-﻿@model IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssue
+﻿@using IMS.Models.ProMan
+@model ReceiptPrintViewModel
+
 @{
     string GetPersianType(IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType type) => type switch
     {
@@ -9,12 +11,8 @@
 }
 
 @{
-    Layout = null; // حذف هدر و فوتر لایه اصلی
+    Layout = null;
 }
-
-
-
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -25,17 +23,24 @@
     <div class="header-info">
         <div class="info-item">
             <span class="info-label">شماره سند:</span>
-            <span class="info-value">@Model.DocumentNumber</span>
+            <span class="info-value">@Model.Receipt.DocumentNumber</span>
         </div>
         <div class="info-item">
             <span class="info-label">تاریخ سند:</span>
-            <span class="info-value">@Model.Date.ToString("yyyy/MM/dd")</span>
+            <span class="info-value">@Model.Receipt.Date.ToString("yyyy/MM/dd")</span>
         </div>
         <div class="info-item">
             <span class="info-label">نوع سند:</span>
-            <span class="info-value">@GetPersianType(Model.Type)</span>
+            <span class="info-value">
+                @(Model.Receipt.Type.HasValue ? GetPersianType(Model.Receipt.Type.Value) : "نوع مشخص نشده")
+            </span>
+        </div>
+        <div class="info-item">
+            <span class="info-label">نام پروژه:</span>
+            <span class="info-value">@Model.ProjectName</span>
         </div>
     </div>
+
     <table>
         <thead>
             <tr>
@@ -46,7 +51,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Items)
+            @foreach (var item in Model.Receipt.Items)
             {
                 <tr>
                     <td>

@@ -64,6 +64,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReceiptOrIssueViewModel model)
         {
+            if (model.Items == null || !model.Items.Any())
+            {
+                ModelState.AddModelError("Items", "باید حداقل یک آیتم وارد کنید.");
+            }
+
             bool exists = await _context.ReceiptOrIssues
                 .AnyAsync(r => r.DocumentNumber == model.DocumentNumber && r.Id != model.Id);
 
@@ -79,22 +84,38 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ModelState.AddModelError("DateString", "تاریخ وارد شده نامعتبر است.");
             }
 
+            ModelState.Remove(nameof(model.Type));
+            if (!model.Type.HasValue)
+                ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
+
             if (!ModelState.IsValid)
-                return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            {
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
 
             try
             {
                 var dto = MapViewModelToDto(model);
                 var createdDto = await _service.CreateAsync(dto);
 
-                // اینجا ID سند جدید را برمی‌گردونی
                 return Json(new { success = true, documentId = createdDto.Id });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, errors = new[] { "خطا در ایجاد رکورد: " + ex.Message } });
+                // اگر خطای خاص نداشتن آیتم در سرویس بود، می‌تونی اینجا چک کنی و پیام مناسب اضافه کنی
+                if (ex.Message.Contains("Items collection cannot be empty"))
+                {
+                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
+                }
+
+                return Json(new { success = false, errors = new[] { "اطلاعات داخل آیتم ها را پر کنید." } });
             }
         }
+
 
 
 
@@ -496,6 +517,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ReceiptOrIssueViewModel model)
         {
+            if (model.Items == null || !model.Items.Any())
+            {
+                ModelState.AddModelError("Items", "باید حداقل یک آیتم وارد کنید.");
+            }
+
+            bool exists = await _context.ReceiptOrIssues
+                .AnyAsync(r => r.DocumentNumber == model.DocumentNumber && r.Id != model.Id);
+
+            if (exists)
+                ModelState.AddModelError(nameof(model.DocumentNumber), "شماره سند تکراری است.");
+
             try
             {
                 model.Date = ParsePersianDate(model.DateString);
@@ -505,14 +537,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ModelState.AddModelError("DateString", "تاریخ وارد شده نامعتبر است.");
             }
 
+            ModelState.Remove(nameof(model.Type));
+            if (!model.Type.HasValue)
+                ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                return Json(new { success = false, errors });
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -529,7 +564,13 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, errors = new[] { "خطا در ویرایش رکورد: " + ex.Message } });
+                // اگر خطای خاص نداشتن آیتم یا هر خطای دیگر
+                if (ex.Message.Contains("Items collection cannot be empty"))
+                {
+                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
+                }
+
+                return Json(new { success = false, errors = new[] { "اطلاعات داخل آیتم ها را پر کنید." } });
             }
         }
 
@@ -565,9 +606,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult Print(int id)
+        public async Task<IActionResult> Print(int id)
         {
-            var receipt = _context.ReceiptOrIssues
+            var receipt = await _context.ReceiptOrIssues
                 .Include(r => r.Items)
                     .ThenInclude(i => i.Product)
                 .Include(r => r.Items)
@@ -588,20 +629,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     .ThenInclude(i => i.DestinationZone)
                 .Include(r => r.Items)
                     .ThenInclude(i => i.DestinationSection)
-                .FirstOrDefault(r => r.Id == id);
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (receipt == null)
                 return NotFound();
 
-            return new ViewAsPdf("Print", receipt)
+            string projectName = "—";
+            if (receipt.ProjectId != null)
+            {
+                projectName = await _projectContext.Projects
+                    .Where(p => p.Id == receipt.ProjectId)
+                    .Select(p => p.ProjectName)
+                    .FirstOrDefaultAsync() ?? "—";
+            }
+
+            var viewModel = new ReceiptPrintViewModel
+            {
+                Receipt = receipt,
+                ProjectName = projectName
+            };
+
+            return new ViewAsPdf("Print", viewModel)
             {
                 FileName = $"Receipt_{id}.pdf",
                 PageSize = Size.A4,
                 PageOrientation = Orientation.Portrait,
-                // اگر نیاز به تنظیمات اضافه دارید اینجا اضافه کنید
-                // مثلا: CustomSwitches = "--disable-smart-shrinking"
             };
         }
+
 
 
 

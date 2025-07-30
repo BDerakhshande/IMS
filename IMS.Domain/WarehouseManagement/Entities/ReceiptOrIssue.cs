@@ -22,7 +22,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
        
 
         [Required]
-        public ReceiptOrIssueType Type { get; set; }
+        public ReceiptOrIssueType? Type { get; set; }
         public string? Description { get; set; }
         public int? ProjectId { get; set; }
         public Project? Project { get; set; }

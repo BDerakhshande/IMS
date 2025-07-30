@@ -10,7 +10,8 @@ namespace IMS.Models.ProMan
         public string DocumentNumber { get; set; }
         public string DateString { get; set; }
         public DateTime Date { get; set; }
-        public ReceiptOrIssueType Type { get; set; }
+        public ReceiptOrIssueType? Type { get; set; }
+
         public string? Description { get; set; }
         public int? ProjectId { get; set; }
         public string? ProjectTitle { get; set; }
