@@ -1,7 +1,7 @@
 ﻿@model IMS.Models.ProMan.ConversionCreateViewModel
 @{
     ViewData["Title"] = "ایجاد سند تبدیل جدید";
-    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
+    //Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 
 <!-- Select2 CSS -->
@@ -107,6 +107,7 @@
                                                         </h2>
                                                         <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
                                                             <div class="accordion-body p-2">
+                                                                <label>دسته بندی</label>
                                                                 <select asp-for="ConsumedItems[i].CategoryId" class="form-select category-select select2 shadow-sm" data-index="@i">
                                                                     <option value="">انتخاب دسته‌بندی</option>
                                                                     @foreach (var category in Model.Categories)
@@ -114,6 +115,7 @@
                                                                         <option value="@category.Value" selected="@(category.Value == Model.ConsumedItems[i].CategoryId.ToString())">@category.Text</option>
                                                                     }
                                                                 </select>
+                                                                <label>گروه</label>
                                                                 <select asp-for="ConsumedItems[i].GroupId"
                                                                         class="form-select group-select"
                                                                         data-index="@i"
@@ -121,14 +123,14 @@
                                                                     <option value="">انتخاب گروه</option>
                                                                     <!-- Options will be appended via JS -->
                                                                 </select>
-
+                                                                <label>طبقه</label>
                                                                 <select asp-for="ConsumedItems[i].StatusId"
                                                                         class="form-select status-select"
                                                                         data-index="@i"
                                                                         data-selected="@Model.ConsumedItems[i].StatusId">
-                                                                    <option value="">انتخاب وضعیت</option>
+                                                                    <option value="">انتخاب طبقه</option>
                                                                 </select>
-
+                                                                <label>کالا</label>
                                                                 <select asp-for="ConsumedItems[i].ProductId"
                                                                         class="form-select product-select"
                                                                         data-index="@i"
@@ -218,9 +220,9 @@
                         <h6 class="mb-0 fw-bold text-success">
                             <i class="fas fa-industry me-2"></i>کالای تولیدی
                         </h6>
-                    <button type="button" id="addProducedItem" class="btn btn-sm btn-success rounded-pill">
+                    @* <button type="button" id="addProducedItem" class="btn btn-sm btn-success rounded-pill">
                         <i class="bi bi-plus-circle me-2"></i>افزودن کالای تولیدی
-                    </button>
+                    </button> *@
                     </div>
                     <div class="card-body produced-item-container">
                         <div class="table-responsive border rounded-3">
@@ -448,16 +450,20 @@
                                 </h2>
                                 <div id="productCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${index}">
                                     <div class="accordion-body p-2">
+                                    <label>دسته بندی</label>
                                         <select name="ConsumedItems[${index}].CategoryId" class="form-select category-select select2 shadow-sm" data-index="${index}">
                                          
                                             ${buildOptions(normalizedData.categories)}
                                         </select>
+                                        <label>گروه</label>
                                         <select name="ConsumedItems[${index}].GroupId" class="form-select group-select select2 shadow-sm" data-index="${index}">
                                             <option value="">انتخاب گروه</option>
                                         </select>
+                                        <label>طبقه</label>
                                         <select name="ConsumedItems[${index}].StatusId" class="form-select status-select select2 shadow-sm" data-index="${index}">
                                             <option value="">انتخاب وضعیت</option>
                                         </select>
+                                        <label>کالا</label>
                                         <select name="ConsumedItems[${index}].ProductId" class="form-select product-select select2 shadow-sm" data-index="${index}">
                                             <option value="">انتخاب کالا</option>
                                         </select>

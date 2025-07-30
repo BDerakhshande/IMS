@@ -9,9 +9,9 @@ namespace IMS.Application.WarehouseManagement.Services
 {
     public interface IWarehouseTransactionDetailService
     {
-        Task<List<WarehouseTransactionDetailDto>> GetAllTransactionsAsync(
-           string? projectName = null,
-           string? transactionType = null,
-           CancellationToken cancellationToken = default);
+        //Task<List<WarehouseTransactionDetailDto>> GetAllTransactionsAsync(
+        //   string? projectName = null,
+        //   string? transactionType = null,
+        //   CancellationToken cancellationToken = default);
     }
 }

@@ -17,8 +17,6 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public List<ReceiptOrIssueItemDto> Items { get; set; } = new();
         public string DocumentNumber { get; set; }
 
-        // اطلاعات پروژه
-        public int? ProjectId { get; set; }
-        public string? ProjectTitle { get; set; }
+      
     }
 }

@@ -51,7 +51,9 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int ProductId { get; set; }
         public Product Product { get; set; } = null!;
 
-       
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
+
 
     }
 }

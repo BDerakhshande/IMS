@@ -1,8 +1,10 @@
-﻿namespace IMS.Models.ProMan
+﻿using IMS.Domain.WarehouseManagement.Entities;
+
+namespace IMS.Models.ProMan
 {
     public class ReceiptPrintViewModel
     {
-        public IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssue Receipt { get; set; }
-        public string ProjectName { get; set; } = "—";
+        public ReceiptOrIssue Receipt { get; set; }
+        public List<ReceiptItemPrintViewModel> ItemsWithProject { get; set; }
     }
 }

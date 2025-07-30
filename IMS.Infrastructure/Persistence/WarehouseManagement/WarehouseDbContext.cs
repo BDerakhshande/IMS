@@ -261,11 +261,11 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
             });
 
             // --- ReceiptOrIssue ---
-            modelBuilder.Entity<ReceiptOrIssue>()
-     .HasOne(r => r.Project)
-     .WithMany()
-     .HasForeignKey(r => r.ProjectId)
-     .OnDelete(DeleteBehavior.Restrict);
+     //       modelBuilder.Entity<ReceiptOrIssue>()
+     //.HasOne(r => r.Project)
+     //.WithMany()
+     //.HasForeignKey(r => r.ProjectId)
+     //.OnDelete(DeleteBehavior.Restrict);
 
 
             modelBuilder.Entity<Product>(entity =>

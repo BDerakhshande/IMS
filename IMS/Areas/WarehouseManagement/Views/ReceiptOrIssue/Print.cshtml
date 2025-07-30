@@ -6,7 +6,8 @@
     {
         IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt => "رسید",
         IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue => "حواله",
-        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال"
+        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال",
+        _ => "نامشخص"
     };
 }
 
@@ -35,10 +36,6 @@
                 @(Model.Receipt.Type.HasValue ? GetPersianType(Model.Receipt.Type.Value) : "نوع مشخص نشده")
             </span>
         </div>
-        <div class="info-item">
-            <span class="info-label">نام پروژه:</span>
-            <span class="info-value">@Model.ProjectName</span>
-        </div>
     </div>
 
     <table>
@@ -48,15 +45,18 @@
                 <th>مبدأ</th>
                 <th>مقصد</th>
                 <th>تعداد</th>
+                <th>پروژه</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Receipt.Items)
+            @foreach (var itemWithProject in Model.ItemsWithProject)
             {
+                var item = itemWithProject.Item;
                 <tr>
                     <td>
                         @{
-                            var parts = new[] {
+                            var parts = new[]
+                            {
                     item.Category?.Name ?? "—",
                     item.Group?.Name ?? "—",
                     item.Status?.Name ?? "—",
@@ -68,7 +68,8 @@
                     </td>
                     <td>
                         @{
-                            var src = string.Join(" / ", new[] {
+                            var src = string.Join(" / ", new[]
+                            {
                     item.SourceWarehouse?.Name ?? "—",
                     item.SourceZone?.Name ?? "—",
                     item.SourceSection?.Name ?? "—"
@@ -78,7 +79,8 @@
                     </td>
                     <td>
                         @{
-                            var dest = string.Join(" / ", new[] {
+                            var dest = string.Join(" / ", new[]
+                            {
                     item.DestinationWarehouse?.Name ?? "—",
                     item.DestinationZone?.Name ?? "—",
                     item.DestinationSection?.Name ?? "—"
@@ -87,6 +89,7 @@
                         @dest
                     </td>
                     <td>@item.Quantity</td>
+                    <td>@itemWithProject.ProjectName</td>
                 </tr>
             }
         </tbody>

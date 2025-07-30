@@ -13,8 +13,7 @@ namespace IMS.Models.ProMan
         public ReceiptOrIssueType? Type { get; set; }
 
         public string? Description { get; set; }
-        public int? ProjectId { get; set; }
-        public string? ProjectTitle { get; set; }
+      
         public IEnumerable<SelectListItem>? AvailableProjects { get; set; }
 
         public List<ReceiptOrIssueItemViewModel> Items { get; set; } = new();

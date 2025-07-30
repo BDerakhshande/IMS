@@ -5,6 +5,9 @@
     ViewData["Title"] = "ویرایش رسید / حواله / انتقال";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
+@{
+    var categories = ViewBag.Categories as IEnumerable<SelectListItem>;
+ }
 @functions {
     string FormatLocationSummary(IEnumerable<SelectListItem> warehouses, IEnumerable<SelectListItem> zones, IEnumerable<SelectListItem> sections, int? warehouseId, int? zoneId, int? sectionId)
     {
@@ -210,17 +213,7 @@
                     <span asp-validation-for="Type" class="text-danger small d-block text-end"></span>
                 </div>
 
-                <div class="col-md-3">
-                    <label asp-for="ProjectId" class="form-label fw-bold small text-end w-100">پروژه</label>
-                    <select asp-for="ProjectId" class="form-select form-select-sm select2-project" dir="rtl">
-                        <option value="">انتخاب پروژه...</option>
-                        @foreach (var item in Model.AvailableProjects)
-                        {
-                            <option value="@item.Value" selected="@(item.Value == Model.ProjectId?.ToString())">@item.Text</option>
-                        }
-                    </select>
-                    <span asp-validation-for="ProjectId" class="text-danger small d-block text-end"></span>
-                </div>
+             
             </div>
 
             <div class="row g-2 mb-3">
@@ -247,6 +240,7 @@
                             <th class="py-2">تعداد</th>
                             <th class="py-2">مبدا</th>
                             <th class="py-2">مقصد</th>
+                            <th class="py-2">پروژه</th>
                             <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
@@ -275,13 +269,10 @@
                                             </h2>
                                             <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
                                                 <div class="accordion-body p-2">
-                                                    <select asp-for="Items[i].CategoryId" class="form-select form-select-sm category-select select2 shadow-sm item-select text-end" data-index="@i">
+                                                    <select asp-for="Items[i].CategoryId" asp-items="ViewBag.Categories" class="form-select ...">
                                                         <option value="">انتخاب دسته‌بندی</option>
-                                                        @foreach (var item in ViewBag.Categories as SelectList)
-                                                        {
-                                                            <option value="@item.Value" selected="@(item.Value == Model.Items[i].CategoryId.ToString())">@item.Text</option>
-                                                        }
                                                     </select>
+
 
                                                     <select asp-for="Items[i].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select mt-2 text-end" data-index="@i">
                                                         <option value="">انتخاب گروه</option>
@@ -436,6 +427,17 @@
                                             </div>
                                         </div>
                                     </div>
+                                </td>
+                                <!-- پروژه -->
+                                <td>
+                                    <select asp-for="Items[i].ProjectId" class="form-select form-select-sm select2 shadow-sm text-end">
+                                        <option value="">انتخاب پروژه...</option>
+                                        @foreach (var project in Model.Items[i].AvailableProjects ?? new List<SelectListItem>())
+                                        {
+                                            <option value="@project.Value" selected="@(project.Value == Model.Items[i].ProjectId?.ToString())">@project.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
                                 </td>
 
                                 <!-- دکمه‌ها -->
