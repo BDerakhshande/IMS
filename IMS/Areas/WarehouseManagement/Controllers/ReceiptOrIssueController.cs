@@ -604,8 +604,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
                 }
 
-                return Json(new { success = false, errors = new[] { "اطلاعات داخل آیتم ها را پر کنید." } });
+                // اگر پیام خطا مربوط به موجودی ناکافی کالا بود
+                if (ex.Message.Contains("موجودی کالا"))
+                {
+                    return Json(new { success = false, errors = new[] { ex.Message } });
+                }
+
+                // سایر خطاهای پیش‌بینی نشده
+                return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
             }
+
         }
 
 
@@ -643,9 +651,28 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         public async Task<IActionResult> Print(int id)
         {
             var receipt = await _context.ReceiptOrIssues
-                .Include(r => r.Items)
-                // Include های مورد نیاز برای آیتم
-                .FirstOrDefaultAsync(r => r.Id == id);
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Category)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Group)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Status)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Product)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceWarehouse)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceZone)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceSection)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationWarehouse)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationZone)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationSection)
+    .FirstOrDefaultAsync(r => r.Id == id);
+
 
             if (receipt == null)
                 return NotFound();

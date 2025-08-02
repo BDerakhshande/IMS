@@ -76,11 +76,11 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
 
 
 
-            modelBuilder.Entity<ConversionDocument>()
-    .HasOne(cd => cd.Project)
-    .WithMany()
-    .HasForeignKey(cd => cd.ProjectId)
-    .OnDelete(DeleteBehavior.Restrict);
+    //        modelBuilder.Entity<ConversionDocument>()
+    //.HasOne(cd => cd.Project)
+    //.WithMany()
+    //.HasForeignKey(cd => cd.ProjectId)
+    //.OnDelete(DeleteBehavior.Restrict);
 
 
 

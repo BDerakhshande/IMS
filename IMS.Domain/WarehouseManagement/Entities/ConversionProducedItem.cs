@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IMS.Domain.ProjectManagement.Entities;
 
 namespace IMS.Domain.WarehouseManagement.Entities
 {
@@ -28,6 +29,8 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public Category Category { get; set; }
         public Group Group { get; set; }
         public Status Status { get; set; }
+        public int? ProjectId { get; set; }
+        public Project? Project { get; set; }
 
     }
 }

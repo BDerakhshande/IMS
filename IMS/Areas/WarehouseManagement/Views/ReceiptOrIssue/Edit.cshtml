@@ -485,6 +485,7 @@
         const warehouses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses));
         const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
         const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
+         const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
 
         $(document).ready(function () {
             $('.select2').select2({
@@ -624,6 +625,12 @@
                             </div>
                         </div>
                     </td>
+                    <td>
+            <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
+                ${buildOptions(projects)}
+            </select>
+            <span class="text-danger small d-block text-end"></span>
+        </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-1">
                             <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">

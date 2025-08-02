@@ -168,14 +168,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 }
             }
 
-            // بررسی وجود اقلام مصرفی و تولیدی
             if (model.ConsumedItems == null || !model.ConsumedItems.Any())
                 ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
 
             if (model.ProducedItems == null || !model.ProducedItems.Any())
                 ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
 
-            // حذف فیلدهای فقط نمایشی از اعتبارسنجی
             ModelState.Remove(nameof(model.Zones));
             ModelState.Remove(nameof(model.Groups));
             ModelState.Remove(nameof(model.Products));
@@ -184,21 +182,23 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             ModelState.Remove(nameof(model.Categories));
             ModelState.Remove(nameof(model.Warehouses));
 
-            //if (!ModelState.IsValid)
-            //{
-            //    return Json(new
-            //    {
-            //        success = false,
-            //        errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
-            //    });
-            //}
+            // ✅ مقداردهی ProjectId به تک‌تک آیتم‌ها
+            foreach (var item in model.ConsumedItems)
+            {
+                item.ProjectId = model.ProjectId;
+            }
+
+            foreach (var item in model.ProducedItems)
+            {
+                item.ProjectId = model.ProjectId;
+            }
 
             try
             {
                 var (documentId, documentNumber) = await _conversionService.ConvertAndRegisterDocumentAsync(
                     model.ConsumedItems,
                     model.ProducedItems,
-                    model.ProjectId
+                    model.ProjectId // اختیاری: می‌تونی حتی حذفش کنی چون داخل آیتم‌ها هست
                 );
 
                 return Json(new
@@ -217,6 +217,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 });
             }
         }
+
 
 
 
@@ -339,66 +340,66 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-        public IActionResult Print(int id)
-        {
-            var conversion = _warehouseDbContext.conversionDocuments.FirstOrDefault(d => d.Id == id);
+        //public IActionResult Print(int id)
+        //{
+        //    var conversion = _warehouseDbContext.conversionDocuments.FirstOrDefault(d => d.Id == id);
 
-            if (conversion == null)
-                return NotFound();
+        //    if (conversion == null)
+        //        return NotFound();
 
-            // بارگذاری داده‌ها به صورت دیکشنری برای سرعت
-            var categories = _warehouseDbContext.Categories.ToDictionary(c => c.Id, c => c.Name);
-            var groups = _warehouseDbContext.Groups.ToDictionary(g => g.Id, g => g.Name);
-            var statuses = _warehouseDbContext.Statuses.ToDictionary(s => s.Id, s => s.Name);
-            var products = _warehouseDbContext.Products.ToDictionary(p => p.Id, p => p.Name);
-            var warehouses = _warehouseDbContext.Warehouses.ToDictionary(w => w.Id, w => w.Name);
-            var zones = _warehouseDbContext.StorageZones.ToDictionary(z => z.Id, z => z.Name);
-            var sections = _warehouseDbContext.StorageSections.ToDictionary(s => s.Id, s => s.Name);
+        //    // بارگذاری داده‌ها به صورت دیکشنری برای سرعت
+        //    var categories = _warehouseDbContext.Categories.ToDictionary(c => c.Id, c => c.Name);
+        //    var groups = _warehouseDbContext.Groups.ToDictionary(g => g.Id, g => g.Name);
+        //    var statuses = _warehouseDbContext.Statuses.ToDictionary(s => s.Id, s => s.Name);
+        //    var products = _warehouseDbContext.Products.ToDictionary(p => p.Id, p => p.Name);
+        //    var warehouses = _warehouseDbContext.Warehouses.ToDictionary(w => w.Id, w => w.Name);
+        //    var zones = _warehouseDbContext.StorageZones.ToDictionary(z => z.Id, z => z.Name);
+        //    var sections = _warehouseDbContext.StorageSections.ToDictionary(s => s.Id, s => s.Name);
 
-            var consumedItems = _warehouseDbContext.conversionConsumedItems
-                .Where(i => i.ConversionDocumentId == id)
-                .Select(i => new ConversionItemViewModel
-                {
-                    CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
-                    GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
-                    StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
-                    ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
-                    WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
-                    ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
-                    SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
-                    Quantity = i.Quantity
-                }).ToList();
+        //    var consumedItems = _warehouseDbContext.conversionConsumedItems
+        //        .Where(i => i.ConversionDocumentId == id)
+        //        .Select(i => new ConversionItemViewModel
+        //        {
+        //            CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
+        //            GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
+        //            StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
+        //            ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
+        //            WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
+        //            ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
+        //            SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
+        //            Quantity = i.Quantity
+        //        }).ToList();
 
-            var producedItems = _warehouseDbContext.conversionProducedItems
-                .Where(i => i.ConversionDocumentId == id)
-                .Select(i => new ConversionItemViewModel
-                {
-                    CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
-                    GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
-                    StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
-                    ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
-                    WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
-                    ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
-                    SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
-                    Quantity = i.Quantity
-                }).ToList();
+        //    var producedItems = _warehouseDbContext.conversionProducedItems
+        //        .Where(i => i.ConversionDocumentId == id)
+        //        .Select(i => new ConversionItemViewModel
+        //        {
+        //            CategoryName = categories.ContainsKey(i.CategoryId) ? categories[i.CategoryId] : "—",
+        //            GroupName = groups.ContainsKey(i.GroupId) ? groups[i.GroupId] : "—",
+        //            StatusName = statuses.ContainsKey(i.StatusId) ? statuses[i.StatusId] : "—",
+        //            ProductName = products.ContainsKey(i.ProductId) ? products[i.ProductId] : "—",
+        //            WarehouseName = warehouses.ContainsKey(i.WarehouseId) ? warehouses[i.WarehouseId] : "—",
+        //            ZoneName = zones.ContainsKey(i.ZoneId) ? zones[i.ZoneId] : "—",
+        //            SectionName = sections.ContainsKey(i.SectionId) ? sections[i.SectionId] : "—",
+        //            Quantity = i.Quantity
+        //        }).ToList();
 
-            var viewModel = new ConversionPrintViewModel
-            {
-                DocumentNumber = conversion.DocumentNumber,
-                CreatedAt = conversion.CreatedAt,
-                ConsumedItems = consumedItems,
-                ProducedItems = producedItems
-            };
+        //    var viewModel = new ConversionPrintViewModel
+        //    {
+        //        DocumentNumber = conversion.DocumentNumber,
+        //        CreatedAt = conversion.CreatedAt,
+        //        ConsumedItems = consumedItems,
+        //        ProducedItems = producedItems
+        //    };
 
-            return new ViewAsPdf("Print", viewModel)
-            {
-                FileName = $"Conversion_{id}.pdf",
-                PageSize = Size.A4,
-                PageOrientation = Orientation.Portrait,
-                CustomSwitches = "--disable-smart-shrinking"
-            };
-        }
+        //    return new ViewAsPdf("Print", viewModel)
+        //    {
+        //        FileName = $"Conversion_{id}.pdf",
+        //        PageSize = Size.A4,
+        //        PageOrientation = Orientation.Portrait,
+        //        CustomSwitches = "--disable-smart-shrinking"
+        //    };
+        //}
 
 
 
@@ -419,7 +420,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var pc = new PersianCalendar();
             var persianDate = $"{pc.GetYear(document.CreatedAt):0000}/{pc.GetMonth(document.CreatedAt):00}/{pc.GetDayOfMonth(document.CreatedAt):00}";
 
-            // --- اینجا، قبل از مقداردهی مدل، پروژه‌ها را بارگذاری کن
             var projects = await _projectContext.Projects
                 .Select(p => new SelectListItem
                 {
@@ -443,7 +443,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     StatusId = i.StatusId,
                     WarehouseId = i.WarehouseId,
                     ZoneId = i.ZoneId,
-                    SectionId = i.SectionId
+                    SectionId = i.SectionId,
+                    ProjectId = i.ProjectId  
                 }).ToList(),
                 ProducedItems = document.ProducedItems.Select(i => new ConversionProducedItemDto
                 {
@@ -455,17 +456,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     StatusId = i.StatusId,
                     WarehouseId = i.WarehouseId,
                     ZoneId = i.ZoneId,
-                    SectionId = i.SectionId
+                    SectionId = i.SectionId,
+                    ProjectId = i.ProjectId 
                 }).ToList(),
 
-                // اضافه کردن پروژه‌ها به مدل برای Dropdown
-                Projects = projects,
-
-                // مقدار پروژه انتخاب شده در سند
-                ProjectId = document.ProjectId
+                Projects = projects  
             };
 
-            await PopulateSelectListsAsync(model); // اگر لیست‌های دیگر هم لازم است بارگذاری شوند
+            await PopulateSelectListsAsync(model);
 
             return View("Edit", model);
         }
