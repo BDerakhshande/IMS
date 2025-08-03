@@ -1,20 +1,19 @@
-﻿@model IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssue
+﻿@using IMS.Models.ProMan
+@model ReceiptPrintViewModel
+
 @{
     string GetPersianType(IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType type) => type switch
     {
         IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt => "رسید",
         IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue => "حواله",
-        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال"
+        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال",
+        _ => "نامشخص"
     };
 }
 
 @{
-    Layout = null; // حذف هدر و فوتر لایه اصلی
+    Layout = null;
 }
-
-
-
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -25,17 +24,20 @@
     <div class="header-info">
         <div class="info-item">
             <span class="info-label">شماره سند:</span>
-            <span class="info-value">@Model.DocumentNumber</span>
+            <span class="info-value">@Model.Receipt.DocumentNumber</span>
         </div>
         <div class="info-item">
             <span class="info-label">تاریخ سند:</span>
-            <span class="info-value">@Model.Date.ToString("yyyy/MM/dd")</span>
+            <span class="info-value">@Model.Receipt.Date.ToString("yyyy/MM/dd")</span>
         </div>
         <div class="info-item">
             <span class="info-label">نوع سند:</span>
-            <span class="info-value">@GetPersianType(Model.Type)</span>
+            <span class="info-value">
+                @(Model.Receipt.Type.HasValue ? GetPersianType(Model.Receipt.Type.Value) : "نوع مشخص نشده")
+            </span>
         </div>
     </div>
+
     <table>
         <thead>
             <tr>
@@ -43,15 +45,18 @@
                 <th>مبدأ</th>
                 <th>مقصد</th>
                 <th>تعداد</th>
+                <th>پروژه</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.Items)
+            @foreach (var itemWithProject in Model.ItemsWithProject)
             {
+                var item = itemWithProject.Item;
                 <tr>
                     <td>
                         @{
-                            var parts = new[] {
+                            var parts = new[]
+                            {
                     item.Category?.Name ?? "—",
                     item.Group?.Name ?? "—",
                     item.Status?.Name ?? "—",
@@ -63,7 +68,8 @@
                     </td>
                     <td>
                         @{
-                            var src = string.Join(" / ", new[] {
+                            var src = string.Join(" / ", new[]
+                            {
                     item.SourceWarehouse?.Name ?? "—",
                     item.SourceZone?.Name ?? "—",
                     item.SourceSection?.Name ?? "—"
@@ -73,7 +79,8 @@
                     </td>
                     <td>
                         @{
-                            var dest = string.Join(" / ", new[] {
+                            var dest = string.Join(" / ", new[]
+                            {
                     item.DestinationWarehouse?.Name ?? "—",
                     item.DestinationZone?.Name ?? "—",
                     item.DestinationSection?.Name ?? "—"
@@ -82,6 +89,7 @@
                         @dest
                     </td>
                     <td>@item.Quantity</td>
+                    <td>@itemWithProject.ProjectName</td>
                 </tr>
             }
         </tbody>

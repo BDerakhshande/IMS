@@ -27,5 +27,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? ProductName { get; set; }
         public string? ZoneName { get; set; }
         public string? SectionName { get; set; }
+
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
     }
 }

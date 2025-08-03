@@ -10,6 +10,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
     {
         public string ProductName { get; set; }
         public decimal Quantity { get; set; }
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
     }
 
 }

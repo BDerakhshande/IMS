@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    partial class WarehouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250730103532_projectadditemMig")]
+    partial class projectadditemMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -213,9 +216,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ProjectId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("Quantity")
                         .HasColumnType("decimal(18,2)");
 
@@ -240,8 +240,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.HasIndex("GroupId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("ProjectId");
 
                     b.HasIndex("SectionId");
 
@@ -269,7 +267,12 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ProjectId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
 
                     b.ToTable("conversionDocuments");
                 });
@@ -292,9 +295,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ProjectId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
@@ -321,8 +321,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.HasIndex("GroupId");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("ProjectId");
 
                     b.HasIndex("SectionId");
 
@@ -729,10 +727,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId");
-
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "Section")
                         .WithMany()
                         .HasForeignKey("SectionId")
@@ -765,8 +759,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.Navigation("Product");
 
-                    b.Navigation("Project");
-
                     b.Navigation("Section");
 
                     b.Navigation("Status");
@@ -774,6 +766,16 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Navigation("Warehouse");
 
                     b.Navigation("Zone");
+                });
+
+            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionDocument", b =>
+                {
+                    b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ConversionProducedItem", b =>
@@ -802,10 +804,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
-                        .WithMany()
-                        .HasForeignKey("ProjectId");
-
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "Section")
                         .WithMany()
                         .HasForeignKey("SectionId")
@@ -837,8 +835,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Navigation("Group");
 
                     b.Navigation("Product");
-
-                    b.Navigation("Project");
 
                     b.Navigation("Section");
 

@@ -40,5 +40,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? DestinationWarehouseName { get; set; }
         public string? DestinationZoneName { get; set; }
         public string? DestinationSectionName { get; set; }
+        // اطلاعات پروژه
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
     }
 }

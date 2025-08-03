@@ -21,47 +21,55 @@ namespace IMS.Application.WarehouseManagement.Services
             _projectContext = projectContext;
         }
 
-
         public async Task<List<ConversionDocumentDto>> GetConversionDocumentsAsync()
         {
-            // 1. همه پروژه‌ها را از کانتکست پروژه‌ها بگیر
+            // 1. همه پروژه‌ها را از context پروژه‌ها بگیر
             var projects = await _projectContext.Projects
                 .Select(p => new { p.Id, p.ProjectName })
                 .ToListAsync();
 
             var projectDict = projects.ToDictionary(p => p.Id, p => p.ProjectName);
 
-            // 2. اسناد تبدیل را بگیر
+            // 2. اسناد تبدیل را بگیر همراه با آیتم‌ها و محصولات‌شان
             var documents = await _dbContext.conversionDocuments
                 .Include(d => d.ConsumedItems)
                     .ThenInclude(ci => ci.Product)
                 .Include(d => d.ProducedItems)
                     .ThenInclude(pi => pi.Product)
                 .OrderByDescending(d => d.CreatedAt)
-                .Select(d => new ConversionDocumentDto
-                {
-                    Id = d.Id,
-                    CreatedAt = d.CreatedAt,
-                    DocumentNumber = d.DocumentNumber,
-                    ConsumedProducts = d.ConsumedItems.Select(ci => new ProductInfoDto
-                    {
-                        ProductName = ci.Product.Name,
-                        Quantity = ci.Quantity
-                    }).ToList(),
-                    ProducedProducts = d.ProducedItems.Select(pi => new ProductInfoDto
-                    {
-                        ProductName = pi.Product.Name,
-                        Quantity = pi.Quantity
-                    }).ToList(),
-
-                    ProjectId = d.ProjectId,
-                    ProjectTitle = d.ProjectId.HasValue && projectDict.ContainsKey(d.ProjectId.Value)
-                        ? projectDict[d.ProjectId.Value]
-                        : null
-                })
                 .ToListAsync();
 
-            return documents;
+            // 3. تبدیل به DTO
+            var result = documents.Select(d => new ConversionDocumentDto
+            {
+                Id = d.Id,
+                CreatedAt = d.CreatedAt,
+                DocumentNumber = d.DocumentNumber,
+
+                ConsumedProducts = d.ConsumedItems.Select(ci => new ProductInfoDto
+                {
+                    ProductName = ci.Product?.Name,
+                    Quantity = ci.Quantity,
+                    ProjectId = ci.ProjectId,
+                    ProjectTitle = ci.ProjectId.HasValue && projectDict.ContainsKey(ci.ProjectId.Value)
+                        ? projectDict[ci.ProjectId.Value]
+                        : null
+                }).ToList(),
+
+                ProducedProducts = d.ProducedItems.Select(pi => new ProductInfoDto
+                {
+                    ProductName = pi.Product?.Name,
+                    Quantity = pi.Quantity,
+                    ProjectId = pi.ProjectId,
+                    ProjectTitle = pi.ProjectId.HasValue && projectDict.ContainsKey(pi.ProjectId.Value)
+                        ? projectDict[pi.ProjectId.Value]
+                        : null
+                }).ToList(),
+
+                
+            }).ToList();
+
+            return result;
         }
 
 
@@ -92,9 +100,9 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
         public async Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
-     List<ConversionConsumedItemDto> consumedItems,
-     List<ConversionProducedItemDto> producedItems,
-     int? projectId = null)
+       List<ConversionConsumedItemDto> consumedItems,
+       List<ConversionProducedItemDto> producedItems,
+       int? projectId = null)
         {
             if (consumedItems == null || producedItems == null)
                 throw new ArgumentException("اقلام مصرفی یا تولیدی نمی‌تواند خالی باشد.");
@@ -105,7 +113,6 @@ namespace IMS.Application.WarehouseManagement.Services
             {
                 DocumentNumber = nextDocNumber,
                 CreatedAt = DateTime.Now,
-                ProjectId = projectId,
                 ConsumedItems = new List<ConversionConsumedItem>(),
                 ProducedItems = new List<ConversionProducedItem>()
             };
@@ -150,7 +157,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     Quantity = consumed.Quantity,
                     ZoneId = consumed.ZoneId,
                     SectionId = consumed.SectionId,
-                    WarehouseId = consumed.WarehouseId
+                    WarehouseId = consumed.WarehouseId,
+                    ProjectId = consumed.ProjectId  // ✅ اضافه شد
                 });
             }
 
@@ -179,6 +187,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     };
                     _dbContext.Inventories.Add(inventory);
                 }
+
                 inventory.Quantity += produced.Quantity;
 
                 conversionDocument.ProducedItems.Add(new ConversionProducedItem
@@ -190,7 +199,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     Quantity = produced.Quantity,
                     ZoneId = produced.ZoneId,
                     SectionId = produced.SectionId,
-                    WarehouseId = produced.WarehouseId
+                    WarehouseId = produced.WarehouseId,
+                    ProjectId = produced.ProjectId  // ✅ اضافه شد
                 });
             }
 
@@ -199,6 +209,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
             return (conversionDocument.Id, nextDocNumber);
         }
+
 
 
         public async Task<bool> DeleteConversionDocumentAsync(int documentId)
@@ -278,9 +289,6 @@ namespace IMS.Application.WarehouseManagement.Services
             if (document == null)
                 throw new InvalidOperationException("سند تبدیل یافت نشد.");
 
-            // ✅ اگر projectId جدیدی ارسال شده باشد، آن را به‌روزرسانی کن
-            if (projectId.HasValue)
-                document.ProjectId = projectId;
 
             var allProductIds = consumedItems.Select(x => x.ProductId)
                 .Concat(producedItems.Select(x => x.ProductId))
@@ -356,8 +364,10 @@ namespace IMS.Application.WarehouseManagement.Services
                     StatusId = item.StatusId,
                     WarehouseId = item.WarehouseId,
                     ZoneId = item.ZoneId,
-                    SectionId = item.SectionId
+                    SectionId = item.SectionId,
+                    ProjectId = item.ProjectId  
                 });
+
             }
 
             // افزودن اقلام تولیدی جدید
@@ -394,8 +404,10 @@ namespace IMS.Application.WarehouseManagement.Services
                     StatusId = item.StatusId,
                     WarehouseId = item.WarehouseId,
                     ZoneId = item.ZoneId,
-                    SectionId = item.SectionId
+                    SectionId = item.SectionId,
+                    ProjectId = item.ProjectId   
                 });
+
             }
 
             await _dbContext.SaveChangesAsync(cancellationToken);

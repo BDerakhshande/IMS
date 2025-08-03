@@ -30,5 +30,9 @@ namespace IMS.Models.ProMan
         public List<SelectListItem>? AvailableDestinationSections { get; set; }
 
 
+        public List<SelectListItem>? AvailableProjects { get; set; }
+
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
     }
 }

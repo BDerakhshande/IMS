@@ -16,7 +16,5 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public List<ProductInfoDto> ConsumedProducts { get; set; } = new();
         public List<ProductInfoDto> ProducedProducts { get; set; } = new();
 
-        public int? ProjectId { get; set; }
-        public string? ProjectTitle { get; set; }
     }
 }

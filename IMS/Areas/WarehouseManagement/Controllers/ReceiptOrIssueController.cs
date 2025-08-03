@@ -64,6 +64,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReceiptOrIssueViewModel model)
         {
+            if (model.Items == null || !model.Items.Any())
+            {
+                ModelState.AddModelError("Items", "باید حداقل یک آیتم وارد کنید.");
+            }
+
             bool exists = await _context.ReceiptOrIssues
                 .AnyAsync(r => r.DocumentNumber == model.DocumentNumber && r.Id != model.Id);
 
@@ -79,22 +84,38 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ModelState.AddModelError("DateString", "تاریخ وارد شده نامعتبر است.");
             }
 
+            ModelState.Remove(nameof(model.Type));
+            if (!model.Type.HasValue)
+                ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
+
             if (!ModelState.IsValid)
-                return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            {
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
+            }
 
             try
             {
                 var dto = MapViewModelToDto(model);
                 var createdDto = await _service.CreateAsync(dto);
 
-                // اینجا ID سند جدید را برمی‌گردونی
                 return Json(new { success = true, documentId = createdDto.Id });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, errors = new[] { "خطا در ایجاد رکورد: " + ex.Message } });
+                // اگر خطای خاص نداشتن آیتم در سرویس بود، می‌تونی اینجا چک کنی و پیام مناسب اضافه کنی
+                if (ex.Message.Contains("Items collection cannot be empty"))
+                {
+                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
+                }
+
+                return Json(new { success = false, errors = new[] { "اطلاعات داخل آیتم ها را پر کنید." } });
             }
         }
+
 
 
 
@@ -126,11 +147,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
         private async Task PopulateSelectLists()
         {
-            var warehouses = await _warehouseService.GetAllWarehousesAsync();
-            var categories = await _categoryService.GetAllAsync();
+            var warehouses = await _warehouseService.GetAllWarehousesAsync() ?? new List<WarehouseDto>();
+            var categories = await _categoryService.GetAllAsync() ?? new List<CategoryDto>();
 
-            ViewBag.Warehouses = new SelectList(warehouses, "Id", "Name");
-            ViewBag.Categories = new SelectList(categories, "Id", "Name");
+            var warehouseItems = warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name }).ToList();
+            
+            ViewBag.Warehouses = warehouseItems;
+
+            var categoryItems = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
+
+            ViewBag.Categories = new SelectList(categories.Select(c => new { c.Id, c.Name }), "Id", "Name");
+
 
             List<StorageZoneDto> zones = new();
 
@@ -139,31 +166,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 zones = await _warehouseService.GetZonesByWarehouseIdAsync(warehouses.First().Id);
             }
 
-            ViewBag.Zones = new SelectList(zones, "Id", "Name");
+            var zoneItems = zones.Select(z => new SelectListItem { Value = z.Id.ToString(), Text = z.Name }).ToList();
+            zoneItems.Insert(0, new SelectListItem { Value = "", Text = "انتخاب کنید" });
+            ViewBag.Zones = zoneItems;
 
             if (zones.Any())
             {
                 var sections = await _warehouseService.GetSectionsByZoneAsync(zones.First().Id);
-                ViewBag.Sections = new SelectList(sections, "Id", "Name");
+                var sectionItems = sections.Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name }).ToList();
+                sectionItems.Insert(0, new SelectListItem { Value = "", Text = "انتخاب کنید" });
+                ViewBag.Sections = sectionItems;
             }
             else
             {
-                ViewBag.Sections = new SelectList(Enumerable.Empty<SelectListItem>());
+                ViewBag.Sections = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
             }
 
-            // حالا پروژه‌ها را از DbContext پروژه‌ها بگیر
             var projects = await _projectContext.Projects
                 .Select(p => new { p.Id, p.ProjectName })
                 .ToListAsync();
 
-            ViewBag.Projects = new SelectList(projects, "Id", "ProjectName");
+            var projectItems = projects.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.ProjectName }).ToList();
+            projectItems.Insert(0, new SelectListItem { Value = "", Text = "انتخاب کنید" });
+            ViewBag.Projects = projectItems;
 
-            // برای DropDownهای آبشاری مقادیر خالی می‌گذاریم (فقط برای View آماده‌سازی می‌کنیم)
-            ViewBag.Groups = new SelectList(Enumerable.Empty<SelectListItem>());
-            ViewBag.Statuses = new SelectList(Enumerable.Empty<SelectListItem>());
-            ViewBag.Products = new SelectList(Enumerable.Empty<SelectListItem>());
+            ViewBag.Groups = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
+            ViewBag.Statuses = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
+            ViewBag.Products = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
         }
-
 
 
 
@@ -192,6 +222,13 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     Selected = s.Id == item.StatusId // تنظیم مقدار انتخاب‌شده
                 }).ToList();
             }
+            var allProjects = await _projectService.GetAllProjectsAsync();
+            item.AvailableProjects = allProjects.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.ProjectName,
+                Selected = p.Id == item.ProjectId
+            }).ToList();
 
             // --- پر کردن لیست محصولات ---
             if (item.StatusId.HasValue)
@@ -298,8 +335,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Type = vm.Type,
                 Description = vm.Description,
                 DocumentNumber = vm.DocumentNumber,
-                ProjectId = vm.ProjectId,
-                ProjectTitle = vm.ProjectTitle,
                 Items = vm.Items.Select(i => new ReceiptOrIssueItemDto
                 {
                     Quantity = i.Quantity,
@@ -312,7 +347,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     CategoryId = i.CategoryId,
                     GroupId = i.GroupId,
                     StatusId = i.StatusId,
-                    ProductId = i.ProductId
+                    ProductId = i.ProductId,
+                    ProjectId =  i.ProjectId,
                 }).ToList()
             };
         }
@@ -329,11 +365,24 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Type = dto.Type,
                 Description = dto.Description,
                 DocumentNumber = dto.DocumentNumber,
-                ProjectId = dto.ProjectId,         
-                ProjectTitle = dto.ProjectTitle,
                 Items = new List<ReceiptOrIssueItemViewModel>()
             };
 
+            // 1. استخراج ProjectId های یکتا از آیتم‌ها
+            var projectIds = dto.Items
+                .Where(i => i.ProjectId.HasValue)
+                .Select(i => i.ProjectId!.Value)
+                .Distinct()
+                .ToList();
+
+            // 2. بارگذاری عنوان پروژه‌ها از DbContext پروژه
+            var allProjects = await _projectContext.Projects
+                .Select(p => new { p.Id, p.ProjectName })
+                .ToListAsync();
+
+            var projectTitles = allProjects.ToDictionary(p => p.Id, p => p.ProjectName);
+
+            // 3. پر کردن آیتم‌ها با اطلاعات کامل
             foreach (var i in dto.Items)
             {
                 var item = new ReceiptOrIssueItemViewModel
@@ -344,7 +393,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     GroupId = i.GroupId,
                     StatusId = i.StatusId,
                     SourceSectionId = i.SourceSectionId,
-                    DestinationSectionId = i.DestinationSectionId
+                    DestinationSectionId = i.DestinationSectionId,
+                    ProjectId = i.ProjectId,
+                    ProjectTitle = i.ProjectId.HasValue && projectTitles.ContainsKey(i.ProjectId.Value)
+                        ? projectTitles[i.ProjectId.Value]
+                        : null,
+                    AvailableProjects = allProjects.Select(p => new SelectListItem
+                    {
+                        Value = p.Id.ToString(),
+                        Text = p.ProjectName,
+                        Selected = (p.Id == i.ProjectId)
+                    }).ToList()
                 };
 
                 // تعیین اطلاعات مبدأ
@@ -388,7 +447,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             return viewModel;
         }
-
 
 
 
@@ -473,18 +531,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             var model = await MapDtoToViewModelAsync(dto);
 
+            if (model.Items == null)
+                model.Items = new List<ReceiptOrIssueItemViewModel>();
+
             await PopulateSelectLists();
 
             foreach (var item in model.Items)
             {
                 await PopulateItemDependencies(item);
             }
-
-            var projects = await _projectService.GetAllProjectsAsync();
-            model.AvailableProjects = projects.Select(p =>
-                new SelectListItem { Value = p.Id.ToString(), Text = p.ProjectName }).ToList();
-
-            model.ProjectId = dto.ProjectId;
 
             return View(model);
         }
@@ -496,6 +551,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ReceiptOrIssueViewModel model)
         {
+            if (model.Items == null || !model.Items.Any())
+            {
+                ModelState.AddModelError("Items", "باید حداقل یک آیتم وارد کنید.");
+            }
+
+            bool exists = await _context.ReceiptOrIssues
+                .AnyAsync(r => r.DocumentNumber == model.DocumentNumber && r.Id != model.Id);
+
+            if (exists)
+                ModelState.AddModelError(nameof(model.DocumentNumber), "شماره سند تکراری است.");
+
             try
             {
                 model.Date = ParsePersianDate(model.DateString);
@@ -505,14 +571,17 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 ModelState.AddModelError("DateString", "تاریخ وارد شده نامعتبر است.");
             }
 
+            ModelState.Remove(nameof(model.Type));
+            if (!model.Type.HasValue)
+                ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-
-                return Json(new { success = false, errors });
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                });
             }
 
             try
@@ -529,8 +598,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, errors = new[] { "خطا در ویرایش رکورد: " + ex.Message } });
+                // اگر خطای خاص نداشتن آیتم یا هر خطای دیگر
+                if (ex.Message.Contains("Items collection cannot be empty"))
+                {
+                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
+                }
+
+                // اگر پیام خطا مربوط به موجودی ناکافی کالا بود
+                if (ex.Message.Contains("موجودی کالا"))
+                {
+                    return Json(new { success = false, errors = new[] { ex.Message } });
+                }
+
+                // سایر خطاهای پیش‌بینی نشده
+                return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
             }
+
         }
 
 
@@ -565,43 +648,69 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult Print(int id)
+        public async Task<IActionResult> Print(int id)
         {
-            var receipt = _context.ReceiptOrIssues
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Product)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Category)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Group)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.Status)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceWarehouse)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceZone)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.SourceSection)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationWarehouse)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationZone)
-                .Include(r => r.Items)
-                    .ThenInclude(i => i.DestinationSection)
-                .FirstOrDefault(r => r.Id == id);
+            var receipt = await _context.ReceiptOrIssues
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Category)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Group)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Status)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.Product)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceWarehouse)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceZone)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.SourceSection)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationWarehouse)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationZone)
+    .Include(r => r.Items)
+        .ThenInclude(i => i.DestinationSection)
+    .FirstOrDefaultAsync(r => r.Id == id);
+
 
             if (receipt == null)
                 return NotFound();
 
-            return new ViewAsPdf("Print", receipt)
+            // فرض می‌کنیم هر آیتم خودش ProjectId دارد:
+            var projectIds = receipt.Items
+                .Where(i => i.ProjectId != null)
+                .Select(i => i.ProjectId.Value)
+                .Distinct()
+                .ToList();
+
+            var projectsDict = await _projectContext.Projects
+                .Where(p => projectIds.Contains(p.Id))
+                .ToDictionaryAsync(p => p.Id, p => p.ProjectName);
+
+            var itemsWithProject = receipt.Items.Select(i => new ReceiptItemPrintViewModel
+            {
+                Item = i,
+                ProjectName = i.ProjectId != null && projectsDict.ContainsKey(i.ProjectId.Value)
+                    ? projectsDict[i.ProjectId.Value]
+                    : "—"
+            }).ToList();
+
+            var viewModel = new ReceiptPrintViewModel
+            {
+                Receipt = receipt,
+                ItemsWithProject = itemsWithProject
+            };
+
+            return new ViewAsPdf("Print", viewModel)
             {
                 FileName = $"Receipt_{id}.pdf",
                 PageSize = Size.A4,
                 PageOrientation = Orientation.Portrait,
-                // اگر نیاز به تنظیمات اضافه دارید اینجا اضافه کنید
-                // مثلا: CustomSwitches = "--disable-smart-shrinking"
             };
         }
+
+
 
 
 

@@ -76,11 +76,11 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
 
 
 
-            modelBuilder.Entity<ConversionDocument>()
-    .HasOne(cd => cd.Project)
-    .WithMany()
-    .HasForeignKey(cd => cd.ProjectId)
-    .OnDelete(DeleteBehavior.Restrict);
+    //        modelBuilder.Entity<ConversionDocument>()
+    //.HasOne(cd => cd.Project)
+    //.WithMany()
+    //.HasForeignKey(cd => cd.ProjectId)
+    //.OnDelete(DeleteBehavior.Restrict);
 
 
 
@@ -261,11 +261,11 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
             });
 
             // --- ReceiptOrIssue ---
-            modelBuilder.Entity<ReceiptOrIssue>()
-     .HasOne(r => r.Project)
-     .WithMany()
-     .HasForeignKey(r => r.ProjectId)
-     .OnDelete(DeleteBehavior.Restrict);
+     //       modelBuilder.Entity<ReceiptOrIssue>()
+     //.HasOne(r => r.Project)
+     //.WithMany()
+     //.HasForeignKey(r => r.ProjectId)
+     //.OnDelete(DeleteBehavior.Restrict);
 
 
             modelBuilder.Entity<Product>(entity =>

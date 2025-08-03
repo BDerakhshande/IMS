@@ -14,8 +14,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
 
         public string DocumentNumber { get; set; } 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-        public int? ProjectId { get; set; }
-        public Project? Project { get; set; }
+       
         public List<ConversionConsumedItem> ConsumedItems { get; set; } = new();
         public List<ConversionProducedItem> ProducedItems { get; set; } = new();
     }

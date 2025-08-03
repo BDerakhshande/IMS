@@ -119,7 +119,7 @@
                     <span asp-validation-for="Type" class="text-danger small d-block text-end"></span>
                 </div>
 
-                <div class="col-md-3">
+                @* <div class="col-md-3">
                     <label asp-for="ProjectId" class="form-label fw-bold small text-end w-100">پروژه</label>
                     <select asp-for="ProjectId" class="form-select form-select-sm select2-project" dir="rtl">
                         <option value="">انتخاب پروژه...</option>
@@ -129,7 +129,7 @@
                         }
                     </select>
                     <span asp-validation-for="ProjectId" class="text-danger small d-block text-end"></span>
-                </div>
+                </div> *@
             </div>
 
             <hr class="my-3" />
@@ -148,6 +148,7 @@
                             <th class="py-2">تعداد</th>
                             <th class="py-2">مبدا</th>
                             <th class="py-2">مقصد</th>
+                            <th class="py-2">پروژه</th>
                             <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
@@ -312,6 +313,16 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td>
+                                    <select asp-for="Items[i].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="@i">
+                                        <option value="">انتخاب پروژه...</option>
+                                        @foreach (var project in Model.Items[i].AvailableProjects ?? new List<SelectListItem>())
+                                        {
+                                            <option value="@project.Value" selected="@(project.Value == Model.Items[i].ProjectId?.ToString())">@project.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
+                                </td>
 
                                 <!-- دکمه‌ها -->
                                 <td class="text-center">
@@ -364,6 +375,8 @@
         const warehouses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses));
         const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
         const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
+        const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
+
 
 
                        $(document).ready(function () {
@@ -384,7 +397,7 @@
 
                   document.getElementById('addItemBtn').addEventListener('click', function () {
             const tableBody = document.querySelector('#itemsTable tbody');
-            const rowCount = tableBody.querySelectorAll('tr').length;
+            const rowCount = tableBody.querySelectorAll('tr.align-middle').length;
 
             const errorRow = `
                 <tr class="validation-row" data-index="${rowCount}" style="display: none;">
@@ -507,6 +520,12 @@
                                     </div>
                                 </div>
                             </td>
+                                   <td>
+                    <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
+                        ${buildOptions(projects)}
+                    </select>
+                    <span class="text-danger small d-block text-end"></span>
+                </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
@@ -929,25 +948,41 @@
             $errorRow.remove();
         });
 
-                $(document).on('click', '.save-item', function () {
+                      $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]');
             const index = $row.data('index');
-            const prefix = 'Items';  // نام prefix ثابت و بدون شرط
+            const prefix = 'Items';
 
-            // استخراج مقادیر ورودی مبدا (Source)
+            // استخراج مقادیر
             const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
             const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
-            const warehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
-            const zoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
-            const sectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
+
+            // مقادیر مبدا
+            const sourceWarehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
+            const sourceZoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
+            const sourceSectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
+
+            // مقادیر مقصد
+            const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
+            const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
+            const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
 
             // اعتبارسنجی فیلدها
             let errorMessages = [];
+
+            // اعتبارسنجی کالا و تعداد
             if (!productId) errorMessages.push("کالا انتخاب نشده است.");
             if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
-            if (!warehouseId) errorMessages.push("انبار انتخاب نشده است.");
-            if (!zoneId) errorMessages.push("قسمت انتخاب نشده است.");
-            if (!sectionId) errorMessages.push("بخش انتخاب نشده است.");
+
+            // اعتبارسنجی مبدا
+            if (!sourceWarehouseId) errorMessages.push("انبار مبدا انتخاب نشده است.");
+            if (!sourceZoneId) errorMessages.push("قسمت مبدا انتخاب نشده است.");
+            if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
+
+            // اعتبارسنجی مقصد
+            if (!destWarehouseId) errorMessages.push("انبار مقصد انتخاب نشده است.");
+            if (!destZoneId) errorMessages.push("قسمت مقصد انتخاب نشده است.");
+            if (!destSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
 
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
@@ -966,15 +1001,19 @@
             const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
             const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
             const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-
             const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
 
-            // دریافت متن‌های خلاصه برای مکان مبدا (Source)
-            const warehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
-            const zoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
-            const sectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
+            // دریافت متن‌های خلاصه برای مکان مبدا
+            const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
+            const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
+            const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
+            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
 
-            const locationSummary = `${warehouseText} / ${zoneText} / ${sectionText}`;
+            // دریافت متن‌های خلاصه برای مکان مقصد
+            const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
+            const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
+            const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
+            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
 
             // بستن آکاردئون کالا و درج خلاصه متن
             const $productCollapse = $row.find(`#productCollapse_${index}`);
@@ -985,20 +1024,14 @@
             // بستن آکاردئون مکان مبدا و درج خلاصه متن
             const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
             const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
-            $sourceHeader.html(locationSummary);
+            $sourceHeader.html(sourceSummary);
             bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
 
-           
-            const warehouseTextDest = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
-            const zoneTextDest = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
-            const sectionTextDest = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
-            const locationSummaryDest = `${warehouseTextDest} / ${zoneTextDest} / ${sectionTextDest}`;
-
+            // بستن آکاردئون مکان مقصد و درج خلاصه متن
             const $destCollapse = $row.find(`#destCollapse_${index}`);
             const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
-            $destHeader.html(locationSummaryDest);
+            $destHeader.html(destSummary);
             bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
-          
         });
 
 
@@ -1023,7 +1056,7 @@
                            window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
 
                         } else {
-                            window.location.href = '/ReceiptOrIssue/Index';
+                            window.location.href = '/WarehouseManagement/ReceiptOrIssue/Index';
                         }
 
                     } else {

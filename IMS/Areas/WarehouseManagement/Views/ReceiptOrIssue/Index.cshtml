@@ -60,7 +60,6 @@
                                         <th class="text-center py-1">شماره سند</th>
                                         <th class="text-center py-1">تاریخ</th>
                                         <th class="text-center py-1">نوع</th>
-                                        <th class="text-center py-1">پروژه</th>
                                         <th class="text-center py-1">توضیحات</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
@@ -91,7 +90,7 @@
                                                     @displayName
                                                 </span>
                                             </td>
-                                            <td class="text-center py-1 align-middle">@(!string.IsNullOrWhiteSpace(item.ProjectTitle) ? item.ProjectTitle : "-")</td>
+                                            
                                             <td class="text-center py-1 align-middle">@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
                                             <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">
