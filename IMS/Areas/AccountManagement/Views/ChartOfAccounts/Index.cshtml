@@ -2,133 +2,214 @@
 
 @{
     ViewData["Title"] = "مدیریت حساب‌ها";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/AccountManagement/Views/Shared/_Layout.cshtml";
 }
 
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link href="~/css/tablesstyle.css" rel="stylesheet" />
-
-<div class="d-flex">
-
-    <div class="header-bar">
-        <button class="toggle-btn" id="toggleBtn">☰</button>
-        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
-    </div>
-
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <a asp-area="WarehouseManagement" asp-controller="Dashboard" asp-action="Index" class="menu-item">
-                <i class="fas fa-home"></i>
-                <span>داشبورد</span>
-            </a>
-
-            <div class="menu-item has-submenu">
-                <i class="fas fa-user"></i>
-                <span>تعاریف</span>
-                <i class="submenu-toggle fas fa-chevron-down"></i>
-            </div>
-            <div class="submenu">
-                <a class="submenu-item" href="/AccountManagement/Definitions/CostCenter"><i class="fas fa-box"></i> <span>مدیریت مراکز هزینه</span></a>
-                <a class="submenu-item" href="/AccountManagement/ChartOfAccounts/Index"><i class="fas fa-tags"></i> <span>مدیریت حساب ها</span></a>
-            </div>
-            <a href="/AccountManagement/Transactions/Index" class="menu-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>تراکنش‌ها</span>
-            </a>
+<style>
+    .highlight {
+        background-color: orange;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+</style>
 
 
+<div class="container-fluid py-2" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-tags me-1" style="font-size: 0.85rem; margin-left: 0.5rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;"> @ViewData["Title"] </h5>
+                    </div>
 
-            <a href="/AccountManagement/Reports/Index" class="menu-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>گزارشات</span>
-            </a>
-
-            <a asp-controller="WarehouseManagementHome" asp-action="Index" class="menu-item active">
-                <i class="fas fa-right-from-bracket"></i>
-                <span>خروج</span>
-            </a>
-        </div>
-    </div>
-
-    <div class="main-content flex-grow-1">
-        <div class="container-fluid py-4">
-        <div class="card shadow border-0">
-            <div class="card-header bg-custom-dark text-white d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">مدیریت حساب‌ها</h3>
-                    <a href="@Url.Action("CreateAccount", "ChartOfAccounts")" class="btn btn-add-account btn-sm">
-                        <i class="fa fa-plus-circle"></i> افزودن حساب
-                    </a>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover table-bordered">
-                        <thead class="table-header-dark text-center">
-                            <tr>
-                                <th>کد حساب</th>
-                                <th>نام حساب</th>
-                                <th>عملیات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="accountsTableBody">
-                            @foreach(var account in Model)
-                            {
-                                <tr>
-                                    <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Code</td>
-                                    <td class="cursor-pointer" onclick="window.location='@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })'">@account.Name</td>
-                                    
-                                    <td class="text-center">
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); window.location='@Url.Action("EditAccount", "ChartOfAccounts", new { id = account.Id })'">
-                                                <i class="fa fa-edit"></i>
-                                            </button>
-                                            <form method="post" action="@Url.Action("Delete", "ChartOfAccounts")" style="display:inline;">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@account.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('آیا از حذف این حساب مطمئن هستید؟')">
-                                                    <i class="fa fa-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                    <div class="card-footer bg-light">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="text-muted small">
-                                <i class="fas fa-info-circle me-1"></i>
-                                تعداد بخش‌ها: @Model.Count
-                            </div>
-                            <div>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination pagination-sm mb-0">
-                                        <li class="page-item disabled">
-                                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">قبلی</a>
-                                        </li>
-                                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                        <li class="page-item">
-                                            <a class="page-link" href="#">بعدی</a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 20px; font-size: 0.8rem;">
                             </div>
                         </div>
+
+                        <a href="@Url.Action("CreateAccount", "ChartOfAccounts")"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
+                            <span>افزودن حساب</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body p-1">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
+                                <tr>
+                                    <th class="text-center py-1">کد حساب</th>
+                                    <th class="text-center py-1">نام حساب</th>
+                                    <th class="text-center py-1">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size: 0.8rem;">
+                                @foreach (var account in Model)
+                                {
+                                    <tr style="cursor: pointer;" data-url="@Url.Action("Moeins", "ChartOfAccounts", new { accountId = account.Id })">
+                                        <td class="text-center align-middle py-1 fw-bold">@account.Code</td>
+                                        <td class="text-center align-middle py-1">@account.Name</td>
+                                        <td class="text-center align-middle py-1">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-outline-warning px-1"
+                                                        onclick="event.stopPropagation(); window.location='@Url.Action("EditAccount", "ChartOfAccounts", new { id = account.Id })'"
+                                                        style="font-size: 0.75rem; min-width: 26px; height: 26px;">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form method="post" action="@Url.Action("Delete", "ChartOfAccounts")" onsubmit="return confirm('آیا از حذف این حساب مطمئن هستید؟');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@account.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger px-1"
+                                                            style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                            onclick="event.stopPropagation();">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-center mt-2">
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0" id="paginationContainer"></ul>
+                        </nav>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
 </div>
 
-
-
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="~/js/management.js"></script>
-    <script src="~/js/ChartOfAccounts.js"></script>
+    <script src="~/js/MenuJs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rows = document.querySelectorAll('tbody tr[data-url]');
+            rows.forEach(row => {
+                row.addEventListener('click', function (e) {
+                    if (!e.target.closest('button, form, i')) {
+                        const url = row.dataset.url;
+                        if (url) window.location.href = url;
+                    }
+                });
+            });
+
+            // جستجو
+            const globalSearch = document.getElementById('globalSearch');
+            const table = document.querySelector('table');
+            const tableRows = table.querySelectorAll('tbody tr');
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.innerHTML = '<td colspan="3" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
+
+            globalSearch.addEventListener('input', function () {
+            const term = this.value.trim().toLowerCase();
+            let hasResults = false;
+
+            // پاک کردن همه هایلایت‌ها
+            tableRows.forEach(row => {
+                row.querySelectorAll('td:not(:last-child)').forEach(cell => {
+                    // اگر هایلایت داخل cell هست، پاکش کن
+                    if (cell.querySelector('.highlight')) {
+                        const plainText = cell.textContent;
+                        cell.innerHTML = plainText;
+                    }
+                });
+            });
+
+            // اگر کاربر چیزی ننوشته، فقط هایلایت‌ها پاک شن و همه ردیف‌ها نمایش داده شن
+            if (term === "") {
+                tableRows.forEach(row => row.style.display = '');
+                const existing = table.querySelector('.no-results');
+                if (existing) existing.remove();
+                return;
+            }
+
+            // ادامه جستجو و هایلایت
+            tableRows.forEach(row => {
+                let match = false;
+
+                row.querySelectorAll('td:not(:last-child)').forEach(cell => {
+                    const text = cell.textContent.toLowerCase();
+                    if (text.includes(term)) {
+                        match = true;
+
+                        const original = cell.textContent;
+                        const regex = new RegExp(`(${term})`, 'gi');
+                        const highlighted = original.replace(regex, '<span class="highlight">$1</span>');
+                        cell.innerHTML = highlighted;
+                    } else {
+                        cell.innerHTML = cell.textContent;
+                    }
+                });
+
+                row.style.display = match ? '' : 'none';
+                hasResults = hasResults || match;
+            });
+
+            const existing = table.querySelector('.no-results');
+            if (existing) existing.remove();
+            if (!hasResults && term.length > 0) {
+                table.querySelector('tbody').appendChild(noResultsRow);
+                noResultsRow.classList.add('no-results');
+            }
+        });
+
+
+
+            // صفحه‌بندی
+            const rowsPerPage = 10;
+            let currentPage = 1;
+
+            function paginate() {
+                const allRows = Array.from(table.querySelectorAll('tbody tr'));
+                const totalPages = Math.ceil(allRows.length / rowsPerPage);
+                allRows.forEach(row => row.style.display = 'none');
+                const start = (currentPage - 1) * rowsPerPage;
+                allRows.slice(start, start + rowsPerPage).forEach(row => row.style.display = '');
+
+                const paginationContainer = document.getElementById('paginationContainer');
+                paginationContainer.innerHTML = '';
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.classList.add('page-item');
+                    if (i === currentPage) li.classList.add('active');
+
+                    const a = document.createElement('a');
+                    a.classList.add('page-link');
+                    a.href = '#';
+                    a.style.fontSize = '0.75rem';
+                    a.textContent = i;
+
+                    a.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        paginate();
+                    });
+
+                    li.appendChild(a);
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            paginate();
+        });
+    </script>
 }

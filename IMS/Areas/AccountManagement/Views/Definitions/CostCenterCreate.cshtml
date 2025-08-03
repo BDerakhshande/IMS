@@ -2,68 +2,65 @@
 
 @{
     ViewData["Title"] = "ایجاد مرکز هزینه جدید";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/AccountManagement/Views/Shared/_Layout.cshtml";
 }
 
-<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
-
 <style>
-    .form-label i,
-    .input-group-text i {
-        color: #000 !important;
+    .btn-outline-secondary {
+        background-color: white !important;
     }
 
-    .form-label {
-        color: #000 !important;
-    }
-
-    .form-text {
-        color: #6c757d !important;
-    }
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:active,
+        .btn-outline-secondary:focus {
+            background-color: white !important;
+            color: #6c757d !important;
+            border-color: #6c757d !important;
+            box-shadow: none !important;
+        }
 </style>
 
-<div class="container-fluid py-4" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-plus-circle me-2"></i> @ViewData["Title"]
-                    </h4>
-                    <a asp-action="CostCenter" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
-                </div>
+<div class="header-sidebar-wrapper">
+    <div class="container-fluid py-3" dir="rtl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                        <h5 class="mb-0 text-white">
+                            <i class="fas fa-plus-circle me-2"></i> @ViewData["Title"]
+                        </h5>
+                        <a asp-action="CostCenter" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
 
-                <div class="card-body">
-                    <form asp-action="CostCenterCreate" method="post" class="needs-validation" novalidate>
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Name" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-tag me-1"></i> نام مرکز هزینه
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span>
-                                        <input asp-for="Name" class="form-control" placeholder="نام مرکز هزینه را وارد کنید" required />
+                    <div class="card-body" style="background-color: white;">
+                        <form asp-action="CostCenterCreate" method="post" class="needs-validation" novalidate>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-tag me-1 text-muted"></i> نام مرکز هزینه
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-briefcase text-primary"></i></span>
+                                            <input asp-for="Name" class="form-control" placeholder="نام مرکز هزینه را وارد کنید" required />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-2"></i> ذخیره
-                            </button>
-                            <a asp-action="CostCenter" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i> انصراف
-                            </a>
-                        </div>
-                    </form>
+                            <div class="form-footer border-top pt-3 mt-3 d-flex justify-content-end gap-2" style="border-top-color: #dee2e6 !important;">
+                                <button type="submit" class="btn btn-primary px-3" style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.875rem;">
+                                    <i class="fas fa-save me-2"></i> ذخیره
+                                </button>
+                                <a asp-action="CostCenter" class="btn btn-outline-secondary" style="color: #6c757d; border-color: #6c757d; font-size: 0.875rem;">
+                                    <i class="fas fa-times me-2"></i> انصراف
+                                </a>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -71,12 +68,16 @@
 </div>
 
 @section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/MenuJs.js"></script>
     <script>
         (function () {
             'use strict'
+
             var forms = document.querySelectorAll('.needs-validation')
+
             Array.prototype.slice.call(forms)
                 .forEach(function (form) {
                     form.addEventListener('submit', function (event) {
@@ -84,6 +85,7 @@
                             event.preventDefault()
                             event.stopPropagation()
                         }
+
                         form.classList.add('was-validated')
                     }, false)
                 })

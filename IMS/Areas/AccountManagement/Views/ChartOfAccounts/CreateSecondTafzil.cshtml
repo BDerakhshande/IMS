@@ -2,140 +2,138 @@
 
 @{
     ViewData["Title"] = "ایجاد حساب تفصیل ۲";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/AccountManagement/Views/Shared/_Layout.cshtml";
 
     var errorMessage = TempData["ErrorMessage"];
     var successMessage = TempData["SuccessMessage"];
 }
 
-<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
-
 <style>
-    .form-label i,
-    .input-group-text i {
-        color: #000 !important;
+    .btn-outline-secondary {
+        background-color: white !important;
     }
 
-    .form-label {
-        color: #000 !important;
-    }
-
-    .form-text {
-        color: #6c757d !important;
-    }
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:active,
+        .btn-outline-secondary:focus {
+            background-color: white !important;
+            color: #6c757d !important;
+            border-color: #6c757d !important;
+            box-shadow: none !important;
+        }
 </style>
 
-<div class="container-fluid py-4" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-list me-2"></i> @ViewData["Title"]
-                    </h4>
-                    <a asp-action="SecondTafzils" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
-                </div>
 
-                <div class="card-body">
-                    @if (errorMessage != null)
-                    {
-                        <div class="alert alert-danger text-right mb-3">
-                            @errorMessage
-                        </div>
-                    }
-                    @if (successMessage != null)
-                    {
-                        <div class="alert alert-success text-right mb-3">
-                            @successMessage
-                        </div>
-                    }
+<div class="header-sidebar-wrapper">
+    <div class="container-fluid py-3" dir="rtl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                        <h5 class="mb-0 text-white">
+                            <i class="fas fa-list me-2"></i> @ViewData["Title"]
+                        </h5>
+                        <a asp-action="SecondTafzils" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
 
-                    <form asp-action="CreateSecondTafzil" method="post" class="needs-validation" novalidate>
-                        @Html.AntiForgeryToken()
+                    <div class="card-body" style="background-color: white;">
+                        @if (errorMessage != null)
+                        {
+                            <div class="alert alert-danger small py-2 mb-3">
+                                <i class="fas fa-exclamation-circle me-1"></i> @errorMessage
+                            </div>
+                        }
+                        @if (successMessage != null)
+                        {
+                            <div class="alert alert-success small py-2 mb-3">
+                                <i class="fas fa-check-circle me-1"></i> @successMessage
+                            </div>
+                        }
 
-                        <!-- ردیف اول: کد و نام حساب تفصیل ۲ -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Code" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-barcode me-1"></i> کد حساب تفصیل ۲
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
-                                        <input asp-for="Code" class="form-control" placeholder="کد منحصر به فرد تفصیل ۲" maxlength="50" required />
+                        <form asp-action="CreateSecondTafzil" method="post" class="needs-validation" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <!-- ردیف اول: کد و نام حساب تفصیل ۲ -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Code" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-barcode me-1 text-muted"></i> کد حساب تفصیل ۲
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
+                                            <input asp-for="Code" class="form-control" placeholder="کد منحصر به فرد تفصیل ۲" maxlength="50" required />
+                                        </div>
+                                        <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-tag me-1 text-muted"></i> نام حساب تفصیل ۲
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-file-signature text-primary"></i></span>
+                                            <input asp-for="Name" class="form-control" placeholder="نام کامل حساب تفصیل ۲" maxlength="200" required />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Name" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-tag me-1"></i> نام حساب تفصیل ۲
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-file-signature"></i></span>
-                                        <input asp-for="Name" class="form-control" placeholder="نام کامل حساب تفصیل ۲" maxlength="200" required />
+                            <!-- ردیف دوم: حساب تفصیل ۱ و مرکز هزینه -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="TafzilId" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-sitemap me-1 text-muted"></i> حساب تفصیل ۱
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-layer-group text-primary"></i></span>
+                                            @Html.DropDownListFor(
+                                            model => model.TafzilId,
+                                                                                        new SelectList(ViewBag.Tafzils as List<IMS.Areas.AccountManagement.Models.Tafzil>, "Id", "Name", Model.TafzilId),
+                                                                                        "انتخاب حساب تفصیل ۱",
+                                                                                        new { @class = "form-control", required = "required" }
+                                                                                        )
+                                        </div>
+                                        <span asp-validation-for="TafzilId" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="CostCenterId" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-boxes me-1 text-muted"></i> مرکز هزینه
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-warehouse text-primary"></i></span>
+                                            @Html.DropDownListFor(
+                                                                                        model => model.CostCenterId,
+                                                                                        new SelectList(ViewBag.CostCenters as List<IMS.Areas.AccountManagement.Models.CostCenter>, "Id", "Name", Model.CostCenterId),
+                                                                                        "بدون انتخاب",
+                                                                                        new { @class = "form-control" }
+                                                                                        )
+                                        </div>
+                                        <span asp-validation-for="CostCenterId" class="text-danger small mt-1 d-block"></span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- ردیف دوم: حساب تفصیل ۱ و مرکز هزینه -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="TafzilId" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-sitemap me-1"></i> حساب تفصیل ۱
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-layer-group"></i></span>
-                                        @Html.DropDownListFor(
-                                        model => model.TafzilId,
-                                        new SelectList(ViewBag.Tafzils as List<IMS.Areas.AccountManagement.Models.Tafzil>, "Id", "Name", Model.TafzilId),
-                                        "انتخاب حساب تفصیل ۱",
-                                        new { @class = "form-control", required = "required" }
-                                        )
-                                    </div>
-                                    <span asp-validation-for="TafzilId" class="text-danger small mt-1 d-block"></span>
-                                </div>
+                            <!-- دکمه‌های اقدام -->
+                            <div class="form-footer border-top pt-3 mt-3 d-flex justify-content-end gap-2" style="border-top-color: #dee2e6 !important;">
+                                <button type="submit" class="btn btn-primary px-3" style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.875rem;">
+                                    <i class="fas fa-save me-2"></i> ذخیره
+                                </button>
+                                <a asp-action="SecondTafzils" class="btn btn-outline-secondary" style="color: #6c757d; border-color: #6c757d; font-size: 0.875rem;">
+                                    <i class="fas fa-times me-2"></i> انصراف
+                                </a>
                             </div>
-
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="CostCenterId" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-boxes me-1"></i> مرکز هزینه
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-warehouse"></i></span>
-                                        @Html.DropDownListFor(
-                                        model => model.CostCenterId,
-                                        new SelectList(ViewBag.CostCenters as List<IMS.Areas.AccountManagement.Models.CostCenter>, "Id", "Name", Model.CostCenterId),
-                                        "بدون انتخاب",
-                                        new { @class = "form-control" }
-                                        )
-                                    </div>
-                                    <span asp-validation-for="CostCenterId" class="text-danger small mt-1 d-block"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- دکمه‌های اقدام -->
-                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-2"></i> ذخیره
-                            </button>
-                            <a asp-action="SecondTafzils" class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i> انصراف
-                            </a>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -144,6 +142,8 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/MenuJs.js"></script>
+
     <script>
         (function () {
             'use strict'
@@ -157,7 +157,6 @@
                             event.preventDefault()
                             event.stopPropagation()
                         }
-
                         form.classList.add('was-validated')
                     }, false)
                 })

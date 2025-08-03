@@ -2,126 +2,128 @@
 
 @{
     ViewData["Title"] = "افزودن حساب تفصیل";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/AccountManagement/Views/Shared/_Layout.cshtml";
+
     var errorMessage = TempData["ErrorMessage"];
     var successMessage = TempData["SuccessMessage"];
 }
 
-<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/management.css" />
-<link rel="stylesheet" href="~/css/Warehouses.css" />
-
 <style>
-    .form-label i,
-    .input-group-text i {
-        color: #000 !important;
+    .btn-outline-secondary {
+        background-color: white !important;
     }
 
-    .form-label {
-        color: #000 !important;
-    }
-
-    .form-text {
-        color: #6c757d !important;
-    }
+        .btn-outline-secondary:hover,
+        .btn-outline-secondary:active,
+        .btn-outline-secondary:focus {
+            background-color: white !important;
+            color: #6c757d !important;
+            border-color: #6c757d !important;
+            box-shadow: none !important;
+        }
 </style>
 
-@if (errorMessage != null)
-{
-    <div class="alert alert-danger">@errorMessage</div>
-}
 
-@if (successMessage != null)
-{
-    <div class="alert alert-success">@successMessage</div>
-}
+<div class="header-sidebar-wrapper">
+    <div class="container-fluid py-3" dir="rtl">
+        <div class="row">
+            <div class="col-12">
+                <div class="card border-0 shadow" style="box-shadow: var(--card-shadow); background-color: white;">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                        <h5 class="mb-0 text-white">
+                            <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
+                        </h5>
+                        <a asp-area="AccountManagement"
+                           asp-controller="ChartOfAccounts"
+                           asp-action="Tafzils"
+                           asp-route-moeinId="1"
+                           class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
 
-<div class="container-fluid py-4" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card card-primary border-0 shadow">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 text-white">
-                        <i class="fas fa-layer-group me-2"></i> @ViewData["Title"]
-                    </h4>
-                    <a asp-area="AccountManagement"
-                       asp-controller="ChartOfAccounts"
-                       asp-action="Tafzils"
-                       asp-route-moeinId="1"
-                       class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
-                </div>
+                    <div class="card-body" style="background-color: white;">
+                        @if (errorMessage != null)
+                        {
+                            <div class="alert alert-danger small py-2 mb-3">
+                                <i class="fas fa-exclamation-circle me-1"></i> @errorMessage
+                            </div>
+                        }
+                        @if (successMessage != null)
+                        {
+                            <div class="alert alert-success small py-2 mb-3">
+                                <i class="fas fa-check-circle me-1"></i> @successMessage
+                            </div>
+                        }
 
-                <div class="card-body">
-                    <form asp-action="CreateTafzil1" method="post" class="needs-validation" novalidate>
-                        @Html.AntiForgeryToken()
+                        <form asp-action="CreateTafzil1" method="post" class="needs-validation" novalidate>
+                            @Html.AntiForgeryToken()
 
-                        <!-- ردیف اول: کد و نام حساب تفصیل -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Code" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-barcode me-1"></i> کد حساب تفصیل
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
-                                        <input asp-for="Code" class="form-control" maxlength="50" placeholder="کد حساب تفصیل را وارد کنید" required />
+                            <!-- ردیف اول: کد و نام حساب تفصیل -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Code" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-barcode me-1 text-muted"></i> کد حساب تفصیل
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-hashtag text-primary"></i></span>
+                                            <input asp-for="Code" class="form-control" maxlength="50" placeholder="کد حساب تفصیل را وارد کنید" required />
+                                        </div>
+                                        <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                    <span asp-validation-for="Code" class="text-danger small mt-1 d-block"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="Name" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-tag me-1 text-muted"></i> نام حساب تفصیل
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-file-alt text-primary"></i></span>
+                                            <input asp-for="Name" class="form-control" maxlength="200" placeholder="نام حساب تفصیل را وارد کنید" required />
+                                        </div>
+                                        <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="Name" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-tag me-1"></i> نام حساب تفصیل
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-file-alt"></i></span>
-                                        <input asp-for="Name" class="form-control" maxlength="200" placeholder="نام حساب تفصیل را وارد کنید" required />
+                            <!-- ردیف دوم: انتخاب حساب معین -->
+                            <div class="row g-2 mb-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label asp-for="MoeinId" class="form-label fw-bold mb-1 small">
+                                            <i class="fas fa-layer-group me-1 text-muted"></i> حساب معین
+                                        </label>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-light"><i class="fas fa-list text-primary"></i></span>
+                                            @Html.DropDownListFor(
+                                            model => model.MoeinId,
+                                                                                        new SelectList(ViewBag.Moeins as List<IMS.Areas.AccountManagement.Models.Moein>, "Id", "Name", Model.MoeinId),
+                                                                                        "انتخاب حساب معین",
+                                                                                        new { @class = "form-control" }
+                                                                                        )
+                                        </div>
+                                        <span asp-validation-for="MoeinId" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                    <span asp-validation-for="Name" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- ردیف دوم: انتخاب حساب معین -->
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label asp-for="MoeinId" class="form-label fw-bold mb-2">
-                                        <i class="fas fa-layer-group me-1"></i> حساب معین
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light"><i class="fas fa-list"></i></span>
-                                        @Html.DropDownListFor(
-                                        model => model.MoeinId,
-                                        new SelectList(ViewBag.Moeins as List<IMS.Areas.AccountManagement.Models.Moein>, "Id", "Name", Model.MoeinId),
-                                        "انتخاب حساب معین",
-                                        new { @class = "form-control" }
-                                                                                )
-                                    </div>
-                                    <span asp-validation-for="MoeinId" class="text-danger small mt-1 d-block"></span>
-                                </div>
+                            <!-- دکمه‌ها -->
+                            <div class="form-footer border-top pt-3 mt-3 d-flex justify-content-end gap-2" style="border-top-color: #dee2e6 !important;">
+                                <button type="submit" class="btn btn-primary px-3" style="background-color: var(--accent-color); border-color: var(--accent-color); font-size: 0.875rem;">
+                                    <i class="fas fa-save me-2"></i> ذخیره
+                                </button>
+                                <a asp-area="AccountManagement"
+                                   asp-controller="ChartOfAccounts"
+                                   asp-action="Tafzils"
+                                   asp-route-moeinId="1"
+                                   class="btn btn-outline-secondary" style="color: #6c757d; border-color: #6c757d; font-size: 0.875rem;">
+                                    <i class="fas fa-times me-2"></i> انصراف
+                                </a>
                             </div>
-                        </div>
-
-                        <!-- دکمه‌ها -->
-                        <div class="form-footer border-top pt-4 mt-4 d-flex justify-content-end gap-3">
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="fas fa-save me-2"></i> ذخیره
-                            </button>
-                            <a asp-area="AccountManagement"
-                               asp-controller="ChartOfAccounts"
-                               asp-action="Tafzils"
-                               asp-route-moeinId="1"
-                               class="btn btn-outline-secondary">
-                                <i class="fas fa-times me-2"></i> انصراف
-                            </a>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -130,6 +132,7 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/MenuJs.js"></script>
 
     <script>
         (function () {
