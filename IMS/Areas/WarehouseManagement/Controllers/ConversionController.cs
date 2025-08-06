@@ -182,23 +182,13 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             ModelState.Remove(nameof(model.Categories));
             ModelState.Remove(nameof(model.Warehouses));
 
-            // ✅ مقداردهی ProjectId به تک‌تک آیتم‌ها
-            foreach (var item in model.ConsumedItems)
-            {
-                item.ProjectId = model.ProjectId;
-            }
-
-            foreach (var item in model.ProducedItems)
-            {
-                item.ProjectId = model.ProjectId;
-            }
-
+        
             try
             {
                 var (documentId, documentNumber) = await _conversionService.ConvertAndRegisterDocumentAsync(
                     model.ConsumedItems,
-                    model.ProducedItems,
-                    model.ProjectId // اختیاری: می‌تونی حتی حذفش کنی چون داخل آیتم‌ها هست
+                    model.ProducedItems
+                   
                 );
 
                 return Json(new
@@ -420,13 +410,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var pc = new PersianCalendar();
             var persianDate = $"{pc.GetYear(document.CreatedAt):0000}/{pc.GetMonth(document.CreatedAt):00}/{pc.GetDayOfMonth(document.CreatedAt):00}";
 
-            var projects = await _projectContext.Projects
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.ProjectName
-                }).ToListAsync();
-
             var model = new ConversionCreateViewModel
             {
                 DocumentId = document.Id,
@@ -444,7 +427,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     WarehouseId = i.WarehouseId,
                     ZoneId = i.ZoneId,
                     SectionId = i.SectionId,
-                    ProjectId = i.ProjectId  
+                    ProjectId = i.ProjectId
                 }).ToList(),
                 ProducedItems = document.ProducedItems.Select(i => new ConversionProducedItemDto
                 {
@@ -457,10 +440,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     WarehouseId = i.WarehouseId,
                     ZoneId = i.ZoneId,
                     SectionId = i.SectionId,
-                    ProjectId = i.ProjectId 
-                }).ToList(),
-
-                Projects = projects  
+                    ProjectId = i.ProjectId
+                }).ToList()
             };
 
             await PopulateSelectListsAsync(model);

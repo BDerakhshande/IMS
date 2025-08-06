@@ -1,4 +1,5 @@
 using FluentValidation;
+using IMS.Application.ProcurementManagement.Service;
 using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.MappingProfiles;
 using IMS.Application.WarehouseManagement.Services;
@@ -6,6 +7,7 @@ using IMS.Areas.AccountManagement.Data;
 
 using IMS.Domain.ProjectManagement.Validator;
 using IMS.Domain.WarehouseManagement.Validator;
+using IMS.Infrastructure.Persistence.ProcurementManagement;
 using IMS.Infrastructure.Persistence.ProjectManagement;
 using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
@@ -48,9 +50,11 @@ builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IReceiptOrIssueService, ReceiptOrIssueService>();
 builder.Services.AddScoped<IConversionService, ConversionService>();
+builder.Services.AddScoped<IGoodsRequestService, GoodsRequestService>();
 
 builder.Services.AddScoped<IApplicationDbContext,ProjectManagementDbContext>();
 builder.Services.AddScoped<IWarehouseDbContext, WarehouseDbContext>();
+builder.Services.AddScoped<IProcurementManagementDbContext, ProcurementManagementDbContext>();
 builder.Services.AddScoped<IInventoryTurnoverService, InventoryTurnoverService>();
 builder.Services.AddScoped<IWarehouseTransactionDetailService, WarehouseTransactionDetailService>();
 
@@ -68,6 +72,8 @@ builder.Services.AddDbContext<AccountManagementDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AccountManagementDb")));
 
 
+builder.Services.AddDbContext<ProcurementManagementDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("ProcurementManagementDb")));
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

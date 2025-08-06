@@ -225,7 +225,7 @@ namespace IMS.Areas.AccountManagement.Controllers
 
             // به‌روزرسانی اطلاعات کلی سند
             document.Description = model.Description;
-            document.ModifiedBy = HttpContext.Session.GetString("Username") ?? "سیستم";
+            document.ModifiedBy = "سیستم";
             document.Status = Status.AwaitingApproval;
 
             // اعتبارسنجی تراکنش‌ها
@@ -683,8 +683,9 @@ namespace IMS.Areas.AccountManagement.Controllers
                     DocumentDate = model.DocumentDate,
                     Description = model.Description,
                     DocumentTypeId = model.SelectedDocumentTypeId.GetValueOrDefault(),
-                    ModifiedBy = HttpContext.Session.GetString("Username") ?? "سیستم",
+                    ModifiedBy = "سیستم",
                     Status = Status.AwaitingApproval,
+                    
                     Transactions = new List<Transaction>()
                 };
 
@@ -712,6 +713,7 @@ namespace IMS.Areas.AccountManagement.Controllers
 
                     var newTransaction = new Transaction
                     {
+                       
                         AccountId = account.Id,
                         MoeinId = moein.Id,
                         TafzilId = tafzilId,
@@ -721,6 +723,7 @@ namespace IMS.Areas.AccountManagement.Controllers
                         DocumentDate = model.DocumentDate,
                         Description = trans.DescriptionTran,
                         DocumentTypeId = model.SelectedDocumentTypeId.GetValueOrDefault(),
+                        
                        
                     };
 

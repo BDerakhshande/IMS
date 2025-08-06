@@ -2,7 +2,7 @@
 @model IMS.Models.ProMan.ConversionCreateViewModel
 @{
     ViewData["Title"] = "ویرایش سند تبدیل";
-    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
+   Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 
 
@@ -119,6 +119,7 @@
 
             <hr class="my-3" />
 
+            
             <!-- Consumed Items Section -->
             <div class="card mb-4 border-primary">
                 <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
@@ -169,7 +170,7 @@
                                                                 }
                                                             </button>
                                                         </h2>
-                                                        <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
+                                                        <div id="productCollapse_@i" class="accordion-collapse collapse">
                                                             <div class="accordion-body py-2 px-3">
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">دسته‌بندی</label>
@@ -185,20 +186,47 @@
                                                                     <label class="form-label small">گروه</label>
                                                                     <select asp-for="ConsumedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب گروه</option>
+                                                                        @if (Model.ConsumedItems[i].GroupId != 0)
+                                                                        {
+                                                                            var selectedGroup = Model.Groups.FirstOrDefault(g => g.Id == Model.ConsumedItems[i].GroupId);
+                                                                            if (selectedGroup != null)
+                                                                            {
+                                                                                <option value="@selectedGroup.Id" selected>@selectedGroup.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">طبقه</label>
                                                                     <select asp-for="ConsumedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب طبقه</option>
+                                                                        @if (Model.ConsumedItems[i].StatusId != 0)
+                                                                        {
+                                                                            var selectedStatus = Model.Statuses.FirstOrDefault(s => s.Id == Model.ConsumedItems[i].StatusId);
+                                                                            if (selectedStatus != null)
+                                                                            {
+                                                                                <option value="@selectedStatus.Id" selected>@selectedStatus.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                                 <div class="mb-1">
                                                                     <label class="form-label small">کالا</label>
                                                                     <select asp-for="ConsumedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب کالا</option>
+                                                                        @if (Model.ConsumedItems[i].ProductId != 0)
+                                                                        {
+                                                                            var selectedProduct = Model.Products.FirstOrDefault(p => p.Id == Model.ConsumedItems[i].ProductId);
+                                                                            if (selectedProduct != null)
+                                                                            {
+                                                                                <option value="@selectedProduct.Id" selected>@selectedProduct.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -221,7 +249,7 @@
                                                                 @($"{warehouse} / {zone} / {section}")
                                                             </button>
                                                         </h2>
-                                                        <div id="locationCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#locationAccordion_@i">
+                                                        <div id="locationCollapse_@i" class="accordion-collapse collapse">
                                                             <div class="accordion-body p-2">
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">انبار</label>
@@ -238,16 +266,34 @@
                                                                     <label class="form-label small text-muted mb-1">قسمت</label>
                                                                     <select asp-for="ConsumedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب قسمت</option>
+                                                                        @if (Model.ConsumedItems[i].ZoneId != 0)
+                                                                        {
+                                                                            var selectedZone = Model.Zones.FirstOrDefault(z => z.Id == Model.ConsumedItems[i].ZoneId);
+                                                                            if (selectedZone != null)
+                                                                            {
+                                                                                <option value="@selectedZone.Id" selected>@selectedZone.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ConsumedItems[i].ZoneId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
+
                                                                 <div>
                                                                     <label class="form-label small text-muted mb-1">بخش</label>
                                                                     <select asp-for="ConsumedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب بخش</option>
+                                                                        @if (Model.ConsumedItems[i].SectionId != 0)
+                                                                        {
+                                                                            var selectedSection = Model.Sections.FirstOrDefault(s => s.Id == Model.ConsumedItems[i].SectionId);
+                                                                            if (selectedSection != null)
+                                                                            {
+                                                                                <option value="@selectedSection.Id" selected>@selectedSection.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ConsumedItems[i].SectionId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -282,11 +328,13 @@
                 </div>
             </div>
 
+
+
             <!-- Produced Items Section -->
             <div class="card mb-4 border-success">
                 <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-bold text-black">
-                        <i class="fas fa-industry me-2"></i>کالای تولیدی
+                        <i class="fas fa-industry me-2"></i>کالاهای تولیدی
                     </h6>
                   
                 </div>
@@ -344,20 +392,47 @@
                                                                     <label class="form-label small">گروه</label>
                                                                     <select asp-for="ProducedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب گروه</option>
+                                                                        @if (Model.ProducedItems != null && Model.ProducedItems[i].GroupId != 0)
+                                                                        {
+                                                                            var selectedGroup = Model.Groups.FirstOrDefault(g => g.Id == Model.ProducedItems[i].GroupId);
+                                                                            if (selectedGroup != null)
+                                                                            {
+                                                                                <option value="@selectedGroup.Id" selected>@selectedGroup.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">طبقه</label>
                                                                     <select asp-for="ProducedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب طبقه</option>
+                                                                        @if (Model.ProducedItems != null && Model.ProducedItems[i].StatusId != 0)
+                                                                        {
+                                                                            var selectedStatus = Model.Statuses.FirstOrDefault(s => s.Id == Model.ProducedItems[i].StatusId);
+                                                                            if (selectedStatus != null)
+                                                                            {
+                                                                                <option value="@selectedStatus.Id" selected>@selectedStatus.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                                 <div class="mb-1">
                                                                     <label class="form-label small">کالا</label>
                                                                     <select asp-for="ProducedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="@i" dir="rtl">
                                                                         <option value="">انتخاب کالا</option>
+                                                                        @if (Model.ProducedItems != null && Model.ProducedItems[i].ProductId != 0)
+                                                                        {
+                                                                            var selectedProduct = Model.Products.FirstOrDefault(p => p.Id == Model.ProducedItems[i].ProductId);
+                                                                            if (selectedProduct != null)
+                                                                            {
+                                                                                <option value="@selectedProduct.Id" selected>@selectedProduct.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -397,6 +472,14 @@
                                                                     <label class="form-label small text-muted mb-1">قسمت</label>
                                                                     <select asp-for="ProducedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="produced_@i" dir="rtl">
                                                                         <option value="">انتخاب قسمت</option>
+                                                                        @if (Model.ProducedItems != null && Model.ProducedItems[i].ZoneId != 0)
+                                                                        {
+                                                                            var selectedZone = Model.Zones.FirstOrDefault(z => z.Id == Model.ProducedItems[i].ZoneId);
+                                                                            if (selectedZone != null)
+                                                                            {
+                                                                                <option value="@selectedZone.Id" selected>@selectedZone.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ProducedItems[i].ZoneId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
@@ -404,9 +487,18 @@
                                                                     <label class="form-label small text-muted mb-1">بخش</label>
                                                                     <select asp-for="ProducedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="produced_@i" dir="rtl">
                                                                         <option value="">انتخاب بخش</option>
+                                                                        @if (Model.ProducedItems != null && Model.ProducedItems[i].SectionId != 0)
+                                                                        {
+                                                                            var selectedSection = Model.Sections.FirstOrDefault(s => s.Id == Model.ProducedItems[i].SectionId);
+                                                                            if (selectedSection != null)
+                                                                            {
+                                                                                <option value="@selectedSection.Id" selected>@selectedSection.Name</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ProducedItems[i].SectionId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
+
                                                             </div>
                                                         </div>
                                                     </div>
@@ -450,352 +542,363 @@
         </form>
     </div>
 </div>
-
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/select2/js/select2.min.js"></script>
     <script src="~/lib/persian-datepicker/persian-datepicker.min.js"></script>
     <script src="~/js/MenuJs.js"></script>
+
     <script>
-        $(document).ready(function () {
-               $('.select2').select2({
-                theme: 'bootstrap5',
-                placeholder: 'انتخاب کنید',
-                allowClear: true,
-                dir: 'rtl', // اطمینان از پشتیبانی RTL
-                minimumResultsForSearch: 0
+        // داده‌های سرور به صورت JSON به متغیرهای جاوااسکریپت
+        var categoriesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Categories));
+        var groupsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Groups));
+        var statusesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Statuses));
+        var productsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Products));
+        var warehousesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Warehouses));
+        var projectsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Projects));
+
+        // تابع کمکی ساخت options از آرایه
+        function generateOptions(items, selectedValue = '') {
+            var html = '';
+            items.forEach(function(item) {
+                var value = item.Value !== undefined ? item.Value : item.Id;
+                var text = item.Text !== undefined ? item.Text : item.Name;
+                var selected = (value == selectedValue) ? 'selected' : '';
+                html += `<option value="${value}" ${selected}>${text}</option>`;
             });
-        });
+            return html;
+        }
 
-            // Initialize Persian Datepicker
-            $('.persian-datepicker').persianDatepicker({
-                format: 'YYYY/MM/DD',
-                initialValueType: 'persian',
-                autoClose: true,
-                initialValue: true
-            });
+           $(document).ready(function () {
+            // داده‌های سرور به صورت JSON به متغیرهای جاوااسکریپت
+            var categoriesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Categories));
+            var groupsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Groups));
+            var statusesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Statuses));
+            var productsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Products));
+            var warehousesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Warehouses));
+            var zonesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Zones));
+            var sectionsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Sections));
+            var projectsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Projects));
 
-            // ViewData
-            const viewData = {
-                categories: @Html.Raw(Json.Serialize(Model.Categories)),
-                groups: @Html.Raw(Json.Serialize(Model.Groups)),
-                statuses: @Html.Raw(Json.Serialize(Model.Statuses)),
-                products: @Html.Raw(Json.Serialize(Model.Products)),
-                warehouses: @Html.Raw(Json.Serialize(Model.Warehouses)),
-                zones: @Html.Raw(Json.Serialize(Model.Zones)),
-                sections: @Html.Raw(Json.Serialize(Model.Sections)),
-                projects: @Html.Raw(Json.Serialize(Model.Projects))
-            };
-
-            // Normalize data for consistent access
-            const normalizedData = {
-                categories: normalizeItems(viewData.categories),
-                groups: normalizeItems(viewData.groups),
-                statuses: normalizeItems(viewData.statuses),
-                products: normalizeItems(viewData.products),
-                warehouses: normalizeItems(viewData.warehouses),
-                zones: normalizeItems(viewData.zones),
-                sections: normalizeItems(viewData.sections),
-                projects: normalizeItems(viewData.projects)
-            };
-
-            // Utility Functions
-            function normalizeItems(items) {
-                return items.map(item => ({
-                    id: item.id ?? item.Id ?? item.value ?? item.Value ?? '',
-                    name: item.name ?? item.Name ?? item.text ?? item.Text ?? '',
-                    CategoryId: item.CategoryId ?? item.categoryId ?? null,
-                    GroupId: item.GroupId ?? item.groupId ?? null,
-                    StatusId: item.StatusId ?? item.statusId ?? null,
-                    warehouseId: item.WarehouseId ?? item.warehouseId ?? null,
-                    zoneId: item.ZoneId ?? item.zoneId ?? null
-                }));
-            }
-
-            function buildOptions(items, defaultText = 'انتخاب کنید') {
-                let options = `<option value="">${defaultText}</option>`;
-                if (!Array.isArray(items)) return options;
-                items.forEach(item => {
-                    if (item.id && item.name) {
-                        options += `<option value="${item.id}">${item.name}</option>`;
-                    }
+            // تابع کمکی ساخت options از آرایه
+            function generateOptions(items, selectedValue = '') {
+                var html = '';
+                items.forEach(function(item) {
+                    var value = item.Value !== undefined ? item.Value : item.Id;
+                    var text = item.Text !== undefined ? item.Text : item.Name;
+                    var selected = (value == selectedValue) ? 'selected' : '';
+                    html += `<option value="${value}" ${selected}>${text}</option>`;
                 });
-                return options;
+                return html;
             }
 
-            function showClientError(message, targetId) {
-                $(targetId).html(`<div class="alert alert-danger small" role="alert">${message}</div>`);
-            }
+            // مقداردهی اولیه برای ردیف‌های موجود (ویرایش) - بخش کالاهای مصرفی
+            $('#consumedItemsTable tbody tr').each(function () {
+                var $row = $(this);
 
-            function clearClientErrors(targetId) {
-                $(targetId).empty();
-            }
+                // بخش سلسله مراتب کالا
+                var selectedCategory = $row.find('.category-select').val();
+                if (selectedCategory) {
+                    var filteredGroups = groupsJson.filter(g => g.CategoryId == selectedCategory);
+                    var selectedGroup = $row.find('.group-select').val();
+                    $row.find('.group-select').html(generateOptions(filteredGroups, selectedGroup));
+                }
 
-            // Update dependent dropdowns
-            function updateDependentDropdowns(prefix, index) {
-                const $category = $(`select[name="${prefix}[${index}].CategoryId"]`);
-                const $group = $(`select[name="${prefix}[${index}].GroupId"]`);
-                const $status = $(`select[name="${prefix}[${index}].StatusId"]`);
-                const $product = $(`select[name="${prefix}[${index}].ProductId"]`);
+                var selectedGroup = $row.find('.group-select').val();
+                if (selectedGroup) {
+                    var filteredStatuses = statusesJson.filter(s => s.GroupId == selectedGroup);
+                    var selectedStatus = $row.find('.status-select').val();
+                    $row.find('.status-select').html(generateOptions(filteredStatuses, selectedStatus));
+                }
 
-                const categoryId = $category.val();
-                const groupId = $group.val();
-                const statusId = $status.val();
+                var selectedStatus = $row.find('.status-select').val();
+                if (selectedStatus) {
+                    var filteredProducts = productsJson.filter(p => p.StatusId == selectedStatus);
+                    var selectedProduct = $row.find('.product-select').val();
+                    $row.find('.product-select').html(generateOptions(filteredProducts, selectedProduct));
+                }
 
-                $group.html(buildOptions(normalizedData.groups.filter(g => g.CategoryId?.toString() === categoryId)));
-                $status.html(buildOptions(normalizedData.statuses.filter(s => s.GroupId?.toString() === groupId)));
-                $product.html(buildOptions(normalizedData.products.filter(p => p.StatusId?.toString() === statusId)));
+                // بخش سلسله مراتب انبار
+                var selectedWarehouse = $row.find('.warehouse-select').val();
+                if (selectedWarehouse) {
+                    var filteredZones = zonesJson.filter(z => z.WarehouseId == selectedWarehouse);
+                    var selectedZone = $row.find('.zone-select').val();
+                    $row.find('.zone-select').html(generateOptions(filteredZones, selectedZone));
+                }
 
-                $group.val(groupId).trigger('change.select2');
-                $status.val(statusId).trigger('change.select2');
-            }
+                var selectedZone = $row.find('.zone-select').val();
+                if (selectedZone) {
+                    var filteredSections = sectionsJson.filter(s => s.ZoneId == selectedZone);
+                    var selectedSection = $row.find('.section-select').val();
+                    $row.find('.section-select').html(generateOptions(filteredSections, selectedSection));
+                }
+            });
 
-            // Update location dropdowns
-            function updateLocationDropdowns(prefix, index) {
-                const $warehouse = $(`select[name="${prefix}[${index}].WarehouseId"]`);
-                const $zone = $(`select[name="${prefix}[${index}].ZoneId"]`);
-                const $section = $(`select[name="${prefix}[${index}].SectionId"]`);
+            // رویداد تغییر دسته‌بندی (کالا)
+            $('#consumedItemsTable').on('change', '.category-select', function () {
+                var $row = $(this).closest('tr');
+                var selectedCategoryId = $(this).val();
+                var $groupSelect = $row.find('.group-select');
 
-                const warehouseId = $warehouse.val();
-                const zoneId = $zone.val();
+                var currentSelectedGroup = $groupSelect.val();
 
-                $zone.html(buildOptions(normalizedData.zones.filter(z => z.warehouseId?.toString() === warehouseId)));
-                $section.html(buildOptions(normalizedData.sections.filter(s => s.zoneId?.toString() === zoneId)));
+                if (!selectedCategoryId) {
+                    $groupSelect.html('<option value="">انتخاب گروه</option>');
+                    return;
+                }
 
-                $zone.val(zoneId).trigger('change.select2');
-            }
+                var filteredGroups = groupsJson.filter(g => g.CategoryId == selectedCategoryId);
+                var options = '<option value="">انتخاب کنید</option>';
 
-                  // Add Consumed Item
-        $('#addConsumedItem').on('click', function () {
-            console.log('Clicked addConsumedItem button');
-            const index = $('#consumedItemsTable tbody tr').length;
-            console.log('Current number of rows:', index);
+                filteredGroups.forEach(function(group) {
+                    options += '<option value="' + group.Id + '">' + group.Name + '</option>';
+                });
 
-            const rowTemplate = `
-                <tr class="align-middle" data-index="${index}">
-                    <td>
-                        <div class="accordion border-0" id="productAccordion_${index}">
-                            <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
-                                <h2 class="accordion-header" id="heading_${index}">
-                                    <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#productCollapse_${index}" aria-expanded="false"
-                                            aria-controls="productCollapse_${index}">
-                                        انتخاب کالا و مشخصات آن
-                                    </button>
-                                </h2>
-                                <div id="productCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${index}">
-                                    <div class="accordion-body py-2 px-3">
-                                        <div class="mb-2">
-                                            <label class="form-label small">دسته‌بندی</label>
-                                            <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}" dir="rtl">
-                                                ${buildOptions(normalizedData.categories)}
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">گروه</label>
-                                            <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}" dir="rtl">
-                                                <option value="">انتخاب گروه</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small">طبقه</label>
-                                            <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}" dir="rtl">
-                                                <option value="">انتخاب طبقه</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-1">
-                                            <label class="form-label small">کالا</label>
-                                            <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}" dir="rtl">
-                                                <option value="">انتخاب کالا</option>
-                                            </select>
+                $groupSelect.html(options);
+
+                if (currentSelectedGroup && filteredGroups.some(g => g.Id == currentSelectedGroup)) {
+                    $groupSelect.val(currentSelectedGroup);
+                } else {
+                    $groupSelect.val('');
+                }
+            });
+
+            // رویداد تغییر گروه (کالا)
+            $('#consumedItemsTable').on('change', '.group-select', function () {
+                var $row = $(this).closest('tr');
+                var selectedGroupId = $(this).val();
+                var $statusSelect = $row.find('.status-select');
+
+                var currentSelectedStatus = $statusSelect.val();
+
+                if (!selectedGroupId) {
+                    $statusSelect.html('<option value="">انتخاب وضعیت</option>');
+                    return;
+                }
+
+                var filteredStatuses = statusesJson.filter(s => s.GroupId == selectedGroupId);
+                var options = '<option value="">انتخاب کنید</option>';
+
+                filteredStatuses.forEach(function(status) {
+                    options += '<option value="' + status.Id + '">' + status.Name + '</option>';
+                });
+
+                $statusSelect.html(options);
+
+                if (currentSelectedStatus && filteredStatuses.some(s => s.Id == currentSelectedStatus)) {
+                    $statusSelect.val(currentSelectedStatus);
+                } else {
+                    $statusSelect.val('');
+                }
+            });
+
+            // رویداد تغییر وضعیت (کالا)
+            $('#consumedItemsTable').on('change', '.status-select', function () {
+                var $row = $(this).closest('tr');
+                var selectedStatusId = $(this).val();
+                var $productSelect = $row.find('.product-select');
+
+                var currentSelectedProduct = $productSelect.val();
+
+                if (!selectedStatusId) {
+                    $productSelect.html('<option value="">انتخاب کالا</option>');
+                    return;
+                }
+
+                var filteredProducts = productsJson.filter(p => p.StatusId == selectedStatusId);
+                var options = '<option value="">انتخاب کنید</option>';
+
+                filteredProducts.forEach(function(product) {
+                    options += '<option value="' + product.Id + '">' + product.Name + '</option>';
+                });
+
+                $productSelect.html(options);
+
+                if (currentSelectedProduct && filteredProducts.some(p => p.Id == currentSelectedProduct)) {
+                    $productSelect.val(currentSelectedProduct);
+                } else {
+                    $productSelect.val('');
+                }
+            });
+
+            // رویداد تغییر انبار
+            $('#consumedItemsTable').on('change', '.warehouse-select', function () {
+                var $row = $(this).closest('tr');
+                var selectedWarehouseId = $(this).val();
+                var $zoneSelect = $row.find('.zone-select');
+
+                var currentSelectedZone = $zoneSelect.val();
+
+                if (!selectedWarehouseId) {
+                    $zoneSelect.html('<option value="">انتخاب قسمت</option>');
+                    return;
+                }
+
+                var filteredZones = zonesJson.filter(z => z.WarehouseId == selectedWarehouseId);
+                var options = '<option value="">انتخاب کنید</option>';
+
+                filteredZones.forEach(function(zone) {
+                    options += '<option value="' + zone.Id + '">' + zone.Name + '</option>';
+                });
+
+                $zoneSelect.html(options);
+
+                if (currentSelectedZone && filteredZones.some(z => z.Id == currentSelectedZone)) {
+                    $zoneSelect.val(currentSelectedZone);
+                } else {
+                    $zoneSelect.val('');
+                }
+            });
+
+            // رویداد تغییر قسمت (Zone)
+            $('#consumedItemsTable').on('change', '.zone-select', function () {
+                var $row = $(this).closest('tr');
+                var selectedZoneId = $(this).val();
+                var $sectionSelect = $row.find('.section-select');
+
+                var currentSelectedSection = $sectionSelect.val();
+
+                if (!selectedZoneId) {
+                    $sectionSelect.html('<option value="">انتخاب بخش</option>');
+                    return;
+                }
+
+                var filteredSections = sectionsJson.filter(s => s.ZoneId == selectedZoneId);
+                var options = '<option value="">انتخاب کنید</option>';
+
+                filteredSections.forEach(function(section) {
+                    options += '<option value="' + section.Id + '">' + section.Name + '</option>';
+                });
+
+                $sectionSelect.html(options);
+
+                if (currentSelectedSection && filteredSections.some(s => s.Id == currentSelectedSection)) {
+                    $sectionSelect.val(currentSelectedSection);
+                } else {
+                    $sectionSelect.val('');
+                }
+            });
+
+            // دکمه افزودن کالای مصرفی (افزودن ردیف جدید)
+            $('#addConsumedItem').on('click', function () {
+                var index = $('#consumedItemsTable tbody tr').length;
+
+                // ساخت html گزینه‌ها قبل از قالب ردیف
+                var categoryOptions = generateOptions(categoriesJson);
+                var warehouseOptions = generateOptions(warehousesJson);
+                var projectOptions = generateOptions(projectsJson);
+
+                var newRow = `
+                    <tr class="align-middle" data-index="${index}">
+                        <td>
+                            <div class="accordion border-0" id="productAccordion_${index}">
+                                <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
+                                    <h2 class="accordion-header" id="heading_${index}">
+                                        <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#productCollapse_${index}" aria-expanded="false"
+                                                aria-controls="productCollapse_${index}">
+                                            انتخاب کالا و مشخصات آن
+                                        </button>
+                                    </h2>
+                                    <div id="productCollapse_${index}" class="accordion-collapse collapse">
+                                        <div class="accordion-body py-2 px-3">
+                                            <div class="mb-2">
+                                                <label class="form-label small">دسته‌بندی</label>
+                                                <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" dir="rtl">
+                                                    <option value="">انتخاب دسته‌بندی</option>
+                                                    ${categoryOptions}
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">گروه</label>
+                                                <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" dir="rtl">
+                                                    <option value="">انتخاب گروه</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small">طبقه</label>
+                                                <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" dir="rtl">
+                                                    <option value="">انتخاب طبقه</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label small">کالا</label>
+                                                <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" dir="rtl">
+                                                    <option value="">انتخاب کالا</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                    <td style="width: 120px;">
-                        <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
-                        <span class="text-danger small d-block mt-1"></span>
-                    </td>
-                    <td>
-                        <div class="accordion" id="locationAccordion_${index}">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#locationCollapse_${index}">
-                                        مشخصات محل نگهداری
-                                    </button>
-                                </h2>
-                                <div id="locationCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion_${index}">
-                                    <div class="accordion-body p-2">
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1">انبار</label>
-                                            <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}" dir="rtl">
-                                                ${buildOptions(normalizedData.warehouses)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1"></span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1">قسمت</label>
-                                            <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}" dir="rtl">
-                                                <option value="">انتخاب قسمت</option>
-                                            </select>
-                                            <span class="text-danger small d-block mt-1"></span>
-                                        </div>
-                                        <div>
-                                            <label class="form-label small text-muted mb-1">بخش</label>
-                                            <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}" dir="rtl">
-                                                <option value="">انتخاب بخش</option>
-                                            </select>
-                                            <span class="text-danger small d-block mt-1"></span>
+                        </td>
+                        <td style="width: 120px;">
+                            <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" value="1" />
+                        </td>
+                        <td>
+                            <div class="accordion" id="locationAccordion_${index}">
+                                <div class="accordion-item border-0">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#locationCollapse_${index}">
+                                            انتخاب محل نگهداری
+                                        </button>
+                                    </h2>
+                                    <div id="locationCollapse_${index}" class="accordion-collapse collapse">
+                                        <div class="accordion-body p-2">
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-1">انبار</label>
+                                                <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" dir="rtl">
+                                                    <option value="">انتخاب انبار</option>
+                                                    ${warehouseOptions}
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label small text-muted mb-1">قسمت</label>
+                                                <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" dir="rtl">
+                                                    <option value="">انتخاب قسمت</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="form-label small text-muted mb-1">بخش</label>
+                                                <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" dir="rtl">
+                                                    <option value="">انتخاب بخش</option>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                    <td>
-                        <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm text-end" data-index="${index}" dir="rtl">
-                            ${buildOptions(normalizedData.projects, 'بدون پروژه')}
-                        </select>
-                    </td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" aria-label="ثبت آیتم">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" aria-label="حذف آیتم">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `;
+                        </td>
+                        <td>
+                            <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm text-end" dir="rtl">
+                                <option value="">بدون پروژه</option>
+                                ${projectOptions}
+                            </select>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" aria-label="ثبت آیتم">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" aria-label="حذف آیتم">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
 
-            console.log('Appending row HTML:', rowTemplate);
-            $('#consumedItemsTable tbody').append(rowTemplate);
-            console.log('Row appended successfully');
-        });
-
-
-            
-
-            // Dropdown Change Handlers
-            $(document).on('change', '.category-select', function () {
-                const index = $(this).data('index');
-                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
-                updateDependentDropdowns(prefix, index);
+                $('#consumedItemsTable tbody').append(newRow);
             });
 
-            $(document).on('change', '.group-select', function () {
-                const index = $(this).data('index');
-                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
-                updateDependentDropdowns(prefix, index);
-            });
-
-            $(document).on('change', '.status-select', function () {
-                const index = $(this).data('index');
-                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
-                updateDependentDropdowns(prefix, index);
-            });
-
-            $(document).on('change', '.warehouse-select', function () {
-                const index = $(this).data('index');
-                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
-                updateLocationDropdowns(prefix, index);
-            });
-
-            $(document).on('change', '.zone-select', function () {
-                const index = $(this).data('index');
-                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
-                updateLocationDropdowns(prefix, index);
-            });
-
-            // Save Item
-            $(document).on('click', '.save-item', function () {
-                const $row = $(this).closest('tr[data-index]');
-                const index = $row.data('index');
-                const prefix = $row.closest('#producedItemsTable').length ? 'ProducedItems' : 'ConsumedItems';
-                const targetId = prefix === 'ProducedItems' ? '#producedValidationErrors' : '#consumedValidationErrors';
-
-                clearClientErrors(targetId);
-
-                // Validate inputs
-                const productVal = $(`select[name="${prefix}[${index}].ProductId"]`).val();
-                const quantity = $(`input[name="${prefix}[${index}].Quantity"]`).val();
-                const warehouseVal = $(`select[name="${prefix}[${index}].WarehouseId"]`).val();
-                const zoneVal = $(`select[name="${prefix}[${index}].ZoneId"]`).val();
-                const sectionVal = $(`select[name="${prefix}[${index}].SectionId"]`).val();
-
-                if (!productVal) return showClientError('لطفاً یک کالا انتخاب کنید.', targetId);
-                if (!quantity || quantity <= 0) return showClientError('لطفاً مقدار معتبر وارد کنید.', targetId);
-                if (!warehouseVal) return showClientError('لطفاً انبار را انتخاب کنید.', targetId);
-                if (!zoneVal) return showClientError('لطفاً قسمت را انتخاب کنید.', targetId);
-                if (!sectionVal) return showClientError('لطفاً بخش را انتخاب کنید.', targetId);
-
-                // Update accordion headers
-                const categoryText = $(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text().trim();
-                const groupText = $(`select[name="${prefix}[${index}].GroupId"] option:selected`).text().trim();
-                const statusText = $(`select[name="${prefix}[${index}].StatusId"] option:selected`).text().trim();
-                const productText = $(`select[name="${prefix}[${index}].ProductId"] option:selected`).text().trim();
-                const warehouseText = $(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text().trim();
-                const zoneText = $(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text().trim();
-                const sectionText = $(`select[name="${prefix}[${index}].SectionId"] option:selected`).text().trim();
-
-                const productHeaderText = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
-                const locationHeaderText = `${warehouseText} / ${zoneText} / ${sectionText}`;
-
-                $row.find('.accordion-button[data-bs-target*=".productCollapse_"]').text(productHeaderText);
-                $row.find('.accordion-button[data-bs-target*=".locationCollapse_"]').text(locationHeaderText);
-
-                // Collapse accordions
-                $row.find('.accordion-collapse').each(function () {
-                    bootstrap.Collapse.getOrCreateInstance(this).hide();
-                });
-            });
-
-            // Remove Item
-            $(document).on('click', '.remove-item', function () {
+            // حذف ردیف
+            $('#consumedItemsTable').on('click', '.remove-item', function () {
                 $(this).closest('tr').remove();
             });
 
-            // Form Submission
-            $('#conversionForm').on('submit', function (e) {
-                e.preventDefault();
-                $.ajax({
-                    type: 'POST',
-                    url: $(this).attr('action'),
-                    data: $(this).serialize(),
-                    success: function (response) {
-                        if (response.success) {
-                            if (confirm('سند با موفقیت ویرایش شد.\nآیا مایل به چاپ سند هستید؟')) {
-                                window.location.href = `/WarehouseManagement/Conversion/Print/${response.documentId}`;
-                            } else {
-                                window.location.href = '/WarehouseManagement/Conversion/Index';
-                            }
-                        } else {
-                            alert(`خطا:\n${response.errors.join('\n')}`);
-                        }
-                    },
-                    error: function () {
-                        alert('خطا در ارسال درخواست.');
-                    }
-                });
-            });
-
-            // Initialize existing rows
-            const consumedCount = @Model.ConsumedItems?.Count ?? 0;
-            const producedCount = @Model.ProducedItems?.Count ?? 0;
-
-            for (let i = 0; i < consumedCount; i++) {
-                updateDependentDropdowns('ConsumedItems', i);
-                updateLocationDropdowns('ConsumedItems', i);
-            }
-            for (let i = 0; i < producedCount; i++) {
-                updateDependentDropdowns('ProducedItems', i);
-                updateLocationDropdowns('ProducedItems', i);
-            }
+            // همین منطق را برای جدول کالاهای تولیدی (producedItemsTable) نیز اعمال کنید
+            // ...
         });
     </script>
 }
+

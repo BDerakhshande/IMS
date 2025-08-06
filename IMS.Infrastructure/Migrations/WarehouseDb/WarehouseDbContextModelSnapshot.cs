@@ -731,7 +731,8 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
                         .WithMany()
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "Section")
                         .WithMany()
@@ -804,7 +805,8 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.HasOne("IMS.Domain.ProjectManagement.Entities.Project", "Project")
                         .WithMany()
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "Section")
                         .WithMany()

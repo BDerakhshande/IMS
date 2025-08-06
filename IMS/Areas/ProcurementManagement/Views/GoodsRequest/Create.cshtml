@@ -1,0 +1,242 @@
+﻿@model IMS.Application.ProcurementManagement.DTOs.GoodsRequestInputDto
+
+@{
+    ViewData["Title"] = "ثبت درخواست کالا";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="mb-4">فرم ثبت درخواست کالا</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-3">
+
+        <div class="col-md-6">
+            <label asp-for="ProjectId" class="form-label">پروژه</label>
+            @Html.DropDownListFor(model => model.ProjectId, Model.Projects, "-- انتخاب پروژه --", new { @class = "form-select" })
+            <span asp-validation-for="ProjectId" class="text-danger"></span>
+        </div>
+
+
+        <!-- دسته‌بندی -->
+        <div class="col-md-3">
+            <label asp-for="CategoryId" class="form-label small">دسته‌بندی</label>
+            <select id="CategoryId" name="CategoryId" class="form-select form-select-sm shadow-sm" onchange="loadGroups(this.value)">
+                <option value="">انتخاب دسته‌بندی</option>
+                @foreach (var category in Model.Categories)
+
+                {
+                    <option value="@category.Value" @(category.Value == Model.CategoryId.ToString() ? "selected" : "")>@category.Text</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <!-- گروه کالا -->
+        <div class="col-md-3">
+            <label asp-for="GroupId" class="form-label small">گروه کالا</label>
+            <select id="GroupId" name="GroupId" class="form-select form-select-sm shadow-sm" onchange="loadStatuses(this.value)">
+                <option value="">انتخاب گروه</option>
+                @if (Model.Groups.Any())
+                {
+                    foreach (var group in Model.Groups)
+                    {
+                        <option value="@group.Value" @(group.Value == Model.GroupId.ToString() ? "selected" : "")>@group.Text</option>
+                    }
+                }
+
+            </select>
+            <span asp-validation-for="GroupId" class="text-danger"></span>
+        </div>
+
+        <!-- طبقه کالا -->
+        <div class="col-md-3">
+            <label asp-for="StatusId" class="form-label small">طبقه کالا</label>
+            <select id="StatusId" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
+                <option value="">انتخاب طبقه</option>
+                @if (Model.Statuses.Any())
+                {
+                    foreach (var status in Model.Statuses)
+                    {
+                        <option value="@status.Value" @(status.Value == Model.StatusId.ToString() ? "selected" : "")>@status.Text</option>
+                    }
+                }
+
+            </select>
+            <span asp-validation-for="StatusId" class="text-danger"></span>
+        </div>
+
+        <!-- کالا -->
+        <div class="col-md-3">
+            <label asp-for="ProductId" class="form-label small">نام کالا</label>
+            <select id="ProductId" name="ProductId" class="form-select form-select-sm shadow-sm" @(ViewBag.Products != null ? "" : "disabled")>
+                <option value="">ابتدا طبقه را انتخاب کنید</option>
+                @if (Model.Products.Any())
+                {
+                    foreach (var product in Model.Products)
+                    {
+                        <option value="@product.Value" @(product.Value == Model.ProductId.ToString() ? "selected" : "")>@product.Text</option>
+                    }
+                }
+
+
+            </select>
+            <span asp-validation-for="ProductId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mt-3">
+            <label for="RequestedQuantity" class="form-label">مقدار درخواست</label>
+            <input type="number" step="0.01" min="0.01" name="RequestedQuantity" id="RequestedQuantity" class="form-control" />
+            <span asp-validation-for="RequestedQuantity" class="text-danger"></span>
+        </div>
+
+
+
+        <!-- دکمه ثبت -->
+        <div class="col-12 mt-3">
+            <button type="submit" class="btn btn-primary">ثبت درخواست</button>
+        </div>
+
+    </div>
+</form>
+
+<!-- گزارش موجودی کالا -->
+@if (ViewBag.InventoryReport is List<IMS.Application.ProcurementManagement.DTOs.GoodsRequestInventoryReportDto> report && report.Any())
+{
+    <div class="mt-5">
+        <h5>موجودی کالا در انبارها</h5>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>انبار</th>
+                    <th>قسمت</th>
+                    <th>بخش</th>
+                    <th>موجودی فعلی</th>
+                    <th>مقدار درخواستی</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in report)
+                {
+                    <tr>
+                        <td>@item.WarehouseName</td>
+                        <td>@item.ZoneName</td>
+                        <td>@item.SectionName</td>
+                        <td>@item.AvailableQuantity</td>
+                        <td>@(item.RequestedQuantity.HasValue ? item.RequestedQuantity.Value.ToString() : "0")</td>
+
+
+                        <td>
+                            <span class="badge @(item.NeedsPurchase ? "bg-danger" : "bg-success")">
+                                @item.StatusMessage
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        function loadGroups(categoryId) {
+            if (!categoryId) {
+                $('#GroupId').html('<option value="">انتخاب گروه</option>').prop('disabled', true);
+                $('#StatusId').html('<option value="">انتخاب طبقه</option>').prop('disabled', true);
+                $('#ProductId').html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+                return;
+            }
+
+            $.getJSON('/ProcurementManagement/GoodsRequest/GetGroups', { categoryId: categoryId }, function (data) {
+                let options = '<option value="">انتخاب گروه</option>';
+                data.forEach(item => options += `<option value="${item.value}">${item.text}</option>`);
+                $('#GroupId').html(options).prop('disabled', false);
+                $('#StatusId').html('<option value="">انتخاب طبقه</option>').prop('disabled', true);
+                $('#ProductId').html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+            });
+        }
+
+        function loadStatuses(groupId) {
+            if (!groupId) {
+                $('#StatusId').html('<option value="">انتخاب طبقه</option>').prop('disabled', true);
+                $('#ProductId').html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+                return;
+            }
+
+            $.getJSON('/ProcurementManagement/GoodsRequest/GetStatuses', { groupId: groupId }, function (data) {
+                let options = '<option value="">انتخاب طبقه</option>';
+                data.forEach(item => options += `<option value="${item.value}">${item.text}</option>`);
+                $('#StatusId').html(options).prop('disabled', false);
+                $('#ProductId').html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+            });
+        }
+
+        function loadProducts(statusId) {
+            if (!statusId) {
+                $('#ProductId').html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+                return;
+            }
+
+            $.getJSON('/ProcurementManagement/GoodsRequest/GetProducts', { statusId: statusId }, function (data) {
+                let options = '<option value="">انتخاب کالا</option>';
+                data.forEach(item => options += `<option value="${item.value}">${item.text}</option>`);
+                $('#ProductId').html(options).prop('disabled', false);
+            });
+        }
+
+        $(document).ready(function () {
+            if ($('#CategoryId').val()) loadGroups($('#CategoryId').val());
+            if ($('#GroupId').val()) loadStatuses($('#GroupId').val());
+            if ($('#StatusId').val()) loadProducts($('#StatusId').val());
+        });
+
+
+                       document.addEventListener('DOMContentLoaded', function () {
+            console.log('DOM fully loaded and parsed');
+            const form = document.querySelector('form');
+            if (form) {
+                console.log('Form found');
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    console.log('Form submit event fired');
+
+                    // روش اول: با name
+                    let qtyInput = document.querySelector('input[name="RequestedQuantity"]');
+
+                    // روش دوم: اگر پیدا نشد با ID
+                    if (!qtyInput) {
+                        qtyInput = document.getElementById('RequestedQuantity');
+                    }
+
+                    if (!qtyInput) {
+                        console.log('Input RequestedQuantity not found. Here are all input names:');
+                        const inputs = document.querySelectorAll('input');
+                        inputs.forEach(i => console.log(i.name));
+                    } else {
+                        console.log('RequestedQuantity:', qtyInput.value);
+                    }
+
+                    // ارسال فرم بعد از لاگ
+                    form.submit();
+                });
+            } else {
+                console.log('Form not found');
+            }
+        });
+
+
+    </script>
+}

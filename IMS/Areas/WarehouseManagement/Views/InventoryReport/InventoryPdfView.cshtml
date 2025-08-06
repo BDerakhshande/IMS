@@ -1,0 +1,157 @@
+﻿@using IMS.Models.ProMan
+@model InventoryReportPdfViewModel
+
+
+@{
+	Layout = null; // No layout for PDF view
+
+}
+<link href="~/css/InventoryReportPdfStyle.css" rel="stylesheet" />
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>گزارش موجودی انبار</title>
+   
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">🖨️ چاپ گزارش</button>
+
+    <h1>گزارش موجودی انبار</h1>
+
+    <section class="filters">
+        <h4>فیلترهای اعمال شده:</h4>
+        <ul>
+            @* انبارها *@
+            @if (Model.Filter.Warehouses != null && Model.Filter.Warehouses.Any())
+            {
+                <li>
+                    انبارها:
+                    @string.Join(", ", Model.Filter.Warehouses
+                             .Where(w => w.WarehouseId > 0)
+                             .Select(w =>
+                             {
+                                 if (Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId))
+                                     return Model.WarehouseNames[w.WarehouseId];
+                                 return $"انبار {w.WarehouseId}";
+                             }))
+                </li>
+            }
+
+            @* دسته‌بندی *@
+            @if (Model.Filter.CategoryId.HasValue)
+            {
+                <li>
+                    دسته‌بندی:
+                    @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
+                        ? Model.CategoryNames[Model.Filter.CategoryId.Value]
+                        : Model.Filter.CategoryId.Value.ToString())
+                </li>
+            }
+
+            @if (Model.ZoneNames != null && Model.ZoneNames.Any())
+            {
+                <li>
+                    زون‌ها:
+                    @string.Join(", ", Model.ZoneNames.Values)
+                </li>
+            }
+
+            @if (Model.SectionNames != null && Model.SectionNames.Any())
+            {
+                <li>
+                    بخش‌ها:
+                    @string.Join(", ", Model.SectionNames.Values)
+                </li>
+            }
+
+
+            @* گروه *@
+            @if (Model.Filter.GroupId.HasValue)
+            {
+                <li>
+                    گروه:
+                    @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
+                        ? Model.GroupNames[Model.Filter.GroupId.Value]
+                        : Model.Filter.GroupId.Value.ToString())
+                </li>
+            }
+
+            @* وضعیت *@
+            @if (Model.Filter.StatusId.HasValue)
+            {
+                <li>
+                    وضعیت:
+                    @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
+                        ? Model.StatusNames[Model.Filter.StatusId.Value]
+                        : Model.Filter.StatusId.Value.ToString())
+                </li>
+            }
+
+            @* کالا *@
+            @if (Model.Filter.ProductId.HasValue)
+            {
+                <li>
+                    کالا:
+                    @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
+                        ? Model.ProductNames[Model.Filter.ProductId.Value]
+                        : Model.Filter.ProductId.Value.ToString())
+                </li>
+            }
+
+            @* جستجوی محصول *@
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductSearch))
+            {
+                <li>جستجوی محصول: @Model.Filter.ProductSearch</li>
+            }
+        </ul>
+    </section>
+
+    <table>
+        <thead>
+            <tr>
+                <th>نام انبار</th>
+                <th>زون</th>
+                <th>بخش</th>
+                <th>دسته‌بندی</th>
+                <th>گروه</th>
+                <th>وضعیت</th>
+                <th>کالا</th>
+                <th>موجودی</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Items != null && Model.Items.Any())
+            {
+                foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@(item.WarehouseName ?? "-")</td>
+                        <td>@(item.ZoneName ?? "-")</td>
+                        <td>@(item.SectionName ?? "-")</td>
+                        <td>@item.CategoryName</td>
+                        <td>@item.GroupName</td>
+                        <td>@item.StatusName</td>
+                        <td>@item.ProductName</td>
+                        <td>@item.Quantity.ToString("N0")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8">داده‌ای برای نمایش وجود ندارد</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="7">جمع کل موجودی</td>
+                <td>@(Model.Items?.Sum(i => i.Quantity) ?? 0)</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</body>
+</html>

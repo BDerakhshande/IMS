@@ -332,7 +332,7 @@
                     // جلوگیری از هدایت در صورتی که روی دکمه یا فرم کلیک شده
                     if (e.target.closest('.action-buttons') || e.target.closest('form')) return;
                     const id = this.getAttribute('data-id');
-                    window.location.href = `/Transactions/Details/${id}`;
+                    window.location.href = `/AccountManagement/Transactions/Details/${id}`;
                 });
             });
         });

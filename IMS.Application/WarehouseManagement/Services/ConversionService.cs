@@ -101,8 +101,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
        List<ConversionConsumedItemDto> consumedItems,
-       List<ConversionProducedItemDto> producedItems,
-       int? projectId = null)
+       List<ConversionProducedItemDto> producedItems)
         {
             if (consumedItems == null || producedItems == null)
                 throw new ArgumentException("اقلام مصرفی یا تولیدی نمی‌تواند خالی باشد.");
@@ -158,7 +157,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     ZoneId = consumed.ZoneId,
                     SectionId = consumed.SectionId,
                     WarehouseId = consumed.WarehouseId,
-                    ProjectId = consumed.ProjectId  // ✅ اضافه شد
+                    ProjectId = consumed.ProjectId  
                 });
             }
 
@@ -200,7 +199,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     ZoneId = produced.ZoneId,
                     SectionId = produced.SectionId,
                     WarehouseId = produced.WarehouseId,
-                    ProjectId = produced.ProjectId  // ✅ اضافه شد
+                    ProjectId = produced.ProjectId 
                 });
             }
 

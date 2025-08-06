@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Migrations
 {
     [DbContext(typeof(AccountManagementDbContext))]
-    [Migration("20250719070523_InitialAccountingMigration")]
-    partial class InitialAccountingMigration
+    [Migration("20250806103449_transactioneditMig")]
+    partial class transactioneditMig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

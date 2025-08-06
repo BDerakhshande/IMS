@@ -3,6 +3,7 @@
 
 @{
     ViewData["Title"] = "ایجاد سند";
+    
 }
 
 <style>
@@ -407,9 +408,12 @@
 </style>
 
 
-@* <link rel="stylesheet" href="~/css/createtransactionstyle.css" /> *@
-<!-- اضافه کردن CDN برای FontAwesome -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet" />
+<!-- Select2 CSS -->
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+
 
 @if (TempData["ErrorMessage"] != null)
 {
@@ -691,10 +695,10 @@
 
 
 @section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/persian-date@latest/dist/persian-date.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@latest/dist/js/persian-datepicker.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/persian-datepicker@latest/dist/css/persian-datepicker.min.css" rel="stylesheet" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.full.min.js"></script>
+   
 
     <script>
 
@@ -762,25 +766,39 @@
                 $('#noResults').hide();
             }
 
-            // 3. جستجو با debounce
-            function debounce(fn, delay) {
-                let timeout;
-                return function (...args) {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => fn.apply(this, args), delay);
-                };
+                   function debounce(fn, delay) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    console.log("Debounced function called with args:", args);
+                    fn.apply(this, args);
+                }, delay);
+            };
+        }
+
+        $('#searchInput').on('input', debounce(function () {
+            const term = $(this).val().trim();
+            console.log("User input:", term);
+
+            if (!term) {
+                console.log("Empty input, hiding results");
+                $('#searchResults, #noResults').hide();
+                return;
             }
 
-            $('#searchInput').on('input', debounce(function () {
-                const term = $(this).val().trim();
-                if (!term) {
-                    $('#searchResults, #noResults').hide();
-                    return;
-                }
-                $.getJSON('/Transactions/SearchTafzil2', { searchTerm: term })
-                    .done(renderRows)
-                    .fail(err => console.error(err));
-            }, 300));
+            console.log("Sending AJAX request to /Transactions/SearchTafzil2 with term:", term);
+
+                    $.getJSON('/AccountManagement/Transactions/SearchTafzil2', { searchTerm: term })
+                .done(function (data) {
+                    console.log("AJAX success. Data received:", data);
+                    renderRows(data);
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX error:", textStatus, errorThrown);
+                });
+
+        }, 300));
 
             
 

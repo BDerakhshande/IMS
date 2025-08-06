@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using IMS.Application.WarehouseManagement.DTOs;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -41,7 +42,6 @@ namespace IMS.Application.WarehouseManagement.Services
                             Section = sec
                         };
 
-            // فقط اگر انبار مشخص شده باشد فیلتر کن
             if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 var warehouseIds = filter.Warehouses
@@ -52,7 +52,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 query = query.Where(x => warehouseIds.Contains(x.Inventory.WarehouseId));
             }
 
-            // فیلترهای سلسله‌مراتب کالا
             if (filter.CategoryId.HasValue)
                 query = query.Where(x => x.Category.Id == filter.CategoryId.Value);
 
@@ -71,15 +70,8 @@ namespace IMS.Application.WarehouseManagement.Services
                 query = query.Where(x => x.Product.Name.Contains(search));
             }
 
-            if (filter.MinQuantity.HasValue)
-                query = query.Where(x => x.Inventory.Quantity >= filter.MinQuantity.Value);
-
-            if (filter.MaxQuantity.HasValue)
-                query = query.Where(x => x.Inventory.Quantity <= filter.MaxQuantity.Value);
-
             var list = await query.ToListAsync();
 
-            // فیلتر Zone و Section فقط اگر WarehouseId مشخص شده باشد
             if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 list = list.Where(i =>
@@ -92,38 +84,46 @@ namespace IMS.Application.WarehouseManagement.Services
             }
 
             var groupedResults = list
-                .GroupBy(i => new
-                {
-                    i.Inventory.WarehouseId,
-                    WarehouseName = i.Warehouse.Name,
-                    ZoneId = i.Inventory.ZoneId,
-                    ZoneName = i.Zone?.Name,
-                    SectionId = i.Inventory.SectionId,
-                    SectionName = i.Section?.Name,
-                    CategoryId = i.Category.Id,
-                    CategoryName = i.Category.Name,
-                    GroupId = i.Group.Id,
-                    GroupName = i.Group.Name,
-                    StatusId = i.Status.Id,
-                    StatusName = i.Status.Name,
-                    ProductId = i.Product.Id,
-                    ProductName = i.Product.Name
-                })
-                .Select(g => new InventoryReportResultDto
-                {
-                    WarehouseName = g.Key.WarehouseName,
-                    ZoneName = g.Key.ZoneName,
-                    SectionName = g.Key.SectionName,
-                    CategoryName = g.Key.CategoryName,
-                    GroupName = g.Key.GroupName,
-                    StatusName = g.Key.StatusName,
-                    ProductName = g.Key.ProductName,
-                    Quantity = g.Sum(x => x.Inventory.Quantity)
-                })
-                .ToList();
+      .GroupBy(i => new
+      {
+          i.Inventory.WarehouseId,
+          WarehouseName = i.Warehouse.Name,
+          ZoneId = i.Inventory.ZoneId,
+          ZoneName = i.Zone?.Name,
+          SectionId = i.Inventory.SectionId,
+          SectionName = i.Section?.Name,
+          CategoryId = i.Category.Id,
+          CategoryName = i.Category.Name,
+          GroupId = i.Group.Id,
+          GroupName = i.Group.Name,
+          StatusId = i.Status.Id,
+          StatusName = i.Status.Name,
+          ProductId = i.Product.Id,
+          ProductName = i.Product.Name
+      })
+      .Select(g => new InventoryReportResultDto
+      {
+          WarehouseId = g.Key.WarehouseId,
+          WarehouseName = g.Key.WarehouseName,
+          ZoneId = g.Key.ZoneId,
+          ZoneName = g.Key.ZoneName,
+          SectionId = g.Key.SectionId,
+          SectionName = g.Key.SectionName,
+          CategoryId = g.Key.CategoryId,
+          CategoryName = g.Key.CategoryName,
+          GroupId = g.Key.GroupId,
+          GroupName = g.Key.GroupName,
+          StatusId = g.Key.StatusId,
+          StatusName = g.Key.StatusName,
+          ProductId = g.Key.ProductId,
+          ProductName = g.Key.ProductName,
+          Quantity = g.Sum(x => x.Inventory.Quantity)
+      })
+      .ToList();
 
             return groupedResults;
         }
+
 
 
 
@@ -254,6 +254,50 @@ namespace IMS.Application.WarehouseManagement.Services
                     Text = p.Name
                 }).ToListAsync();
         }
+
+        public async Task<byte[]> ExportReportToExcelAsync(InventoryReportFilterDto filter)
+        {
+            var data = await GetInventoryReportAsync(filter);
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Inventory Report");
+
+            worksheet.Cell(1, 1).Value = "نام انبار";
+            worksheet.Cell(1, 2).Value = "قسمت";
+            worksheet.Cell(1, 3).Value = "بخش";
+            worksheet.Cell(1, 4).Value = "دسته‌بندی";
+            worksheet.Cell(1, 5).Value = "گروه";
+            worksheet.Cell(1, 6).Value = "طبقه";
+            worksheet.Cell(1, 7).Value = "کالا";
+            worksheet.Cell(1, 8).Value = "موجودی";
+
+            int row = 2;
+            foreach (var item in data)
+            {
+                worksheet.Cell(row, 1).Value = item.WarehouseName;
+                worksheet.Cell(row, 2).Value = item.ZoneName;
+                worksheet.Cell(row, 3).Value = item.SectionName;
+                worksheet.Cell(row, 4).Value = item.CategoryName;
+                worksheet.Cell(row, 5).Value = item.GroupName;
+                worksheet.Cell(row, 6).Value = item.StatusName;
+                worksheet.Cell(row, 7).Value = item.ProductName;
+                worksheet.Cell(row, 8).Value = item.Quantity;
+                row++;
+            }
+
+            var total = data.Sum(x => x.Quantity);
+
+            worksheet.Cell(row, 7).Value = "جمع کل:";
+            worksheet.Cell(row, 8).Value = total;  // به جای استفاده از فرمول
+
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
 
 
     }

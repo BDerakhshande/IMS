@@ -343,6 +343,11 @@
                 background-color: #0056b3;
             }
 </style>
+<!-- Select2 CSS -->
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
 
 <div class="glass-card">
     <h3 class="title">جزئیات سند</h3>
@@ -538,7 +543,10 @@
     <a href="@Url.Action("Index", "Transactions")" class="btn-gradient-secondary mt-4">بازگشت</a>
 </div>
 
-
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/select2/js/select2.full.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -615,7 +623,7 @@
                     return;
                 }
 
-                $.getJSON('/Transactions/SearchTafzil2', { searchTerm: term })
+                $.getJSON('/AccountManagement/Transactions/SearchTafzil2', { searchTerm: term })
                     .done(function (data) {
                         renderRows(data);
                     })

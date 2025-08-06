@@ -40,6 +40,19 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            // --- Project mapping for Consumed ---
+            modelBuilder.Entity<ConversionConsumedItem>()
+                .HasOne(c => c.Project)
+                .WithMany()
+                .HasForeignKey(c => c.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // --- Project mapping for Produced ---
+            modelBuilder.Entity<ConversionProducedItem>()
+                .HasOne(p => p.Project)
+                .WithMany()
+                .HasForeignKey(p => p.ProjectId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // --- ConversionConsumedItem ---
             modelBuilder.Entity<ConversionConsumedItem>()
@@ -75,12 +88,6 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
 
 
 
-
-    //        modelBuilder.Entity<ConversionDocument>()
-    //.HasOne(cd => cd.Project)
-    //.WithMany()
-    //.HasForeignKey(cd => cd.ProjectId)
-    //.OnDelete(DeleteBehavior.Restrict);
 
 
 

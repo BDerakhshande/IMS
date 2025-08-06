@@ -47,8 +47,8 @@
   <ItemGroup>
     <Folder Include="Controllers\" />
     <Folder Include="Data\" />
+    <Folder Include="Migrations\" />
     <Folder Include="Views\Shared\" />
-    <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\font\" />
     <Folder Include="wwwroot\icon\" />
     <Folder Include="wwwroot\js\" />

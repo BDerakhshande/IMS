@@ -11,8 +11,7 @@ namespace IMS.Application.WarehouseManagement.Services
     {
         Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
     List<ConversionConsumedItemDto> consumedItems,
-    List<ConversionProducedItemDto> producedItems,
-    int? projectId = null);
+    List<ConversionProducedItemDto> producedItems);
 
         Task<bool> DeleteConversionDocumentAsync(int documentId);
         Task<string> GetNextConversionDocumentNumberAsync();

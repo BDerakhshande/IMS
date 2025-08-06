@@ -3,102 +3,227 @@
 
 @{
     ViewData["Title"] = "گزارش موجودی انبارها";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
+<style>
+    /* اضافه کردن فونت اصلی */
+    body {
+        font-size: 0.9rem;
+    }
 
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">گزارش موجودی انبارها</h5>
+    /* استایل‌های قبلی با تغییرات جدید */
+    select.form-select[dir="rtl"],
+    select.form-select.text-end {
+        direction: rtl;
+        text-align: right;
+        padding-right: 1rem;
+        padding-left: 2rem;
+        background-position: left 0.75rem center !important;
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
+    }
+
+    select.form-select,
+    select.select2-hidden-accessible {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none !important;
+    }
+
+    .table-sm-custom {
+        font-size: 0.8rem;
+    }
+
+        .table-sm-custom .form-select,
+        .table-sm-custom .form-control {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+            height: auto;
+        }
+
+        .table-sm-custom label,
+        .table-sm-custom .accordion-button {
+            font-size: 0.78rem;
+        }
+
+        .table-sm-custom .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+
+    .card-header {
+        padding: 0.4rem 0.8rem;
+    }
+
+    .card-body {
+        padding: 0.8rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+    }
+
+    .btn-xs {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    /* استایل‌های جدید برای دکمه‌های اکشن */
+    .action-buttons {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 0.8rem;
+    }
+
+    .action-buttons-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    /* بهبود ظاهر جدول */
+    .table-responsive {
+        border-radius: 0.35rem;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table th {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .table td {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.75rem;
+            vertical-align: middle;
+        }
+
+    /* بهبود ظاهر هشدارها */
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+
+        .alert i {
+            font-size: 1.5rem;
+        }
+</style>
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="card border-0 shadow-sm" dir="rtl">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-warehouse ms-1" style="font-size: 0.85rem;"></i>
+            <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+        </div>
     </div>
 
-    <div class="card-body">
-      
+    <div class="card-body p-2">
         <form method="post" asp-action="Index" id="inventoryReportForm">
- 
-        <!-- فیلترهای انبار -->
-            <div class="card mb-4 border-success">
-                <div class="card-header bg-light-success text-success">
-        <h6 class="mb-0"><i class="fas fa-warehouse me-2"></i>فیلتر بر اساس انبار</h6>
-    </div>
-    <div class="card-body">
-        <div id="warehouseFiltersContainer">
-            @for (int i = 0; i < Model.Warehouses.Count; i++)
-            {
-                var warehouse = Model.Warehouses[i];
-                <div class="warehouse-filter-group p-3 border rounded mb-3">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">انبار</label>
-                            <select name="Warehouses[@i].WarehouseId" class="form-select select2-dropdown" data-index="@i" onchange="loadZones(this)">
-                                <option value="">انتخاب انبار</option>
-                                @foreach (var wh in (SelectList)ViewBag.Warehouses)
-                                {
-                                    <option value="@wh.Value" selected="@(wh.Value == warehouse.WarehouseId.ToString())">@wh.Text</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">قسمت</label>
-                            <select name="Warehouses[@i].ZoneIds" class="form-select select2-dropdown" data-index="@i" onchange="loadSections(this)" disabled>
-                                @if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
-                                {
-                                    @foreach (var zone in (SelectList)ViewBag.Zones)
-                                    {
-                                        <option value="@zone.Value" selected="@(warehouse.ZoneIds.Contains(int.Parse(zone.Value)))">@zone.Text</option>
-                                    }
-                                }
-                                else
-                                {
-                                    <option value="">ابتدا انبار را انتخاب کنید</option>
-                                }
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">بخش‌ها</label>
-                            <select name="Warehouses[@i].SectionIds" class="form-select select2-dropdown" data-index="@i" disabled>
-                                @if (warehouse.SectionIds != null && warehouse.SectionIds.Any())
-                                {
-                                    @foreach (var section in (SelectList)ViewBag.Sections)
-                                    {
-                                        <option value="@(section.Value)" selected="@(warehouse.SectionIds.Contains(int.Parse(section.Value)))">@(section.Text)</option>
-                                    }
-                                }
-                                else
-                                {
-                                    <option value="">ابتدا منطقه را انتخاب کنید</option>
-                                }
-                            </select>
-                        </div>
+            <!-- فیلترهای انبار -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-warehouse me-2"></i>فیلتر بر اساس انبار
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="warehouseFiltersContainer">
+                        @for (int i = 0; i < Model.Warehouses.Count; i++)
+                        {
+                            var warehouse = Model.Warehouses[i];
+                            <div class="warehouse-filter-group p-3 border rounded mb-3 shadow-sm">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label small">انبار</label>
+                                        <select name="Warehouses[@i].WarehouseId" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadZones(this)">
+                                            <option value="">انتخاب انبار</option>
+                                            @foreach (var wh in (SelectList)ViewBag.Warehouses)
+                                            {
+                                                <option value="@wh.Value" selected="@(wh.Value == warehouse.WarehouseId.ToString())">@wh.Text</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small">قسمت</label>
+                                        <select name="Warehouses[@i].ZoneIds" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadSections(this)" disabled>
+                                            @if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
+                                            {
+                                                @foreach (var zone in (SelectList)ViewBag.Zones)
+                                                {
+                                                    <option value="@zone.Value" selected="@(warehouse.ZoneIds.Contains(int.Parse(zone.Value)))">@zone.Text</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">ابتدا انبار را انتخاب کنید</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small">بخش‌ها</label>
+                                        <select name="Warehouses[@i].SectionIds" class="form-select form-select-sm shadow-sm" data-index="@i" disabled>
+                                            @if (warehouse.SectionIds != null && warehouse.SectionIds.Any())
+                                            {
+                                                @foreach (var section in (SelectList)ViewBag.Sections)
+                                                {
+                                                    <option value="@(section.Value)" selected="@(warehouse.SectionIds.Contains(int.Parse(section.Value)))">@(section.Text)</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">ابتدا منطقه را انتخاب کنید</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeWarehouseFilter(this)">
+                                        <i class="fas fa-times me-1"></i> حذف
+                                    </button>
+                                </div>
+                            </div>
+                        }
                     </div>
-                    <div class="text-end mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWarehouseFilter(this)">
-                            <i class="fas fa-times me-1"></i> حذف
+
+                    <!-- دکمه اضافه کردن انبار جدید -->
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="addWarehouseFilter()">
+                            <i class="fas fa-plus me-1"></i> افزودن انبار دیگر
                         </button>
                     </div>
                 </div>
-            }
-        </div>
-
-        <!-- دکمه اضافه کردن انبار جدید -->
-        <div class="text-end mt-3">
-            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addWarehouseFilter()">
-                <i class="fas fa-plus me-1"></i> افزودن انبار دیگر
-            </button>
-        </div>
-    </div>
-</div>
-
-
+            </div>
 
             <!-- فیلترهای محصول -->
             <div class="card mb-4 border-success">
-                <div class="card-header bg-light-success text-success">
-                    <h6 class="mb-0"><i class="fas fa-boxes me-2"></i>فیلتر بر اساس کالا</h6>
+                <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-boxes me-2"></i>فیلتر بر اساس کالا
+                    </h6>
                 </div>
                 <div class="card-body">
-                    <div class="row g-3">
+                    <div class="row g-2">
                         <div class="col-md-3">
-                            <label class="form-label">دسته‌بندی</label>
-                            <select id="CategoryId" name="CategoryId" class="form-select select2-dropdown" onchange="loadGroups(this.value)">
+                            <label class="form-label small">دسته‌بندی</label>
+                            <select id="CategoryId" name="CategoryId" class="form-select form-select-sm shadow-sm" onchange="loadGroups(this.value)">
                                 <option value="">انتخاب دسته‌بندی</option>
                                 @foreach (var category in (SelectList)ViewBag.Categories)
                                 {
@@ -107,19 +232,18 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">گروه</label>
-                            <select id="GroupId" name="GroupId" class="form-select select2-dropdown" onchange="loadStatuses(this.value)">
+                            <label class="form-label small">گروه</label>
+                            <select id="GroupId" name="GroupId" class="form-select form-select-sm shadow-sm" onchange="loadStatuses(this.value)">
                                 <option value="">انتخاب گروه</option>
                                 @foreach (var group in (SelectList)ViewBag.Groups)
                                 {
                                     <option value="@group.Value" selected="@(group.Value == Model.GroupId?.ToString() ? "selected" : null)">@group.Text</option>
                                 }
                             </select>
-
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">وضعیت</label>
-                            <select id="StatusId" name="StatusId" class="form-select select2-dropdown" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
+                            <label class="form-label small">وضعیت</label>
+                            <select id="StatusId" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
                                 <option value="">انتخاب وضعیت</option>
                                 @if (ViewBag.Statuses != null)
                                 {
@@ -129,11 +253,10 @@
                                     }
                                 }
                             </select>
-
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label">کالا</label>
-                            <select id="ProductId" name="ProductId" class="form-select select2-dropdown" @(ViewBag.Products != null ? "" : "disabled")>
+                            <label class="form-label small">کالا</label>
+                            <select id="ProductId" name="ProductId" class="form-select form-select-sm shadow-sm" @(ViewBag.Products != null ? "" : "disabled")>
                                 <option value="">ابتدا وضعیت را انتخاب کنید</option>
                                 @if (ViewBag.Products != null)
                                 {
@@ -143,28 +266,6 @@
                                     }
                                 }
                             </select>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- فیلترهای موجودی -->
-            <div class="card mb-4 border-info">
-                <div class="card-header bg-light-info text-info">
-                    <h6 class="mb-0"><i class="fas fa-calculator me-2"></i>فیلتر بر اساس موجودی</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">حداقل موجودی</label>
-                            <input type="number" name="MinQuantity" class="form-control"
-                                   value="@Model.MinQuantity" placeholder="حداقل تعداد">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">حداکثر موجودی</label>
-                            <input type="number" name="MaxQuantity" class="form-control"
-                                   value="@Model.MaxQuantity" placeholder="حداکثر تعداد">
                         </div>
                     </div>
                 </div>
@@ -172,10 +273,10 @@
 
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
-                    <button type="submit" class="btn btn-primary px-5">
+                    <button type="submit" class="btn btn-sm btn-primary px-4 rounded-pill">
                         <i class="fas fa-search me-2"></i> جستجو
                     </button>
-                    <button type="reset" class="btn btn-outline-secondary ms-2" onclick="resetForm()">
+                    <button type="reset" class="btn btn-sm btn-outline-secondary ms-2 rounded-pill" onclick="resetForm()">
                         <i class="fas fa-undo me-2"></i> بازنشانی
                     </button>
                 </div>
@@ -183,23 +284,40 @@
         </form>
     </div>
 </div>
-@if (Model?.Items != null && Model.Items.Any())
+
+@if ((ViewBag.SearchPerformed == true) && Model?.Items != null && Model.Items.Any())
 {
-    <div id="reportResults" class="mt-4">
+    <!-- نمایش جدول گزارشات با چیدمان بهبود یافته -->
+    <div class="action-buttons" dir="rtl">
+        <div class="action-buttons-container">
+            <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">
+                <i class="fas fa-list-alt ms-1"></i> نتایج گزارش
+            </h6>
+            <div class="action-buttons-right">
+                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick=" printPdfReport()">
+                    <i class="fas fa-print me-1"></i> پرینت
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-success rounded-pill" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel me-1"></i> اکسل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportResults" class="mt-2" dir="rtl">
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="fas fa-boxes me-2"></i>گزارش موجودی انبار
-                    </h5>
-                    <span class="badge bg-light text-dark fs-6">
-                        مجموع: @(ViewBag.TotalQuantity != null ? ((int)ViewBag.TotalQuantity).ToString("N0") : "0")
-                    </span>
+            <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-boxes ms-1" style="font-size: 0.8rem;"></i>
+                    <h5 class="mb-0 fw-bold" style="font-size: 0.85rem;">گزارش موجودی انبار</h5>
                 </div>
+                <span class="badge bg-light text-dark" style="font-size: 0.75rem;">
+                    مجموع: @(ViewBag.TotalQuantity != null ? ((int)ViewBag.TotalQuantity).ToString("N0") : "0")
+                </span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-sm table-hover mb-0">
                         <thead class="table-light">
                             <tr>
                                 <th scope="col" width="30%" class="text-start ps-4">محل نگهداری</th>
@@ -212,7 +330,7 @@
                             {
                                 <tr class="align-middle">
                                     <td class="text-start ps-4" title="@($"{item.WarehouseName} - {item.ZoneName ?? "-"} - {item.SectionName ?? "-"}")">
-                                        <div class="text-muted small">
+                                        <div class="small">
                                             @if (!string.IsNullOrEmpty(item.ZoneName) || !string.IsNullOrEmpty(item.SectionName))
                                             {
                                                 <span>@item.WarehouseName - @(item.ZoneName ?? "-") - @(item.SectionName ?? "-")</span>
@@ -224,12 +342,12 @@
                                         </div>
                                     </td>
                                     <td class="text-start">
-                                        <div class="text-muted small">
+                                        <div class="small">
                                             @item.CategoryName - @item.GroupName - @item.StatusName - @item.ProductName
                                         </div>
                                     </td>
                                     <td class="text-end pe-4 fw-bold">
-                                        <span class="badge bg-primary bg-opacity-10 text-primary fs-6">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
                                             @((item.Quantity).ToString("N0"))
                                         </span>
                                     </td>
@@ -242,34 +360,43 @@
         </div>
     </div>
 }
-else if (Model?.Items != null)
+else if ((ViewBag.SearchPerformed == true) && Model?.Items != null && !Model.Items.Any())
 {
-    <div class="alert alert-info mt-4 text-center py-3">
-        <i class="fas fa-box-open fa-2x mb-3 d-block"></i>
-        <h5 class="fw-semibold">موردی برای نمایش وجود ندارد</h5>
-        <p class="text-muted mb-0">هیچ آیتمی با فیلترهای انتخاب شده یافت نشد.</p>
+    <div class="alert alert-info mt-3 text-center py-2" dir="rtl">
+        <i class="fas fa-box-open fa-1x mb-2 d-block"></i>
+        <h5 class="fw-semibold" style="font-size: 0.9rem;">موردی برای نمایش وجود ندارد</h5>
+        <p class="text-muted mb-0" style="font-size: 0.8rem;">هیچ آیتمی با فیلترهای انتخاب شده یافت نشد.</p>
     </div>
 }
 else
 {
-    <div class="alert alert-warning mt-4 text-center py-3">
-        <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
-        <h5 class="fw-semibold">داده‌ای دریافت نشد</h5>
-        <p class="text-muted mb-0">خطا در بارگذاری داده‌ها.</p>
+    <div class="alert alert-warning mt-3 text-center py-2" dir="rtl">
+        <i class="fas fa-info-circle fa-1x mb-2 d-block"></i>
+        <h5 class="fw-semibold" style="font-size: 0.9rem;">لطفاً ابتدا فیلترها را انتخاب کنید</h5>
+        <p class="text-muted mb-0" style="font-size: 0.8rem;">برای مشاهده گزارش، باید ابتدا پارامترهای فیلتر را تنظیم کنید.</p>
     </div>
 }
 
 
 
-
-
-
 @section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/js/MenuJs.js"></script>
     <script>
         const warehousesList = @Html.Raw(JsonSerializer.Serialize(
             ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
                 .Select(w => new { value = w.Value, text = w.Text })
         ));
+                      function printPdfReport() {
+            var form = document.getElementById('inventoryReportForm');
+            form.action = '/WarehouseManagement/InventoryReport/ExportToPdf';
+            form.method = 'post';
+            form.target = '_blank';
+            form.submit();
+        }
+
 
         function getWarehouseOptions() {
             if (!Array.isArray(warehousesList)) return '';
@@ -676,7 +803,36 @@ else
                 container.children().find('.select2-dropdown').val(null).trigger('change');
             }
         }
+            function printReport() {
+            window.print();
+        }
 
+        async function exportToExcel() {
+            const filter = @Html.Raw(JsonSerializer.Serialize(Model));
+
+            try {
+                const response = await fetch('@Url.Action("ExportInventoryToExcel", "InventoryReport", new { area = "WarehouseManagement" })', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(filter)
+                });
+
+                if (!response.ok) throw new Error('خطا در دریافت فایل اکسل.');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `InventoryReport_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '')}.xlsx`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            }
+            catch (err) {
+                alert(err.message);
+            }
+        }
 
     </script>
 }

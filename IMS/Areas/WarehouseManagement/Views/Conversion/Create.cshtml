@@ -406,7 +406,7 @@
                                                 </div>
                                             </td>
                                         <td>
-                                            <select asp-for="ConsumedItems[i].ProjectId" class="form-select form-select-sm">
+                                                <select asp-for="ProducedItems[i].ProjectId" class="form-select form-select-sm">
                                                 <option value="">بدون پروژه</option>
                                                 @foreach (var project in Model.Projects)
                                                 {

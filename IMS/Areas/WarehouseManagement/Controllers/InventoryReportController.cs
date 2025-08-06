@@ -1,7 +1,10 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -13,12 +16,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IInventoryReportService _inventoryReportService;
         private readonly IWarehouseService _warehouseService;
         private readonly ICategoryService _categoryService;
+        private readonly IWarehouseDbContext _dbContext;
 
-        public InventoryReportController(IInventoryReportService inventoryReportService , IWarehouseService warehouseService , ICategoryService categoryService)
+        public InventoryReportController(IInventoryReportService inventoryReportService , IWarehouseService warehouseService , ICategoryService categoryService
+            ,IWarehouseDbContext dbContext)
         {
             _inventoryReportService = inventoryReportService;
             _warehouseService = warehouseService;
             _categoryService = categoryService;
+            _dbContext = dbContext;
         }
 
         [AcceptVerbs("GET", "POST")]
@@ -29,15 +35,24 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 filter.Warehouses = new List<WarehouseFilter> { new WarehouseFilter() };
             }
 
-            filter.Items = await _inventoryReportService.GetInventoryReportAsync(filter);
+            bool searchPerformed = false;
 
-            // اگر می‌خواهی مجموع کل را محاسبه و ارسال کنی:
-            ViewBag.TotalQuantity = filter.Items?.Sum(i => i.Quantity) ?? 0;
+            // تشخیص اینکه فرم ارسال شده یا نه:
+            if (Request.Method == "POST")
+            {
+                searchPerformed = true;
+
+                filter.Items = await _inventoryReportService.GetInventoryReportAsync(filter);
+                ViewBag.TotalQuantity = filter.Items?.Sum(i => i.Quantity) ?? 0;
+            }
 
             await PopulateSelectLists(filter);
 
+            ViewBag.SearchPerformed = searchPerformed;
+
             return View(filter);
         }
+
 
 
 
@@ -120,6 +135,92 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(products);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ExportInventoryToExcel([FromBody] InventoryReportFilterDto filter)
+        {
+            var fileBytes = await _inventoryReportService.ExportReportToExcelAsync(filter);
+            var fileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
+        {
+            var items = await _inventoryReportService.GetInventoryReportAsync(filter);
+
+            var warehouseIds = filter.Warehouses?.Select(w => w.WarehouseId).ToList() ?? new List<int>();
+            var warehouseNames = await _dbContext.Warehouses
+                .Where(w => warehouseIds.Contains(w.Id))
+                .ToDictionaryAsync(w => w.Id, w => w.Name);
+
+            var categoryNames = new Dictionary<int, string>();
+            if (filter.CategoryId.HasValue)
+            {
+                var cat = await _dbContext.Categories.FindAsync(filter.CategoryId.Value);
+                if (cat != null)
+                    categoryNames[cat.Id] = cat.Name;
+            }
+
+            var groupNames = new Dictionary<int, string>();
+            if (filter.GroupId.HasValue)
+            {
+                var group = await _dbContext.Groups.FindAsync(filter.GroupId.Value);
+                if (group != null)
+                    groupNames[group.Id] = group.Name;
+            }
+
+            var statusNames = new Dictionary<int, string>();
+            if (filter.StatusId.HasValue)
+            {
+                var status = await _dbContext.Statuses.FindAsync(filter.StatusId.Value);
+                if (status != null)
+                    statusNames[status.Id] = status.Name;
+            }
+
+            var productNames = new Dictionary<int, string>();
+            if (filter.ProductId.HasValue)
+            {
+                var product = await _dbContext.Products.FindAsync(filter.ProductId.Value);
+                if (product != null)
+                    productNames[product.Id] = product.Name;
+            }
+
+            var zoneNames = items
+     .Where(i => i.ZoneName != null)
+     .GroupBy(i => new { i.ZoneId, i.ZoneName })
+     .ToDictionary(g => g.Key.ZoneId ?? 0, g => g.Key.ZoneName);
+
+            var sectionNames = items
+                .Where(i => i.SectionName != null)
+                .GroupBy(i => new { i.SectionId, i.SectionName })
+                .ToDictionary(g => g.Key.SectionId ?? 0, g => g.Key.SectionName);
+
+
+
+
+            var vm = new InventoryReportPdfViewModel
+            {
+                Items = items,
+                Filter = filter,
+                WarehouseNames = warehouseNames,
+                CategoryNames = categoryNames,
+                GroupNames = groupNames,
+                StatusNames = statusNames,
+                ProductNames = productNames,
+                ZoneNames =  zoneNames,
+                SectionNames = sectionNames
+            };
+
+            return new ViewAsPdf("InventoryPdfView", vm)
+            {
+                FileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
+                CustomSwitches = "--disable-smart-shrinking"
+            };
+        }
 
 
     }
