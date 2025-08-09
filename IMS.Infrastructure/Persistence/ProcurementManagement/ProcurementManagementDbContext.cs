@@ -18,7 +18,10 @@ namespace IMS.Infrastructure.Persistence.ProcurementManagement
         }
         public DbSet<GoodsRequest> GoodsRequests { get; set; } = null!;
         public DbSet<GoodsRequestItem> GoodsRequestItems { get; set; } = null!;
-        // DbContext OnModelCreating اصلاح شده:
+        public DbSet<PurchaseRequest> PurchaseRequests { get; set; } = null!;
+        public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; } = null!;
+        public DbSet<Supplier> Supplier { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -14,8 +14,7 @@ namespace IMS.Models.ProMan
 
         public string? Description { get; set; }
       
-        public IEnumerable<SelectListItem>? AvailableProjects { get; set; }
-
+    
         public List<ReceiptOrIssueItemViewModel> Items { get; set; } = new();
     }
 }

@@ -51,6 +51,7 @@ builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IReceiptOrIssueService, ReceiptOrIssueService>();
 builder.Services.AddScoped<IConversionService, ConversionService>();
 builder.Services.AddScoped<IGoodsRequestService, GoodsRequestService>();
+builder.Services.AddScoped<IPurchaseRequestService,PurchaseRequestService>();
 
 builder.Services.AddScoped<IApplicationDbContext,ProjectManagementDbContext>();
 builder.Services.AddScoped<IWarehouseDbContext, WarehouseDbContext>();
