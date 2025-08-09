@@ -63,6 +63,17 @@
     .transaction-table tbody tr:last-child td:last-child {
         border-bottom-left-radius: 5px;
     }
+
+    /* وسط چین کردن محتوای input و select */
+    .transaction-table select.form-select-sm,
+    .transaction-table input.form-control-sm {
+        text-align: center !important;
+    }
+
+    /* برای حالت hover روی ردیف‌ها */
+    .transaction-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 <div class="container-fluid py-2" dir="rtl">
@@ -281,6 +292,7 @@
 
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/MenuJs.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/select2/js/select2.full.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
