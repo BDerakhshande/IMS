@@ -1,105 +1,112 @@
-﻿
-@import url('https://cdn.fontcdn.ir/Font/Persian/IranSans/3.1.0/font-face.css');
+﻿@import url('https://cdn.fontcdn.ir/Font/Persian/IranSans/3.1.0/font-face.css');
 
 body {
     font-family: 'IRANSans', Tahoma, Arial, sans-serif;
-    font-size: 12px;
+    font-size: 13px;
     color: #2c3e50;
-    background: #f7f9fc;
+    background: #f5f7fa;
     margin: 20px;
 }
 
 h1 {
     text-align: center;
-    color: #34495e;
-    margin-bottom: 15px;
-    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 20px;
 }
 
 .filters {
     background: #fff;
     padding: 15px 25px;
-    margin-bottom: 30px;
-    border-radius: 8px;
-    box-shadow: 0 0 8px rgb(0 0 0 / 0.1);
-    line-height: 1.6;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+    line-height: 1.7;
     font-size: 13px;
 }
 
     .filters h4 {
         margin-bottom: 10px;
         color: #2980b9;
-        font-weight: 600;
+        font-weight: bold;
+        font-size: 14px;
     }
 
     .filters ul {
-        padding-right: 15px;
-        list-style: inside disc;
+        padding-right: 20px;
+        list-style: disc;
     }
 
         .filters ul li {
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     background: #fff;
-    box-shadow: 0 0 12px rgb(0 0 0 / 0.1);
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
 }
 
 thead {
     background-color: #2980b9;
-    color: white;
-    font-weight: 700;
-    font-size: 13px;
+    color: #fff;
 }
 
     thead th {
         padding: 12px 10px;
-        border: 1px solid #1c6691;
+        font-size: 13px;
+        border-bottom: 2px solid #1c6691;
+        text-align: center;
     }
 
 tbody td {
     padding: 10px 8px;
-    border: 1px solid #ddd;
+    border-bottom: 1px solid #e0e0e0;
     text-align: center;
     font-size: 12px;
     color: #34495e;
 }
 
 tbody tr:nth-child(even) {
-    background-color: #ecf0f1;
+    background-color: #f8f9fa;
+}
+
+tbody tr:hover {
+    background-color: #f1f6fb;
 }
 
 tfoot td {
     padding: 12px 8px;
-    font-weight: 700;
-    font-size: 13px;
-    background-color: #bdc3c7;
-    color: #2c3e50;
+    font-weight: bold;
+    background-color: #dfe6e9;
     text-align: center;
-    border: 1px solid #95a5a6;
+    border-top: 2px solid #b2bec3;
 }
 
 .print-btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background-color: #27ae60;
-    color: white;
+    color: #fff;
     padding: 8px 18px;
     font-size: 13px;
     border: none;
     border-radius: 25px;
     cursor: pointer;
     margin-bottom: 20px;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
     float: left;
 }
 
     .print-btn:hover {
         background-color: #219150;
+        transform: translateY(-1px);
     }
 
 @media print {
@@ -123,5 +130,3 @@ tfoot td {
         color: #000 !important;
     }
 }
-
-
