@@ -491,14 +491,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (model.ProducedItems == null || !model.ProducedItems.Any())
                 ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
 
-            if (!ModelState.IsValid)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
-                });
-            }
+            
 
             try
             {

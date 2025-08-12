@@ -1,4 +1,5 @@
-﻿using IMS.Application.WarehouseManagement.DTOs;
+﻿using System.Text.Json;
+using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
 using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
@@ -148,6 +149,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
         {
+
+            // Log the filter object to verify its contents
+           
+            Console.WriteLine(JsonSerializer.Serialize(filter));
             var items = await _inventoryReportService.GetInventoryReportAsync(filter);
 
             var warehouseIds = filter.Warehouses?.Select(w => w.WarehouseId).ToList() ?? new List<int>();
@@ -218,8 +223,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 FileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
                 PageSize = Rotativa.AspNetCore.Options.Size.A4,
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
-                CustomSwitches = "--disable-smart-shrinking"
+                CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
             };
+
         }
 
 

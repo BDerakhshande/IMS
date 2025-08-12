@@ -1,22 +1,28 @@
 ﻿@using IMS.Models.ProMan
 @model InventoryReportPdfViewModel
 
+@functions {
+    public string CleanString(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        return input.Replace(";#", ", ").Replace("#", "").Replace("&", "").Trim().TrimEnd(',');
+    }
+}
 
 @{
-	Layout = null; // No layout for PDF view
-
+    Layout = null;
 }
-<link href="~/css/InventoryReportPdfStyle.css" rel="stylesheet" />
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <title>گزارش موجودی انبار</title>
-   
+    <style>
+        /* استایل‌ها ... */
+    </style>
 </head>
 <body>
-
-    <button class="print-btn" onclick="window.print()">🖨️ چاپ گزارش</button>
 
     <h1>گزارش موجودی انبار</h1>
 
@@ -33,7 +39,7 @@
                              .Select(w =>
                              {
                                  if (Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId))
-                                     return Model.WarehouseNames[w.WarehouseId];
+                                     return CleanString(Model.WarehouseNames[w.WarehouseId]);
                                  return $"انبار {w.WarehouseId}";
                              }))
                 </li>
@@ -45,7 +51,7 @@
                 <li>
                     دسته‌بندی:
                     @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
-                        ? Model.CategoryNames[Model.Filter.CategoryId.Value]
+                        ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
                         : Model.Filter.CategoryId.Value.ToString())
                 </li>
             }
@@ -54,7 +60,7 @@
             {
                 <li>
                     زون‌ها:
-                    @string.Join(", ", Model.ZoneNames.Values)
+                    @string.Join(", ", Model.ZoneNames.Values.Select(z => CleanString(z)))
                 </li>
             }
 
@@ -62,10 +68,9 @@
             {
                 <li>
                     بخش‌ها:
-                    @string.Join(", ", Model.SectionNames.Values)
+                    @string.Join(", ", Model.SectionNames.Values.Select(s => CleanString(s)))
                 </li>
             }
-
 
             @* گروه *@
             @if (Model.Filter.GroupId.HasValue)
@@ -73,7 +78,7 @@
                 <li>
                     گروه:
                     @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
-                        ? Model.GroupNames[Model.Filter.GroupId.Value]
+                        ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
                         : Model.Filter.GroupId.Value.ToString())
                 </li>
             }
@@ -84,7 +89,7 @@
                 <li>
                     وضعیت:
                     @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
-                        ? Model.StatusNames[Model.Filter.StatusId.Value]
+                        ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
                         : Model.Filter.StatusId.Value.ToString())
                 </li>
             }
@@ -95,7 +100,7 @@
                 <li>
                     کالا:
                     @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
-                        ? Model.ProductNames[Model.Filter.ProductId.Value]
+                        ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
                         : Model.Filter.ProductId.Value.ToString())
                 </li>
             }
@@ -112,11 +117,11 @@
         <thead>
             <tr>
                 <th>نام انبار</th>
-                <th>زون</th>
+                <th>قسمت</th>
                 <th>بخش</th>
                 <th>دسته‌بندی</th>
                 <th>گروه</th>
-                <th>وضعیت</th>
+                <th>طبقه</th>
                 <th>کالا</th>
                 <th>موجودی</th>
             </tr>
@@ -127,13 +132,13 @@
                 foreach (var item in Model.Items)
                 {
                     <tr>
-                        <td>@(item.WarehouseName ?? "-")</td>
-                        <td>@(item.ZoneName ?? "-")</td>
-                        <td>@(item.SectionName ?? "-")</td>
-                        <td>@item.CategoryName</td>
-                        <td>@item.GroupName</td>
-                        <td>@item.StatusName</td>
-                        <td>@item.ProductName</td>
+                        <td>@CleanString(item.WarehouseName ?? "-")</td>
+                        <td>@CleanString(item.ZoneName ?? "-")</td>
+                        <td>@CleanString(item.SectionName ?? "-")</td>
+                        <td>@CleanString(item.CategoryName)</td>
+                        <td>@CleanString(item.GroupName)</td>
+                        <td>@CleanString(item.StatusName)</td>
+                        <td>@CleanString(item.ProductName)</td>
                         <td>@item.Quantity.ToString("N0")</td>
                     </tr>
                 }
@@ -141,7 +146,7 @@
             else
             {
                 <tr>
-                    <td colspan="8">داده‌ای برای نمایش وجود ندارد</td>
+                    <td colspan="8" style="text-align:center;">داده‌ای برای نمایش وجود ندارد</td>
                 </tr>
             }
         </tbody>

@@ -153,7 +153,7 @@
                                 <div class="row g-2">
                                     <div class="col-md-4">
                                         <label class="form-label small">انبار</label>
-                                        <select name="Warehouses[@i].WarehouseId" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadZones(this)">
+                                        <select name="Warehouses[@i].WarehouseId"  class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadZones(this)">
                                             <option value="">انتخاب انبار</option>
                                             @foreach (var wh in (SelectList)ViewBag.Warehouses)
                                             {
@@ -163,7 +163,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">قسمت</label>
-                                        <select name="Warehouses[@i].ZoneIds" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadSections(this)" disabled>
+                                        <select name="Warehouses[@i].ZoneIds"  class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadSections(this)" disabled>
                                             @if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
                                             {
                                                 @foreach (var zone in (SelectList)ViewBag.Zones)
@@ -179,7 +179,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">بخش‌ها</label>
-                                        <select name="Warehouses[@i].SectionIds" class="form-select form-select-sm shadow-sm" data-index="@i" disabled>
+                                        <select name="Warehouses[@i].SectionIds"  class="form-select form-select-sm shadow-sm" data-index="@i" disabled>
                                             @if (warehouse.SectionIds != null && warehouse.SectionIds.Any())
                                             {
                                                 @foreach (var section in (SelectList)ViewBag.Sections)
@@ -242,9 +242,9 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small">وضعیت</label>
+                            <label class="form-label small">طبقه</label>
                             <select id="StatusId" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
-                                <option value="">انتخاب وضعیت</option>
+                                <option value="">انتخاب طبقه</option>
                                 @if (ViewBag.Statuses != null)
                                 {
                                     foreach (var status in (SelectList)ViewBag.Statuses)
@@ -257,7 +257,7 @@
                         <div class="col-md-3">
                             <label class="form-label small">کالا</label>
                             <select id="ProductId" name="ProductId" class="form-select form-select-sm shadow-sm" @(ViewBag.Products != null ? "" : "disabled")>
-                                <option value="">ابتدا وضعیت را انتخاب کنید</option>
+                                <option value="">ابتدا طبقه را انتخاب کنید</option>
                                 @if (ViewBag.Products != null)
                                 {
                                     foreach (var product in (SelectList)ViewBag.Products)
@@ -282,6 +282,27 @@
                 </div>
             </div>
         </form>
+        <form method="post" asp-action="ExportToPdf" id="pdfExportForm" style="display:none;">
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(m => m.CategoryId)
+            @Html.HiddenFor(m => m.GroupId)
+            @Html.HiddenFor(m => m.StatusId)
+            @Html.HiddenFor(m => m.ProductId)
+
+            @for (int i = 0; i < Model.Warehouses.Count; i++)
+            {
+                @Html.HiddenFor(m => m.Warehouses[i].WarehouseId)
+                @for (int j = 0; j < Model.Warehouses[i].ZoneIds.Count; j++)
+                {
+                    @Html.HiddenFor(m => m.Warehouses[i].ZoneIds[j])
+                }
+                @for (int k = 0; k < Model.Warehouses[i].SectionIds.Count; k++)
+                {
+                    @Html.HiddenFor(m => m.Warehouses[i].SectionIds[k])
+                }
+            }
+        </form>
     </div>
 </div>
 
@@ -294,8 +315,8 @@
                 <i class="fas fa-list-alt ms-1"></i> نتایج گزارش
             </h6>
             <div class="action-buttons-right">
-                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick=" printPdfReport()">
-                    <i class="fas fa-print me-1"></i> پرینت
+                <button type="button" class="btn btn-sm btn-danger ms-2 rounded-pill" onclick="document.getElementById('pdfExportForm').submit();">
+                    <i class="fas fa-file-pdf me-2"></i> چاپ 
                 </button>
                 <button type="button" class="btn btn-xs btn-outline-success rounded-pill" onclick="exportToExcel()">
                     <i class="fas fa-file-excel me-1"></i> اکسل
@@ -389,13 +410,7 @@ else
             ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
                 .Select(w => new { value = w.Value, text = w.Text })
         ));
-                      function printPdfReport() {
-            var form = document.getElementById('inventoryReportForm');
-            form.action = '/WarehouseManagement/InventoryReport/ExportToPdf';
-            form.method = 'post';
-            form.target = '_blank';
-            form.submit();
-        }
+                 
 
 
         function getWarehouseOptions() {
@@ -403,7 +418,27 @@ else
             return warehousesList.map(w => `<option value="${w.value}">${w.text}</option>`).join('');
         }
 
+                         function printPdfReport() {
+            var form = document.getElementById('inventoryReportForm');
+            form.action = '/WarehouseManagement/InventoryReport/ExportToPdf'; // تغییر آدرس به اکشن پی‌دی‌اف
+            form.method = 'post'; 
+            form.target = '_blank'; // باز شدن در تب جدید
+
+            form.submit();
+
+            setTimeout(() => {
+                form.action = '/WarehouseManagement/InventoryReport/Index';
+                form.target = '_self';
+            }, 1000);
+        }
+
+
+
         $(document).ready(function () {
+
+
+
+
 
                if ($('#reportResults').length) {
             // اسکرول به div نتایج با انیمیشن نرم

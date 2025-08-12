@@ -21,7 +21,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public decimal? MinQuantity { get; set; }
         public decimal? MaxQuantity { get; set; }
 
-        public string? ProductSearch { get; set; } // ← این خط را اضافه کن
+        public string? ProductSearch { get; set; } 
 
         public List<InventoryReportResultDto>? Items { get; set; }
     }
