@@ -14,6 +14,7 @@ namespace IMS.Application.ProcurementManagement.Service
          public DbSet<GoodsRequestItem> GoodsRequestItems { get; set; }
          public DbSet<PurchaseRequest> PurchaseRequests { get; set; }
          public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; }
+         public DbSet<RequestType> RequestTypes { get; set; }
         public DbSet<Supplier> Supplier { get; set; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

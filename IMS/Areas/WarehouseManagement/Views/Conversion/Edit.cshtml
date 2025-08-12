@@ -550,27 +550,7 @@
     <script src="~/js/MenuJs.js"></script>
 
     <script>
-        // داده‌های سرور به صورت JSON به متغیرهای جاوااسکریپت
-        var categoriesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Categories));
-        var groupsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Groups));
-        var statusesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Statuses));
-        var productsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Products));
-        var warehousesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Warehouses));
-        var projectsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Projects));
-
-        // تابع کمکی ساخت options از آرایه
-        function generateOptions(items, selectedValue = '') {
-            var html = '';
-            items.forEach(function(item) {
-                var value = item.Value !== undefined ? item.Value : item.Id;
-                var text = item.Text !== undefined ? item.Text : item.Name;
-                var selected = (value == selectedValue) ? 'selected' : '';
-                html += `<option value="${value}" ${selected}>${text}</option>`;
-            });
-            return html;
-        }
-
-           $(document).ready(function () {
+        $(document).ready(function () {
             // داده‌های سرور به صورت JSON به متغیرهای جاوااسکریپت
             var categoriesJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Categories));
             var groupsJson = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Groups));
@@ -583,7 +563,7 @@
 
             // تابع کمکی ساخت options از آرایه
             function generateOptions(items, selectedValue = '') {
-                var html = '';
+                var html = '<option value="">انتخاب کنید</option>';
                 items.forEach(function(item) {
                     var value = item.Value !== undefined ? item.Value : item.Id;
                     var text = item.Text !== undefined ? item.Text : item.Name;
@@ -649,19 +629,7 @@
                 }
 
                 var filteredGroups = groupsJson.filter(g => g.CategoryId == selectedCategoryId);
-                var options = '<option value="">انتخاب کنید</option>';
-
-                filteredGroups.forEach(function(group) {
-                    options += '<option value="' + group.Id + '">' + group.Name + '</option>';
-                });
-
-                $groupSelect.html(options);
-
-                if (currentSelectedGroup && filteredGroups.some(g => g.Id == currentSelectedGroup)) {
-                    $groupSelect.val(currentSelectedGroup);
-                } else {
-                    $groupSelect.val('');
-                }
+                $groupSelect.html(generateOptions(filteredGroups, currentSelectedGroup));
             });
 
             // رویداد تغییر گروه (کالا)
@@ -678,19 +646,7 @@
                 }
 
                 var filteredStatuses = statusesJson.filter(s => s.GroupId == selectedGroupId);
-                var options = '<option value="">انتخاب کنید</option>';
-
-                filteredStatuses.forEach(function(status) {
-                    options += '<option value="' + status.Id + '">' + status.Name + '</option>';
-                });
-
-                $statusSelect.html(options);
-
-                if (currentSelectedStatus && filteredStatuses.some(s => s.Id == currentSelectedStatus)) {
-                    $statusSelect.val(currentSelectedStatus);
-                } else {
-                    $statusSelect.val('');
-                }
+                $statusSelect.html(generateOptions(filteredStatuses, currentSelectedStatus));
             });
 
             // رویداد تغییر وضعیت (کالا)
@@ -707,19 +663,7 @@
                 }
 
                 var filteredProducts = productsJson.filter(p => p.StatusId == selectedStatusId);
-                var options = '<option value="">انتخاب کنید</option>';
-
-                filteredProducts.forEach(function(product) {
-                    options += '<option value="' + product.Id + '">' + product.Name + '</option>';
-                });
-
-                $productSelect.html(options);
-
-                if (currentSelectedProduct && filteredProducts.some(p => p.Id == currentSelectedProduct)) {
-                    $productSelect.val(currentSelectedProduct);
-                } else {
-                    $productSelect.val('');
-                }
+                $productSelect.html(generateOptions(filteredProducts, currentSelectedProduct));
             });
 
             // رویداد تغییر انبار
@@ -736,19 +680,7 @@
                 }
 
                 var filteredZones = zonesJson.filter(z => z.WarehouseId == selectedWarehouseId);
-                var options = '<option value="">انتخاب کنید</option>';
-
-                filteredZones.forEach(function(zone) {
-                    options += '<option value="' + zone.Id + '">' + zone.Name + '</option>';
-                });
-
-                $zoneSelect.html(options);
-
-                if (currentSelectedZone && filteredZones.some(z => z.Id == currentSelectedZone)) {
-                    $zoneSelect.val(currentSelectedZone);
-                } else {
-                    $zoneSelect.val('');
-                }
+                $zoneSelect.html(generateOptions(filteredZones, currentSelectedZone));
             });
 
             // رویداد تغییر قسمت (Zone)
@@ -765,19 +697,7 @@
                 }
 
                 var filteredSections = sectionsJson.filter(s => s.ZoneId == selectedZoneId);
-                var options = '<option value="">انتخاب کنید</option>';
-
-                filteredSections.forEach(function(section) {
-                    options += '<option value="' + section.Id + '">' + section.Name + '</option>';
-                });
-
-                $sectionSelect.html(options);
-
-                if (currentSelectedSection && filteredSections.some(s => s.Id == currentSelectedSection)) {
-                    $sectionSelect.val(currentSelectedSection);
-                } else {
-                    $sectionSelect.val('');
-                }
+                $sectionSelect.html(generateOptions(filteredSections, currentSelectedSection));
             });
 
             // دکمه افزودن کالای مصرفی (افزودن ردیف جدید)
@@ -806,7 +726,7 @@
                                             <div class="mb-2">
                                                 <label class="form-label small">دسته‌بندی</label>
                                                 <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" dir="rtl">
-                                                    <option value="">انتخاب دسته‌بندی</option>
+                                                
                                                     ${categoryOptions}
                                                 </select>
                                             </div>
@@ -849,7 +769,7 @@
                                             <div class="mb-2">
                                                 <label class="form-label small text-muted mb-1">انبار</label>
                                                 <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" dir="rtl">
-                                                    <option value="">انتخاب انبار</option>
+                                                   
                                                     ${warehouseOptions}
                                                 </select>
                                             </div>
@@ -896,8 +816,203 @@
                 $(this).closest('tr').remove();
             });
 
-            // همین منطق را برای جدول کالاهای تولیدی (producedItemsTable) نیز اعمال کنید
-            // ...
+            // ثبت آیتم
+                   $(document).on('click', '.save-item', function () {
+            const $row = $(this).closest('tr[data-index]');
+            const index = $row.data('index');
+            const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
+            const isProduced = prefix === 'ProducedItems';
+
+            // اطلاعات دسته‌بندی، گروه، وضعیت، کالا
+            const categoryVal = $(`select[name="${prefix}[${index}].CategoryId"]`).val();
+            const categoryText = $(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+
+            const groupVal = $(`select[name="${prefix}[${index}].GroupId"]`).val();
+            const groupText = $(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+
+            const statusVal = $(`select[name="${prefix}[${index}].StatusId"]`).val();
+            const statusText = $(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+
+            const productVal = $(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const productText = $(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+
+            const quantity = $(`input[name="${prefix}[${index}].Quantity"]`).val();
+
+            const warehouseVal = $(`select[name="${prefix}[${index}].WarehouseId"]`).val();
+            const warehouseText = $(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
+
+            const zoneVal = $(`select[name="${prefix}[${index}].ZoneId"]`).val();
+            const zoneText = $(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
+
+            const sectionVal = $(`select[name="${prefix}[${index}].SectionId"]`).val();
+            const sectionText = $(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
+
+            const projectVal = $(`select[name="${prefix}[${index}].ProjectId"]`).val();
+            const projectText = $(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text();
+
+            // اعتبارسنجی
+            if (!categoryVal) {
+                alert('لطفاً دسته‌بندی را انتخاب کنید.');
+                return;
+            }
+            if (!groupVal) {
+                alert('لطفاً گروه را انتخاب کنید.');
+                return;
+            }
+            if (!statusVal) {
+                alert('لطفاً وضعیت را انتخاب کنید.');
+                return;
+            }
+            if (!productVal) {
+                alert('لطفاً یک کالا انتخاب کنید.');
+                return;
+            }
+            if (!quantity || quantity <= 0) {
+                alert('لطفاً مقدار معتبر وارد کنید.');
+                return;
+            }
+            if (!warehouseVal) {
+                alert('لطفاً انبار را انتخاب کنید.');
+                return;
+            }
+            if (!zoneVal) {
+                alert('لطفاً قسمت را انتخاب کنید.');
+                return;
+            }
+            if (!sectionVal) {
+                alert('لطفاً بخش را انتخاب کنید.');
+                return;
+            }
+
+            // شناسه آکاردئون‌ها
+            const productCollapsePrefix = isProduced ? 'producedProductCollapse_' : 'productCollapse_';
+            const locationCollapsePrefix = isProduced ? 'producedLocationCollapse_' : 'locationCollapse_';
+
+            // بستن آکاردئون‌ها
+            const $productCollapse = $row.find(`.accordion-collapse[id^="${productCollapsePrefix}"]`);
+            if ($productCollapse.length) bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+
+            const $locationCollapse = $row.find(`.accordion-collapse[id^="${locationCollapsePrefix}"]`);
+            if ($locationCollapse.length) bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]).hide();
+
+            // متن خلاصه برای هدرها
+            const productHeaderText = `${categoryText.trim()} - ${groupText.trim()} - ${statusText.trim()} - ${productText.trim()}`;
+            const locationHeaderText = `${warehouseText.trim()} - ${zoneText.trim()} - ${sectionText.trim()}`;
+            const projectHeaderText = projectText.trim() || 'بدون پروژه';
+
+            // به‌روزرسانی هدر آکاردئون کالا
+            const $productHeader = $row.find(`.accordion-button[data-bs-target^="#${productCollapsePrefix}"]`);
+            $productHeader.text(productHeaderText);
+
+            // به‌روزرسانی هدر آکاردئون محل نگهداری
+            const $locationHeader = $row.find(`.accordion-button[data-bs-target^="#${locationCollapsePrefix}"]`);
+            $locationHeader.text(locationHeaderText);
+        });
+
+        
+                  // ارسال فرم
+        $("#conversionForm").submit(function (e) {
+            e.preventDefault();
+
+            // Validate all required fields before submission
+            let isValid = true;
+            const errors = [];
+
+            // Validate consumed items
+            $('#consumedItemsTable tbody tr').each(function() {
+                const $row = $(this);
+                const index = $row.data('index');
+
+                // Validate product selection
+                if (!$row.find('.product-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای مصرفی: لطفاً کالا را انتخاب کنید`);
+                    isValid = false;
+                }
+
+                // Validate quantity
+                const quantity = $row.find('input[name$=".Quantity"]').val();
+                if (!quantity || quantity <= 0) {
+                    errors.push(`ردیف ${index + 1} کالاهای مصرفی: لطفاً مقدار معتبر وارد کنید`);
+                    isValid = false;
+                }
+
+                // Validate location
+                if (!$row.find('.warehouse-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای مصرفی: لطفاً انبار را انتخاب کنید`);
+                    isValid = false;
+                }
+                if (!$row.find('.zone-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای مصرفی: لطفاً قسمت را انتخاب کنید`);
+                    isValid = false;
+                }
+                if (!$row.find('.section-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای مصرفی: لطفاً بخش را انتخاب کنید`);
+                    isValid = false;
+                }
+            });
+
+            // Validate produced items (similar to consumed items)
+            $('#producedItemsTable tbody tr').each(function() {
+                const $row = $(this);
+                const index = $row.data('index');
+
+                if (!$row.find('.product-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای تولیدی: لطفاً کالا را انتخاب کنید`);
+                    isValid = false;
+                }
+
+                const quantity = $row.find('input[name$=".Quantity"]').val();
+                if (!quantity || quantity <= 0) {
+                    errors.push(`ردیف ${index + 1} کالاهای تولیدی: لطفاً مقدار معتبر وارد کنید`);
+                    isValid = false;
+                }
+
+                if (!$row.find('.warehouse-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای تولیدی: لطفاً انبار را انتخاب کنید`);
+                    isValid = false;
+                }
+                if (!$row.find('.zone-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای تولیدی: لطفاً قسمت را انتخاب کنید`);
+                    isValid = false;
+                }
+                if (!$row.find('.section-select').val()) {
+                    errors.push(`ردیف ${index + 1} کالاهای تولیدی: لطفاً بخش را انتخاب کنید`);
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                alert("لطفاً خطاهای زیر را اصلاح کنید:\n" + errors.join("\n"));
+                return;
+            }
+
+            // If validation passes, submit the form
+            $.ajax({
+                type: "POST",
+                url: $(this).attr("action"),
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.success) {
+                        var printConfirm = confirm("سند با موفقیت ثبت شد.\nآیا مایل به چاپ سند هستید؟");
+
+                        if (printConfirm) {
+                            window.location.href = '/WarehouseManagement/Conversion/Print/' + response.documentId;
+                        } else {
+                            window.location.href = '/WarehouseManagement/Conversion/Index';
+                        }
+                    } else {
+                        alert("خطا:\n" + response.errors.join("\n"));
+                    }
+                },
+                error: function (xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        alert("خطاهای اعتبارسنجی:\n" + Object.values(xhr.responseJSON.errors).join("\n"));
+                    } else {
+                        alert("خطا در ارسال درخواست.");
+                    }
+                }
+            });
+        });
         });
     </script>
 }

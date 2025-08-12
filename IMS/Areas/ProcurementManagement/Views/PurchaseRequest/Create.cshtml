@@ -2,7 +2,7 @@
 @model IMS.Models.ProMan.PurchaseRequestViewModel
 
 @{
-    ViewData["Title"] = "ایجاد درخواست خرید";
+    ViewData["Title"] = "ایجاد درخواست کالا";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -105,21 +105,14 @@
                     </div>
                     <span asp-validation-for="RequestDateString" class="text-danger small d-block text-end"></span>
                 </div>
-                <div class="col-md-3">
-                    <label asp-for="DueDateString" class="form-label fw-bold small text-end w-100">تاریخ سررسید</label>
-                    <div class="input-group input-group-sm">
-                        <input asp-for="DueDateString" type="text" class="form-control text-end" autocomplete="off" />
-                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
-                    </div>
-                    <span asp-validation-for="DueDateString" class="text-danger small d-block text-end"></span>
-                </div>
+                
 
                 <div class="col-md-3">
-                    <label asp-for="SupplierId" class="form-label fw-bold small text-end w-100">تامین‌کننده</label>
-                    <select asp-for="SupplierId" asp-items="Model.AvailableSuppliers" class="form-select form-select-sm select2-supplier">
-                        <option value="">انتخاب تامین‌کننده...</option>
+                    <label asp-for="RequestTypeId" class="form-label fw-bold small text-end w-100">نوع درخواست</label>
+                    <select asp-for="RequestTypeId" asp-items="Model.AvailableRequestName" class="form-select form-select-sm select2-supplier">
+                        <option value="">انتخاب‌ نوع درخواست...</option>
                     </select>
-                    <span asp-validation-for="SupplierId" class="text-danger small d-block text-end"></span>
+                    <span asp-validation-for="RequestTypeId" class="text-danger small d-block text-end"></span>
                 </div>
             </div>
 
@@ -491,6 +484,86 @@
                 });
                 $row.remove();
             });
+
+
+
+            $(document).on('click', '.save-item', function () {
+            const $row = $(this).closest('tr[data-index]');
+            const index = $row.data('index');
+            const prefix = 'Items';
+
+            // استخراج مقادیر
+            const categoryId = $row.find(`select[name="${prefix}[${index}].CategoryId"]`).val();
+            const groupId = $row.find(`select[name="${prefix}[${index}].GroupId"]`).val();
+            const statusId = $row.find(`select[name="${prefix}[${index}].StatusId"]`).val();
+            const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+            const unit = $row.find(`input[name="${prefix}[${index}].Unit"]`).val();
+            const projectId = $row.find(`select[name="${prefix}[${index}].ProjectId"]`).val();
+            const description = $row.find(`input[name="${prefix}[${index}].Description"]`).val();
+
+            // اعتبارسنجی فیلدهای الزامی
+            let errorMessages = [];
+
+            if (!categoryId) errorMessages.push("دسته‌بندی انتخاب نشده است.");
+            if (!groupId) errorMessages.push("گروه انتخاب نشده است.");
+            if (!statusId) errorMessages.push("طبقه انتخاب نشده است.");
+            if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+            if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("تعداد باید بزرگ‌تر از صفر باشد.");
+            if (!unit) errorMessages.push("واحد اندازه‌گیری وارد نشده است.");
+
+            // نمایش خطاها در صورت وجود
+            if (errorMessages.length > 0) {
+                const $errorBox = $row.find('.error-message-list');
+                if ($errorBox.length === 0) {
+                    // اگر ردیف خطا وجود ندارد، آن را ایجاد کنید
+                    $row.after(`
+                        <tr class="validation-row bg-danger bg-opacity-10" data-index="${index}">
+                            <td colspan="6" class="p-2">
+                                <div class="alert alert-danger p-2 mb-0 small error-message-list">
+                                    <ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                } else {
+                    $errorBox.html(`<ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
+                }
+                return;
+            } else {
+                // حذف خطاها در صورت معتبر بودن
+                $row.next(`tr.validation-row[data-index="${index}"]`).remove();
+            }
+
+            // دریافت متن‌های انتخابی برای نمایش خلاصه
+            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+            const projectText = projectId ? $row.find(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text() : "بدون پروژه";
+
+            // ایجاد متن خلاصه برای نمایش
+            const productSummary = `${categoryText} / ${groupText} / ${statusText}<br><strong>${productText}</strong>`;
+          
+
+            // بستن آکاردئون کالا و درج خلاصه متن
+            const $productCollapse = $row.find(`#productCollapse_${index}`);
+            const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
+
+            // تغییر محتوای هدر آکاردئون
+            $productHeader.html(`
+                <div dir="rtl" class="w-100">
+                    <div class="fw-bold">${productSummary}</div>
+                </div>
+            `);
+
+            // بستن آکاردئون
+            bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+
+            // تغییر استایل ردیف به حالت تأیید شده
+            $row.removeClass('table-warning').addClass('table-success');
+            $(this).removeClass('btn-outline-success').addClass('btn-success').attr('title', 'ویرایش');
+        });
 
             // فعال‌سازی اولیه Select2
             initSelect2($('.select2'));

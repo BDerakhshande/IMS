@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 {
     [DbContext(typeof(ProcurementManagementDbContext))]
-    [Migration("20250809054735_PurchaseRequestaddMig")]
-    partial class PurchaseRequestaddMig
+    [Migration("20250810082738_RequestTypeAddMig")]
+    partial class RequestTypeAddMig
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -106,9 +106,6 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("DueDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
@@ -120,10 +117,10 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Status")
+                    b.Property<int>("RequestTypeId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SupplierId")
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -132,7 +129,7 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SupplierId");
+                    b.HasIndex("RequestTypeId");
 
                     b.ToTable("PurchaseRequests");
                 });
@@ -188,6 +185,23 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
                     b.HasIndex("StatusId");
 
                     b.ToTable("PurchaseRequestItems");
+                });
+
+            modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.RequestType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RequestTypes");
                 });
 
             modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.Supplier", b =>
@@ -626,11 +640,13 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 
             modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.PurchaseRequest", b =>
                 {
-                    b.HasOne("IMS.Domain.ProcurementManagement.Entities.Supplier", "Supplier")
+                    b.HasOne("IMS.Domain.ProcurementManagement.Entities.RequestType", "RequestType")
                         .WithMany()
-                        .HasForeignKey("SupplierId");
+                        .HasForeignKey("RequestTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.Navigation("Supplier");
+                    b.Navigation("RequestType");
                 });
 
             modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.PurchaseRequestItem", b =>

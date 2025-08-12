@@ -44,8 +44,9 @@ namespace IMS.Domain.ProcurementManagement.Entities
         public int? ProjectId { get; set; }
         public Project? Project { get; set; }
 
-      
 
-       
+        public bool IsSupplyStopped { get; set; } = false;
+
+
     }
 }

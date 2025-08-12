@@ -21,8 +21,8 @@ namespace IMS.Application.ProcurementManagement.DTOs
         public string? GroupName { get; set; } // برای نمایش در UI
 
 
-        public int statusId { get; set; }
-        public Status Status { get; set; }
+        public int StatusId { get; set; }
+        public string? Status { get; set; }
 
         public int ProductId { get; set; }
         public string? ProductName { get; set; } // برای نمایش در UI
@@ -34,7 +34,17 @@ namespace IMS.Application.ProcurementManagement.DTOs
         public string? Unit { get; set; }
 
         public int? ProjectId { get; set; }
-        public string? ProjectName { get; set; } // برای نمایش
+        public string? ProjectName { get; set; }
+
+
+
+        // اینجا پراپرتی های مورد نیاز اضافه می شوند:
+        public decimal TotalStock { get; set; }
+        public decimal PendingRequests { get; set; }
+        public decimal NeedToSupply { get; set; }
+
+
+        public bool IsSupplyStopped { get; set; } = false;
 
     }
 }

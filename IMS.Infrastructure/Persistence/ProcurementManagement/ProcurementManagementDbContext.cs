@@ -20,6 +20,7 @@ namespace IMS.Infrastructure.Persistence.ProcurementManagement
         public DbSet<GoodsRequestItem> GoodsRequestItems { get; set; } = null!;
         public DbSet<PurchaseRequest> PurchaseRequests { get; set; } = null!;
         public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; } = null!;
+        public DbSet<RequestType> RequestTypes { get; set; } = null!;
         public DbSet<Supplier> Supplier { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -32,7 +33,14 @@ namespace IMS.Infrastructure.Persistence.ProcurementManagement
                 .HasForeignKey(g => g.GoodsRequestId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // تعریف رابطه FK بین PurchaseRequest و RequestType
+            modelBuilder.Entity<PurchaseRequest>()
+                .HasOne(pr => pr.RequestType)
+                .WithMany() // اگر رابطه معکوس ندارید، این حالت OK است
+                .HasForeignKey(pr => pr.RequestTypeId)
+                .OnDelete(DeleteBehavior.Restrict); // یا Cascade بنا به نیاز شما
         }
+
 
     }
 }

@@ -32,7 +32,7 @@ namespace IMS.Application.ProcurementManagement.Service
         {
             // 1. بارگذاری درخواست‌ها و آیتم‌ها (بدون Include دسته‌بندی‌ها، گروه‌ها و محصولات)
             var purchaseRequests = await _procurementManagementDbContext.PurchaseRequests
-                .Include(pr => pr.Supplier)
+                .Include(pr => pr.RequestType)
                 .Include(pr => pr.Items)  // فقط آیتم‌ها را Include می‌کنیم
                 .ToListAsync(cancellationToken);
 
@@ -114,49 +114,13 @@ namespace IMS.Application.ProcurementManagement.Service
             // 7. تبدیل به DTO (پیاده‌سازی MapToDto بر اساس مدل شما)
             return purchaseRequests.Select(pr => MapToDto(pr)).ToList();
         }
-        public async Task<PurchaseRequestDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
-        {
-            var pr = await _procurementManagementDbContext.PurchaseRequests
-                .Include(p => p.Supplier)
-                .Include(p => p.Items)
-                    .ThenInclude(i => i.Category)
-                .Include(p => p.Items)
-                    .ThenInclude(i => i.Group)
-                .Include(p => p.Items)
-                    .ThenInclude(i => i.Product)
-                .Include(p => p.Items)
-                    .ThenInclude(i => i.Status)
-                .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-
-            if (pr == null)
-                return null;
-
-            var projectIds = pr.Items.Where(i => i.ProjectId.HasValue)
-                                    .Select(i => i.ProjectId!.Value)
-                                    .Distinct()
-                                    .ToList();
-
-            var projects = await _projectContext.Projects
-                .Where(p => projectIds.Contains(p.Id))
-                .ToListAsync(cancellationToken);
-
-            foreach (var item in pr.Items)
-            {
-                if (item.ProjectId.HasValue)
-                    item.Project = projects.FirstOrDefault(p => p.Id == item.ProjectId.Value);
-            }
-
-            return MapToDto(pr);
-        }
-
         public async Task<int> CreateAsync(PurchaseRequestDto dto, CancellationToken cancellationToken = default)
         {
             var entity = new PurchaseRequest
             {
                 RequestNumber = dto.RequestNumber,
                 RequestDate = dto.RequestDate,
-                DueDate = dto.DueDate,
-                SupplierId = dto.SupplierId,
+                RequestTypeId = dto.RequestTypeId,
                 Title = dto.Title,
                 Notes = dto.Notes,
                 Status = dto.Status,
@@ -164,7 +128,7 @@ namespace IMS.Application.ProcurementManagement.Service
                 {
                     CategoryId = i.CategoryId,
                     GroupId = i.GroupId,
-                    StatusId = i.statusId,
+                    StatusId = i.StatusId,
                     ProductId = i.ProductId,
                     Description = i.Description,
                     Quantity = i.Quantity,
@@ -179,6 +143,99 @@ namespace IMS.Application.ProcurementManagement.Service
             return entity.Id;
         }
 
+
+
+        public async Task<PurchaseRequestDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+        {
+            // 1. بارگذاری درخواست خرید با آیتم‌ها و نوع درخواست (بدون Include سلسله‌مراتب آیتم‌ها)
+            var pr = await _procurementManagementDbContext.PurchaseRequests
+                .Include(p => p.RequestType)
+                .Include(p => p.Items)
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+            if (pr == null)
+                return null;
+
+            // 2. استخراج شناسه‌های دسته‌بندی، گروه، محصول، وضعیت آیتم‌ها از آیتم‌ها
+            var categoryIds = pr.Items
+                .Where(i => i.CategoryId != 0)
+                .Select(i => i.CategoryId)
+                .Distinct()
+                .ToList();
+
+            var groupIds = pr.Items
+                .Where(i => i.GroupId != 0)
+                .Select(i => i.GroupId)
+                .Distinct()
+                .ToList();
+
+            var productIds = pr.Items
+                .Where(i => i.ProductId != 0)
+                .Select(i => i.ProductId)
+                .Distinct()
+                .ToList();
+
+            var statusIds = pr.Items
+                .Where(i => i.StatusId != 0)
+                .Select(i => i.StatusId)
+                .Distinct()
+                .ToList();
+
+            // 3. بارگذاری داده‌های سلسله‌مراتب کالا از DbContext انبار
+            var categories = await _warehouseContext.Categories
+                .Where(c => categoryIds.Contains(c.Id))
+                .ToListAsync(cancellationToken);
+
+            var groups = await _warehouseContext.Groups
+                .Where(g => groupIds.Contains(g.Id))
+                .ToListAsync(cancellationToken);
+
+            var products = await _warehouseContext.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync(cancellationToken);
+
+            var statuses = await _warehouseContext.Statuses
+                .Where(s => statusIds.Contains(s.Id))
+                .ToListAsync(cancellationToken);
+
+            // 4. تخصیص داده‌های انبار به آیتم‌ها
+            foreach (var item in pr.Items)
+            {
+                item.Category = categories.FirstOrDefault(c => c.Id == item.CategoryId);
+                item.Group = groups.FirstOrDefault(g => g.Id == item.GroupId);
+                item.Product = products.FirstOrDefault(p => p.Id == item.ProductId);
+                item.Status = statuses.FirstOrDefault(s => s.Id == item.StatusId);
+            }
+
+            // 5. استخراج شناسه‌های پروژه‌ها از آیتم‌هایی که ProjectId دارند
+            var projectIds = pr.Items
+                .Where(i => i.ProjectId.HasValue)
+                .Select(i => i.ProjectId!.Value)
+                .Distinct()
+                .ToList();
+
+            // 6. بارگذاری پروژه‌ها از DbContext پروژه‌ها
+            var projects = await _projectContext.Projects
+                .Where(p => projectIds.Contains(p.Id))
+                .ToListAsync(cancellationToken);
+
+            // 7. اختصاص پروژه‌ها به آیتم‌ها
+            foreach (var item in pr.Items)
+            {
+                if (item.ProjectId.HasValue)
+                    item.Project = projects.FirstOrDefault(p => p.Id == item.ProjectId.Value);
+            }
+            foreach (var i in pr.Items)
+            {
+                Console.WriteLine($"Entity ItemId={i.Id}, StatusId={i.StatusId}");
+            }
+
+            // 8. تبدیل به DTO و برگرداندن نتیجه
+            return MapToDto(pr);
+        }
+
+  
+
         public async Task<bool> UpdateAsync(PurchaseRequestDto dto, CancellationToken cancellationToken = default)
         {
             var entity = await _procurementManagementDbContext.PurchaseRequests
@@ -188,35 +245,65 @@ namespace IMS.Application.ProcurementManagement.Service
             if (entity == null)
                 return false;
 
+            // به‌روزرسانی اطلاعات هدر درخواست خرید
             entity.RequestNumber = dto.RequestNumber;
             entity.RequestDate = dto.RequestDate;
-            entity.DueDate = dto.DueDate;
-            entity.SupplierId = dto.SupplierId;
+            entity.RequestTypeId = dto.RequestTypeId;
             entity.Title = dto.Title;
             entity.Notes = dto.Notes;
             entity.Status = dto.Status;
 
-            // حذف آیتم‌های قبلی
-            _procurementManagementDbContext.PurchaseRequestItems.RemoveRange(entity.Items);
+            // لیست آیدی‌های آیتم‌های جدید از DTO
+            var dtoItemIds = dto.Items.Where(i => i.Id != 0).Select(i => i.Id).ToList();
 
-            // اضافه کردن آیتم‌های جدید
-            entity.Items = dto.Items.Select(i => new PurchaseRequestItem
+            // --- حذف آیتم‌هایی که در DTO وجود ندارند ---
+            var itemsToRemove = entity.Items
+                .Where(ei => !dtoItemIds.Contains(ei.Id))
+                .ToList();
+
+            _procurementManagementDbContext.PurchaseRequestItems.RemoveRange(itemsToRemove);
+
+            // --- بروزرسانی آیتم‌های موجود ---
+            foreach (var existingItem in entity.Items.Where(ei => dtoItemIds.Contains(ei.Id)))
             {
-                PurchaseRequestId = entity.Id,
-                CategoryId = i.CategoryId,
-                GroupId = i.GroupId,
-                StatusId = i.statusId,
-                ProductId = i.ProductId,
-                Description = i.Description,
-                Quantity = i.Quantity,
-                Unit = i.Unit,
-                ProjectId = i.ProjectId
-            }).ToList();
+                var dtoItem = dto.Items.First(i => i.Id == existingItem.Id);
+
+                existingItem.CategoryId = dtoItem.CategoryId;
+                existingItem.GroupId = dtoItem.GroupId;
+                existingItem.StatusId = dtoItem.StatusId;
+                existingItem.ProductId = dtoItem.ProductId;
+                existingItem.Description = dtoItem.Description;
+                existingItem.Quantity = dtoItem.Quantity;
+                existingItem.Unit = dtoItem.Unit;
+                existingItem.ProjectId = dtoItem.ProjectId;
+            }
+
+            // --- اضافه کردن آیتم‌های جدید ---
+            var newItems = dto.Items
+                .Where(i => i.Id == 0)
+                .Select(i => new PurchaseRequestItem
+                {
+                    PurchaseRequestId = entity.Id,
+                    CategoryId = i.CategoryId,
+                    GroupId = i.GroupId,
+                    StatusId = i.StatusId,
+                    ProductId = i.ProductId,
+                    Description = i.Description,
+                    Quantity = i.Quantity,
+                    Unit = i.Unit,
+                    ProjectId = i.ProjectId
+                })
+                .ToList();
+
+            if (newItems.Any())
+                _procurementManagementDbContext.PurchaseRequestItems.AddRange(newItems);
 
             await _procurementManagementDbContext.SaveChangesAsync(cancellationToken);
 
             return true;
         }
+
+
 
         public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
         {
@@ -237,9 +324,8 @@ namespace IMS.Application.ProcurementManagement.Service
                 Id = pr.Id,
                 RequestNumber = pr.RequestNumber,
                 RequestDate = pr.RequestDate,
-                DueDate = pr.DueDate,
-                SupplierId = pr.SupplierId,
-                SupplierName = pr.Supplier?.Name,
+                RequestTypeId = pr.RequestTypeId,
+                RequestTypeName = pr.RequestType.Name,
                 Title = pr.Title,
                 Notes = pr.Notes,
                 Status = pr.Status,
@@ -251,7 +337,8 @@ namespace IMS.Application.ProcurementManagement.Service
                     CategoryName = i.Category?.Name,
                     GroupId = i.GroupId,
                     GroupName = i.Group?.Name,
-                    Status = i.Status,
+                    StatusId = i.StatusId,
+                    Status = i.Status?.Name,
                     ProductId = i.ProductId,
                     ProductName = i.Product?.Name,
                     Description = i.Description,

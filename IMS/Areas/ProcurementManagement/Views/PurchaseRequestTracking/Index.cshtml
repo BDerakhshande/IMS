@@ -1,13 +1,10 @@
-﻿@using IMS.Application.ProcurementManagement.DTOs
-@using System.Reflection
+﻿@using System.Reflection
 @using System.ComponentModel
 @model List<IMS.Application.ProcurementManagement.DTOs.PurchaseRequestDto>
-
 @{
     ViewData["Title"] = "لیست درخواست‌های خرید";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 
 <div class="container-fluid py-2" dir="rtl">
     <div class="row">
@@ -33,13 +30,6 @@
                                        style="height: 28px; font-size: 0.8rem;">
                             </div>
                         </div>
-
-                        <a asp-action="Create"
-                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
-                           style="height: 28px; font-size: 0.8rem;">
-                            <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
-                            <span>درخواست جدید</span>
-                        </a>
                     </div>
                 </div>
 
@@ -60,80 +50,45 @@
                                     <tr>
                                         <th class="text-center py-1">شماره درخواست</th>
                                         <th class="text-center py-1">تاریخ درخواست</th>
-                                        <th class="text-center py-1">نوع درخواست</th>
                                         <th class="text-center py-1">عنوان</th>
-                                        <th class="text-center py-1">تعداد آیتم‌ها</th>
                                         <th class="text-center py-1">وضعیت</th>
+                                        <th class="text-center py-1">تعداد آیتم‌ها</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.8rem;">
-                                    @foreach (var item in Model)
+                                    @foreach (var pr in Model)
                                     {
                                         <tr>
-                                            <td class="text-center fw-bold py-1 align-middle">@item.RequestNumber</td>
-                                            <td class="text-center py-1 align-middle">@item.RequestDate.ToString("yyyy/MM/dd")</td> 
-                                            <td class="text-center py-1 align-middle">@item.RequestTypeName</td> 
-                                            <td class="text-center py-1 align-middle">@item.Title</td>
-                                            <td class="text-center py-1 align-middle">@item.Items.Count</td>
+                                            <td class="text-center fw-bold py-1 align-middle">@pr.RequestNumber</td>
+                                            <td class="text-center py-1 align-middle">@pr.RequestDate.ToString("yyyy/MM/dd")</td>
+                                            <td class="text-center py-1 align-middle">@pr.Title</td>
                                             <td class="text-center py-1 align-middle">
                                                 @{
-                                                    var description = item.Status.GetType()
-                                                    .GetField(item.Status.ToString())
+                                                    var description = pr.Status.GetType()
+                                                    .GetField(pr.Status.ToString())
                                                     .GetCustomAttribute<DescriptionAttribute>()?
-                                                    .Description ?? item.Status.ToString();
+                                                    .Description ?? pr.Status.ToString();
                                                 }
                                                 @description
                                             </td>
-
+                                            <td class="text-center py-1 align-middle">@pr.Items.Count()</td>
                                             <td class="text-center py-1 align-middle">
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <a asp-action="Edit"
-                                                       asp-route-id="@item.Id"
-                                                       class="btn btn-sm btn-outline-warning px-1"
-                                                       style="font-size: 0.75rem; min-width: 26px; height: 26px;"
-                                                       title="ویرایش">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
+                                                <a href="@Url.Action("Details", "PurchaseRequestTracking", new { purchaseRequestId = pr.Id })"
+                                                   class="btn btn-outline-primary btn-sm px-2"
+                                                   style="font-size: 0.75rem; height: 26px;">
+                                                    <i class="fas fa-eye me-1"></i> مشاهده وضعیت
+                                                </a>
 
-                                                    <form asp-action="Delete" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.Id" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-outline-danger px-1"
-                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
-                                                                title="حذف"
-                                                                onclick="return confirm('آیا از حذف این درخواست مطمئن هستید؟');">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </button>
-                                                    </form>
+                                            </td>
+                                        </tr>
 
-                                                    <!-- دکمه درخواست باز -->
-                                                    <form asp-action="SetStatusOpen" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.Id" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-outline-info px-1"
-                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
-                                                                title="درخواست باز">
-                                                            باز
-                                                        </button>
-                                                    </form>
-
-                                                    <!-- دکمه تحویل کامل شده -->
-                                                    <form asp-action="SetStatusCompleted" method="post" class="d-inline">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="id" value="@item.Id" />
-                                                        <button type="submit"
-                                                                class="btn btn-sm btn-outline-success px-1"
-                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
-                                                                title="تحویل کامل شده">
-                                                            کامل
-                                                        </button>
-                                                    </form>
+                                        <tr id="items-@pr.Id" style="display:none;">
+                                            <td colspan="6">
+                                                <div id="items-container-@pr.Id">
+                                                    <em class="text-muted small">برای مشاهده آیتم‌ها روی دکمه کلیک کنید</em>
                                                 </div>
                                             </td>
-
                                         </tr>
                                     }
                                 </tbody>
@@ -175,7 +130,7 @@
             const table = document.querySelector('table');
             if (!table) return;
 
-            const allRows = Array.from(table.querySelectorAll('tbody tr'));
+            const allRows = Array.from(table.querySelectorAll('tbody tr:not([id^="items-"])'));
             let filteredRows = allRows;
             let currentPage = 1;
 
@@ -259,7 +214,6 @@
                     const cells = row.querySelectorAll('td:not(:last-child)');
                     return Array.from(cells).some(cell =>
                         cell.textContent.toLowerCase().includes(searchTerm)
-                    );
                 });
 
                 currentPage = 1;
@@ -271,5 +225,14 @@
             setupPagination();
             updateTableDisplay();
         });
+
+        function toggleItems(id) {
+            var row = document.getElementById('items-' + id);
+            if (row.style.display === 'none') {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
     </script>
 }

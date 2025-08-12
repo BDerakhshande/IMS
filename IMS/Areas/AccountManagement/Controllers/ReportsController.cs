@@ -250,7 +250,12 @@ namespace IMS.Areas.AccountManagement.Controllers
                 try
                 {
                     var parsed = PersianDateTime.Parse(persianDate);
-                    result = parsed.ToDateTime();
+                    var dt = parsed.ToDateTime();
+                    // چک معتبر بودن تاریخ
+                    if (dt == DateTime.MinValue || dt == default)
+                        return false;
+
+                    result = dt;
                     return true;
                 }
                 catch
@@ -258,6 +263,7 @@ namespace IMS.Areas.AccountManagement.Controllers
                     return false;
                 }
             }
+
 
             if (!string.IsNullOrEmpty(viewModel.FromDate))
                 TryParsePersianDate(viewModel.FromDate, out fromDate);
@@ -272,10 +278,15 @@ namespace IMS.Areas.AccountManagement.Controllers
                 .Include(t => t.CostCenter)
                 .AsQueryable();
 
-            if (fromDate.HasValue)
+            if (!string.IsNullOrEmpty(viewModel.FromDate) && TryParsePersianDate(viewModel.FromDate, out fromDate))
+            {
+                // فقط اگر مقدار معتبر داریم فیلتر کنیم
                 query = query.Where(t => t.DocumentDate >= fromDate.Value);
-            if (toDate.HasValue)
+            }
+            if (!string.IsNullOrEmpty(viewModel.ToDate) && TryParsePersianDate(viewModel.ToDate, out toDate))
+            {
                 query = query.Where(t => t.DocumentDate <= toDate.Value.Date.AddDays(1).AddTicks(-1));
+            }
 
             if (viewModel.MinAmount.HasValue || viewModel.MaxAmount.HasValue)
             {
@@ -320,7 +331,6 @@ namespace IMS.Areas.AccountManagement.Controllers
                 var worksheet = workbook.Worksheets.Add("گزارش تراکنش‌ها");
                 var currentRow = 1;
 
-                worksheet.Cell(currentRow, 1).Value = "تاریخ";
                 worksheet.Cell(currentRow, 2).Value = "کد کل";
                 worksheet.Cell(currentRow, 3).Value = "کد معین";
                 worksheet.Cell(currentRow, 4).Value = "تفصیل ۱";
@@ -335,7 +345,7 @@ namespace IMS.Areas.AccountManagement.Controllers
                 foreach (var t in transactions)
                 {
                     currentRow++;
-                    worksheet.Cell(currentRow, 1).Value = t.Date.ToString("yyyy/MM/dd", new CultureInfo("fa-IR"));
+                   
                     worksheet.Cell(currentRow, 2).Value = t.MainAccount;
                     worksheet.Cell(currentRow, 3).Value = t.SubAccount;
                     worksheet.Cell(currentRow, 4).Value = t.DetailAccount1;

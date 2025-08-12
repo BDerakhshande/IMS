@@ -9,13 +9,10 @@ namespace IMS.Domain.ProcurementManagement.Enums
 {
     public enum Status
     {
-        [Description("تایید")]
-        Confirmation,
+        [Description("درخواست باز")]
+        Open,
 
-        [Description("در انتظار تایید")]
-        AwaitingApproval,
-
-        [Description("رد")]
-        Reject
+        [Description("تحویل کامل شده")]
+        Completed
     }
 }

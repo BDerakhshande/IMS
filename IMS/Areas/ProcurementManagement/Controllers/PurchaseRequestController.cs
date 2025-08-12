@@ -50,9 +50,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             // مقداردهی RequestDate با تاریخ امروز به صورت شمسی
             vm.RequestDate = DateTime.Now;
             vm.RequestDateString = ConvertToPersianDateString(vm.RequestDate);
-            vm.DueDate = DateTime.Now;
-            vm.DueDateString = vm.DueDate.HasValue ? ConvertToPersianDateString(vm.DueDate.Value) : string.Empty;
-
+           
 
             // گرفتن شماره درخواست بعدی
             vm.RequestNumber = await GetNextRequestNumberAsync();
@@ -108,8 +106,10 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 return NotFound();
 
             var vm = MapToViewModel(dto);
-
             await PopulateSelectListsAsync(vm);
+
+            // تبدیل تاریخ میلادی به رشته تاریخ شمسی برای فرم
+            vm.RequestDateString = ConvertToPersianDateString(vm.RequestDate);
 
             return View(vm);
         }
@@ -122,11 +122,19 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             if (id != vm.Id)
                 return BadRequest();
 
-            if (!ModelState.IsValid)
+            if (!string.IsNullOrWhiteSpace(vm.RequestDateString))
             {
-                await PopulateSelectListsAsync(vm);
-                return View(vm);
+                try
+                {
+                    vm.RequestDate = ParsePersianDate(vm.RequestDateString);
+                }
+                catch (Exception)
+                {
+                    ModelState.AddModelError(nameof(vm.RequestDateString), "تاریخ وارد شده نامعتبر است.");
+                }
             }
+
+          
 
             var dto = MapToDto(vm);
 
@@ -135,10 +143,10 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             if (!updated)
                 return NotFound();
 
-            return RedirectToAction(nameof(Details), new { id });
+            return RedirectToAction(nameof(Index), new { id });
         }
 
-      
+
         // POST: ProcurementManagement/PurchaseRequest/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -162,8 +170,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 Id = vm.Id,
                 RequestNumber = vm.RequestNumber,
                 RequestDate = vm.RequestDate,
-                DueDate = vm.DueDate,
-                SupplierId = vm.SupplierId,
+                RequestTypeId = vm.RequestTypeId,
                 Title = vm.Title,
                 Notes = vm.Notes,
                 Status = vm.Status,
@@ -173,8 +180,8 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     PurchaseRequestId = i.PurchaseRequestId,
                     CategoryId = i.CategoryId,
                     GroupId = i.GroupId,
-                    statusId = i.StatusId,
-                    Status = i.Status,
+                    StatusId = i.StatusId,
+                    
                     ProductId = i.ProductId,
                     Description = i.Description,
                     Quantity = i.Quantity,
@@ -202,14 +209,18 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         private PurchaseRequestViewModel MapToViewModel(PurchaseRequestDto dto)
         {
+            foreach (var i in dto.Items)
+            {
+                Console.WriteLine($"DTO ItemId: {i.Id}, StatusId: {i.StatusId}");
+            }
+
             var vm = new PurchaseRequestViewModel
             {
                 Id = dto.Id,
                 RequestNumber = dto.RequestNumber,
                 RequestDate = dto.RequestDate,
-                DueDate = dto.DueDate,
-                SupplierId = dto.SupplierId,
-                SupplierName = dto.SupplierName,
+                RequestTypeId = dto.RequestTypeId,
+                RequestTypeName = dto.RequestTypeName,
                 Title = dto.Title,
                 Notes = dto.Notes,
                 Status = dto.Status,
@@ -221,7 +232,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     CategoryName = i.CategoryName,
                     GroupId = i.GroupId,
                     GroupName = i.GroupName,
-                    StatusId = i.statusId,
+                    StatusId = i.StatusId,
                     Status = i.Status,
                     ProductId = i.ProductId,
                     ProductName = i.ProductName,
@@ -241,22 +252,19 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         private async Task PopulateSelectListsAsync(PurchaseRequestViewModel vm)
         {
-            vm.AvailableSuppliers = await GetSuppliersAsync();
-
-            vm.AvailableStatuses = new List<SelectListItem>
-    {
-        new SelectListItem("در انتظار تایید", ((int)Status.AwaitingApproval).ToString()),
-        new SelectListItem("تایید", ((int)Status.Confirmation).ToString()),
-        new SelectListItem("رد", ((int)Status.Reject).ToString())
-    };
+            vm.AvailableRequestName = await GetSuppliersAsync();
 
             var categories = await _purchaseRequestService.GetCategoriesAsync();
+            var projects = await GetProjectsAsync();
 
             foreach (var item in vm.Items)
             {
+
+                // پر کردن دسته بندی
                 if (item.AvailableCategories == null || !item.AvailableCategories.Any())
                     item.AvailableCategories = categories;
 
+                // پر کردن گروه‌ها بر اساس دسته‌بندی (اگر دسته‌بندی انتخاب شده است)
                 if (item.CategoryId != 0)
                 {
                     item.AvailableGroups = await _purchaseRequestService.GetGroupsByCategoryAsync(item.CategoryId);
@@ -266,27 +274,37 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     item.AvailableGroups = new List<SelectListItem>();
                 }
 
+                // پر کردن وضعیت‌ها بر اساس گروه (اگر گروه انتخاب شده است)
                 if (item.GroupId != 0)
                 {
                     item.AvailableStatuses = await _purchaseRequestService.GetStatusesByGroupAsync(item.GroupId);
                 }
                 else
                 {
-                    item.AvailableStatuses = new List<SelectListItem>();
+                    item.AvailableStatuses = new List<SelectListItem>
+        {
+            new SelectListItem("انتخاب وضعیت...", "")
+        };
                 }
+                Console.WriteLine($"ItemId: {item.Id}, StatusId: {item.StatusId}");
 
+                // پر کردن محصولات بر اساس وضعیت (اگر وضعیت انتخاب شده است)
                 if (item.StatusId != 0)
                 {
                     item.AvailableProducts = await _purchaseRequestService.GetProductsByStatus(item.StatusId);
                 }
                 else
                 {
-                    item.AvailableProducts = new List<SelectListItem>();
+                    item.AvailableProducts = new List<SelectListItem>
+        {
+            new SelectListItem("انتخاب کالا...", "")
+        };
                 }
 
+                // پروژه‌ها را حتماً مقداردهی کن
                 if (item.AvailableProjects == null || !item.AvailableProjects.Any())
                 {
-                    item.AvailableProjects = await GetProjectsAsync();
+                    item.AvailableProjects = projects;
                 }
             }
         }
@@ -294,7 +312,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         public async Task<List<SelectListItem>> GetSuppliersAsync()
         {
-            var suppliers = await _procurementManagementDbContext.Supplier
+            var requestTypes = await _procurementManagementDbContext.RequestTypes
                 .Select(s => new SelectListItem
                 {
                     Value = s.Id.ToString(),
@@ -302,7 +320,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 })
                 .ToListAsync();
 
-            return suppliers;
+            return requestTypes;
         }
 
 
@@ -399,6 +417,32 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             // تبدیل عدد به رشته و برگرداندن آن
             return nextNumber.ToString();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetStatusOpen(int id)
+        {
+            var pr = await _procurementManagementDbContext.PurchaseRequests.FindAsync(id);
+            if (pr == null) return NotFound();
+
+            pr.Status = Status.Open;
+
+            await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetStatusCompleted(int id)
+        {
+            var pr = await _procurementManagementDbContext.PurchaseRequests.FindAsync(id);
+            if (pr == null) return NotFound();
+
+            pr.Status = Status.Completed;
+
+            await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
+
+            return RedirectToAction(nameof(Index));
         }
 
     }

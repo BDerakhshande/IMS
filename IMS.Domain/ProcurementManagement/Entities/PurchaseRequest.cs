@@ -18,16 +18,13 @@ namespace IMS.Domain.ProcurementManagement.Entities
 
         public DateTime RequestDate { get; set; } // تاریخ درخواست
 
-        public DateTime? DueDate { get; set; } // تاریخ سررسید
-
-        public int? SupplierId { get; set; }
-        public Supplier? Supplier { get; set; }
-
         [MaxLength(250)]
         public string? Title { get; set; } // عنوان درخواست
 
         public string? Notes { get; set; } // توضیحات کلی
 
+        public int RequestTypeId { get; set; } // نوع درخواست
+        public RequestType RequestType { get; set; }
         public Status Status { get; set; }
 
         public ICollection<PurchaseRequestItem> Items { get; set; } = new List<PurchaseRequestItem>();

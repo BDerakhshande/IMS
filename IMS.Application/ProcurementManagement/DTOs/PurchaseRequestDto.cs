@@ -15,11 +15,11 @@ namespace IMS.Application.ProcurementManagement.DTOs
 
         public DateTime RequestDate { get; set; }
 
-        public DateTime? DueDate { get; set; }
+     
 
-        public int? SupplierId { get; set; }
+        public int RequestTypeId { get; set; }
 
-        public string? SupplierName { get; set; } // برای نمایش نام تامین‌کننده
+        public string? RequestTypeName { get; set; } // برای نمایش نام تامین‌کننده
 
         public string? Title { get; set; }
 
