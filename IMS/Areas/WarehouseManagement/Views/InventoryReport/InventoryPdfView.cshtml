@@ -1,6 +1,7 @@
 ﻿@using IMS.Models.ProMan
 @model InventoryReportPdfViewModel
 
+<<<<<<< HEAD
 @functions {
     public string CleanString(string input)
     {
@@ -12,6 +13,15 @@
 
 @{
     Layout = null;
+=======
+@{
+    Layout = null;
+    string ToPersianDate(DateTime date)
+    {
+        var pc = new System.Globalization.PersianCalendar();
+        return $"{pc.GetYear(date)}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
+    }
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -19,19 +29,162 @@
     <meta charset="utf-8" />
     <title>گزارش موجودی انبار</title>
     <style>
+<<<<<<< HEAD
         /* استایل‌ها ... */
     </style>
 </head>
 <body>
 
     <h1>گزارش موجودی انبار</h1>
+=======
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a4a5a;
+        }
+
+            .header h1 {
+                color: #1a4a5a;
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+        .report-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        /* Filters Section */
+        .filters {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-right: 4px solid #1a4a5a;
+        }
+
+            .filters h4 {
+                color: #1a4a5a;
+                margin-bottom: 10px;
+                font-size: 16px;
+            }
+
+            .filters ul {
+                list-style-type: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .filters li {
+                background-color: #e8f4fc;
+                padding: 5px 10px;
+                border-radius: 3px;
+                font-size: 13px;
+            }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+            .data-table th {
+                background-color: #1a4a5a;
+                color: white;
+                padding: 12px 8px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .data-table td {
+                padding: 10px 8px;
+                border-bottom: 1px solid #ddd;
+                text-align: center;
+                font-size: 13px;
+            }
+
+            .data-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+
+        /* Summary Row Styles */
+        .summary-row {
+            font-weight: bold;
+            background-color: #f1f1f1 !important;
+        }
+
+            .summary-row td {
+                border-top: 2px solid #1a4a5a;
+                border-bottom: 2px solid #1a4a5a;
+                padding: 12px 8px;
+            }
+
+        /* Print Styles */
+        @@media print {
+            body {
+                padding: 0;
+                font-size: 12px;
+            }
+
+            .header {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+
+            .data-table {
+                page-break-inside: auto;
+            }
+
+                .data-table tr {
+                    page-break-inside: avoid;
+                }
+
+            .summary-row {
+                page-break-before: avoid;
+                page-break-after: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>گزارش موجودی انبار</h1>
+        <div class="report-info">
+            <span>تاریخ استخراج گزارش: @ToPersianDate(DateTime.Now)</span>
+            <span>تعداد رکوردها: @(Model.Items?.Count ?? 0)</span>
+        </div>
+    </div>
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
     <section class="filters">
         <h4>فیلترهای اعمال شده:</h4>
         <ul>
-            @* انبارها *@
             @if (Model.Filter.Warehouses != null && Model.Filter.Warehouses.Any())
             {
+<<<<<<< HEAD
                 <li>
                     انبارها:
                     @string.Join(", ", Model.Filter.Warehouses
@@ -44,13 +197,27 @@
                              }))
                 </li>
             }
+=======
+            <li>
+                انبارها:
+                @string.Join(", ", Model.Filter.Warehouses
+                .Where(w => w.WarehouseId > 0)
+                .Select(w =>
+                {
+                    if (Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId))
+                        return Model.WarehouseNames[w.WarehouseId];
+                    return $"انبار {w.WarehouseId}";
+                }))
+            </li>
+                        }
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
-            @* دسته‌بندی *@
             @if (Model.Filter.CategoryId.HasValue)
             {
                 <li>
                     دسته‌بندی:
                     @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
+<<<<<<< HEAD
                         ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
                         : Model.Filter.CategoryId.Value.ToString())
                 </li>
@@ -62,10 +229,21 @@
                     زون‌ها:
                     @string.Join(", ", Model.ZoneNames.Values.Select(z => CleanString(z)))
                 </li>
+=======
+                                    ? Model.CategoryNames[Model.Filter.CategoryId.Value]
+                                    : Model.Filter.CategoryId.Value.ToString())
+            </li>
+                        }
+
+            @if (Model.ZoneNames != null && Model.ZoneNames.Any())
+            {
+                <li>زون‌ها: @string.Join(", ", Model.ZoneNames.Values)</li>
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
             }
 
             @if (Model.SectionNames != null && Model.SectionNames.Any())
             {
+<<<<<<< HEAD
                 <li>
                     بخش‌ها:
                     @string.Join(", ", Model.SectionNames.Values.Select(s => CleanString(s)))
@@ -73,39 +251,62 @@
             }
 
             @* گروه *@
+=======
+                <li>بخش‌ها: @string.Join(", ", Model.SectionNames.Values)</li>
+            }
+
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
             @if (Model.Filter.GroupId.HasValue)
             {
                 <li>
                     گروه:
                     @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
+<<<<<<< HEAD
                         ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
                         : Model.Filter.GroupId.Value.ToString())
                 </li>
             }
+=======
+                                    ? Model.GroupNames[Model.Filter.GroupId.Value]
+                                    : Model.Filter.GroupId.Value.ToString())
+            </li>
+                        }
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
-            @* وضعیت *@
             @if (Model.Filter.StatusId.HasValue)
             {
                 <li>
                     وضعیت:
                     @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
+<<<<<<< HEAD
                         ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
                         : Model.Filter.StatusId.Value.ToString())
                 </li>
             }
+=======
+                                    ? Model.StatusNames[Model.Filter.StatusId.Value]
+                                    : Model.Filter.StatusId.Value.ToString())
+            </li>
+                        }
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
-            @* کالا *@
             @if (Model.Filter.ProductId.HasValue)
             {
                 <li>
                     کالا:
                     @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
+<<<<<<< HEAD
                         ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
                         : Model.Filter.ProductId.Value.ToString())
                 </li>
             }
+=======
+                                    ? Model.ProductNames[Model.Filter.ProductId.Value]
+                                    : Model.Filter.ProductId.Value.ToString())
+            </li>
+                        }
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
-            @* جستجوی محصول *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductSearch))
             {
                 <li>جستجوی محصول: @Model.Filter.ProductSearch</li>
@@ -113,9 +314,10 @@
         </ul>
     </section>
 
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
+<<<<<<< HEAD
                 <th>نام انبار</th>
                 <th>قسمت</th>
                 <th>بخش</th>
@@ -124,6 +326,16 @@
                 <th>طبقه</th>
                 <th>کالا</th>
                 <th>موجودی</th>
+=======
+                <th width="15%">نام انبار</th>
+                <th width="12%">زون</th>
+                <th width="12%">بخش</th>
+                <th width="15%">دسته‌بندی</th>
+                <th width="12%">گروه</th>
+                <th width="10%">وضعیت</th>
+                <th width="15%">کالا</th>
+                <th width="9%">موجودی</th>
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
             </tr>
         </thead>
         <tbody>
@@ -142,21 +354,23 @@
                         <td>@item.Quantity.ToString("N0")</td>
                     </tr>
                 }
+                <!-- سطر جمع کل -->
+                <tr class="summary-row">
+                    <td colspan="7">جمع کل موجودی</td>
+                    <td>@((Model.Items?.Sum(i => i.Quantity) ?? 0).ToString("N0"))</td>
+                </tr>
             }
             else
             {
                 <tr>
+<<<<<<< HEAD
                     <td colspan="8" style="text-align:center;">داده‌ای برای نمایش وجود ندارد</td>
+=======
+                    <td colspan="8" style="text-align: center; padding: 20px;">داده‌ای برای نمایش وجود ندارد</td>
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
                 </tr>
             }
         </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="7">جمع کل موجودی</td>
-                <td>@(Model.Items?.Sum(i => i.Quantity) ?? 0)</td>
-            </tr>
-        </tfoot>
     </table>
-
 </body>
 </html>

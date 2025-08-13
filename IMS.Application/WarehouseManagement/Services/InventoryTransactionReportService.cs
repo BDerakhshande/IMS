@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Domain.WarehouseManagement.Enums;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -382,5 +383,65 @@ namespace IMS.Application.WarehouseManagement.Services
                     Text = p.Name
                 }).ToListAsync();
         }
+
+
+
+        public async Task<byte[]> ExportReportToExcelAsync(InventoryTransactionReportItemDto filter)
+        {
+            var data = await GetReportAsync(filter);
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Inventory Transaction Report");
+
+            // هدر ستون‌ها
+            worksheet.Cell(1, 1).Value = "تاریخ";
+            worksheet.Cell(1, 2).Value = "شماره سند";
+            worksheet.Cell(1, 3).Value = "نوع سند";
+            worksheet.Cell(1, 4).Value = "نوع تبدیل";
+            worksheet.Cell(1, 5).Value = "دسته‌بندی";
+            worksheet.Cell(1, 6).Value = "گروه";
+            worksheet.Cell(1, 7).Value = "طبقه";
+            worksheet.Cell(1, 8).Value = "کالا";
+            worksheet.Cell(1, 9).Value = "انبار مبدأ";
+            worksheet.Cell(1, 10).Value = "قسمت مبدأ";
+            worksheet.Cell(1, 11).Value = "بخش مبدأ";
+            worksheet.Cell(1, 12).Value = "انبار مقصد";
+            worksheet.Cell(1, 13).Value = "قسمت مقصد";
+            worksheet.Cell(1, 14).Value = "بخش مقصد";
+            worksheet.Cell(1, 15).Value = "مقدار";
+
+            int row = 2;
+            foreach (var item in data)
+            {
+                worksheet.Cell(row, 1).Value = item.Date;
+                worksheet.Cell(row, 2).Value = item.DocumentNumber;
+                worksheet.Cell(row, 3).Value = item.DocumentType;
+                worksheet.Cell(row, 4).Value = item.ConversionType ?? "";
+                worksheet.Cell(row, 5).Value = item.CategoryName;
+                worksheet.Cell(row, 6).Value = item.GroupName;
+                worksheet.Cell(row, 7).Value = item.StatusName;
+                worksheet.Cell(row, 8).Value = item.ProductName;
+                worksheet.Cell(row, 9).Value = item.SourceWarehouseName;
+                worksheet.Cell(row, 10).Value = item.SourceDepartmentName;
+                worksheet.Cell(row, 11).Value = item.SourceSectionName;
+                worksheet.Cell(row, 12).Value = item.DestinationWarehouseName;
+                worksheet.Cell(row, 13).Value = item.DestinationDepartmentName;
+                worksheet.Cell(row, 14).Value = item.DestinationSectionName;
+                worksheet.Cell(row, 15).Value = item.Quantity;
+                row++;
+            }
+
+            // جمع کل
+            var total = data.Sum(x => x.Quantity);
+            worksheet.Cell(row, 14).Value = "جمع کل:";
+            worksheet.Cell(row, 15).Value = total;
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
     }
 }

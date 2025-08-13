@@ -196,5 +196,44 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var products = await _reportService.GetProductsByStatusIdAsync(statusId);
             return Json(products);
         }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ExportToExcel([FromForm] InventoryTransactionReportItemDto filter)
+        {
+            try
+            {
+                filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
+
+                if (!string.IsNullOrWhiteSpace(filter.DocumentType))
+                {
+                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                        return BadRequest("نوع سند نامعتبر است.");
+                }
+                else
+                {
+                    filter.DocumentType = null;
+                }
+
+                filter.FromDate = ParsePersianDate(filter.FromDateString);
+                filter.ToDate = ParsePersianDate(filter.ToDateString);
+
+                var fileContent = await _reportService.ExportReportToExcelAsync(filter);
+
+                var fileName = $"InventoryTransactionReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+                return File(fileContent,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            fileName);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("خطا در خروجی اکسل: " + ex);
+                return StatusCode(500, $"خطای سرور: {ex.Message}");
+            }
+        }
+
+
+
     }
 }

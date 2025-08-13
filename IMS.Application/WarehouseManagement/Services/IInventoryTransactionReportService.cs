@@ -26,5 +26,6 @@ namespace IMS.Application.WarehouseManagement.Services
         Task<List<SelectListItem>> GetGroupsByCategoryIdAsync(int categoryId);
         Task<List<SelectListItem>> GetStatusesByGroupIdAsync(int groupId);
         Task<List<SelectListItem>> GetProductsByStatusIdAsync(int statusId);
+        Task<byte[]> ExportReportToExcelAsync(InventoryTransactionReportItemDto filter);
     }
 }

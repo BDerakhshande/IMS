@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿/* Reset and Base Styles */
 * {
     margin: 0;
@@ -12,6 +13,16 @@ body {
     background-color: #fff;
     line-height: 1.6;
     font-size: 14px;
+=======
+﻿@import url('https://cdn.fontcdn.ir/Font/Persian/IranSans/3.1.0/font-face.css');
+
+body {
+    font-family: 'IRANSans', Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    color: #2c3e50;
+    background: #f5f7fa;
+    margin: 20px;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 }
 
 /* Print Styles */
@@ -46,24 +57,42 @@ body {
 /* Header Styles */
 h1 {
     text-align: center;
+<<<<<<< HEAD
     margin: 20px 0;
     color: #2c3e50;
     font-size: 24px;
     padding-bottom: 10px;
     border-bottom: 2px solid #3498db;
+=======
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: bold;
+    font-size: 20px;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 }
 
 /* Filters Section */
 .filters {
+<<<<<<< HEAD
     background-color: #f8f9fa;
     border-radius: 5px;
     padding: 15px;
     margin-bottom: 25px;
     border: 1px solid #dee2e6;
+=======
+    background: #fff;
+    padding: 15px 25px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+    line-height: 1.7;
+    font-size: 13px;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 }
 
     .filters h4 {
         margin-bottom: 10px;
+<<<<<<< HEAD
         color: #3498db;
         font-size: 16px;
     }
@@ -85,11 +114,26 @@ h1 {
             display: inline-block;
             width: 1em;
             margin-right: -1em;
+=======
+        color: #2980b9;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .filters ul {
+        padding-right: 20px;
+        list-style: disc;
+    }
+
+        .filters ul li {
+            margin-bottom: 5px;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
         }
 
 /* Table Styles */
 table {
     width: 100%;
+<<<<<<< HEAD
     border-collapse: collapse;
     margin: 20px 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -116,6 +160,51 @@ table {
     table tbody tr:nth-child(even) {
         background-color: #f8f9fa;
     }
+=======
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+thead {
+    background-color: #2980b9;
+    color: #fff;
+}
+
+    thead th {
+        padding: 12px 10px;
+        font-size: 13px;
+        border-bottom: 2px solid #1c6691;
+        text-align: center;
+    }
+
+tbody td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: center;
+    font-size: 12px;
+    color: #34495e;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+tbody tr:hover {
+    background-color: #f1f6fb;
+}
+
+tfoot td {
+    padding: 12px 8px;
+    font-weight: bold;
+    background-color: #dfe6e9;
+    text-align: center;
+    border-top: 2px solid #b2bec3;
+}
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
 
     table tbody tr:hover {
         background-color: #e9f7fe;
@@ -129,22 +218,52 @@ table {
 
 /* Print Button */
 .print-btn {
+<<<<<<< HEAD
     background-color: #3498db;
     color: white;
+=======
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #27ae60;
+    color: #fff;
+    padding: 8px 18px;
+    font-size: 13px;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
     font-size: 14px;
     margin-bottom: 20px;
+<<<<<<< HEAD
     display: flex;
     align-items: center;
     gap: 5px;
+=======
+    transition: all 0.3s ease;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
     float: left;
 }
 
     .print-btn:hover {
+<<<<<<< HEAD
         background-color: #2980b9;
+=======
+        background-color: #219150;
+        transform: translateY(-1px);
+    }
+
+@media print {
+    .print-btn {
+        display: none;
+    }
+
+    body {
+        margin: 0;
+        background: white;
+        font-size: 11pt;
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
     }
 
 /* Responsive Table */
@@ -154,6 +273,7 @@ table {
         overflow-x: auto;
     }
 }
+<<<<<<< HEAD
 
 /* RTL Specific Styles */
 html[dir="rtl"] {
@@ -180,3 +300,5 @@ html[dir="rtl"] {
             padding: 6px 4px;
         }
 }
+=======
+>>>>>>> 3e3497b6574e6ee74a420345a5768a5430ee3977
