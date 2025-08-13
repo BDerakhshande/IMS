@@ -282,7 +282,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 {
                     FileName = $"InventoryTransactionReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
                     PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                    PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
+                    PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                    PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
                     CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
                 };
             }
