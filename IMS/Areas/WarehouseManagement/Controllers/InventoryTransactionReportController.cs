@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using IMS.Application.WarehouseManagement.DTOs;
 using System.Globalization;
 using IMS.Domain.WarehouseManagement.Enums;
+using Rotativa.AspNetCore;
+using IMS.Models.ProMan;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -233,6 +235,63 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
         }
 
+        [HttpPost]
+        public async Task<IActionResult> ExportToPdf([FromForm] InventoryTransactionReportItemDto filter)
+        {
+            try
+            {
+                // تبدیل نوع سند به انگلیسی
+                filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
+
+                if (!string.IsNullOrWhiteSpace(filter.DocumentType))
+                {
+                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                        return BadRequest("نوع سند نامعتبر است.");
+                }
+                else
+                {
+                    filter.DocumentType = null;
+                }
+
+                // تبدیل تاریخ‌های فارسی به DateTime
+                filter.FromDate = ParsePersianDate(filter.FromDateString);
+                filter.ToDate = ParsePersianDate(filter.ToDateString);
+
+                // دریافت داده‌ها
+                var items = await _reportService.GetReportAsync(filter);
+
+                // آماده‌سازی ViewModel
+                var vm = new InventoryTransactionReportPdfViewModel
+                {
+                    Items = items,
+                    Filter = filter,
+
+                    WarehouseName = filter.WarehouseName,
+                    ZoneName = filter.ZoneName,
+                    SectionName = filter.SectionName,
+
+                    CategoryName = filter.CategoryName,
+                    GroupName = filter.GroupName,
+                    StatusName = filter.StatusName,
+                    ProductName = filter.ProductName
+                };
+
+
+                // بازگشت PDF با Rotativa
+                return new ViewAsPdf("InventoryTransactionPdfView", vm)
+                {
+                    FileName = $"InventoryTransactionReport_{DateTime.Now:yyyyMMdd_HHmmss}.pdf",
+                    PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                    PageOrientation = Rotativa.AspNetCore.Options.Orientation.Landscape,
+                    CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("خطا در خروجی PDF: " + ex);
+                return StatusCode(500, $"خطای سرور: {ex.Message}");
+            }
+        }
 
 
     }

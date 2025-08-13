@@ -287,6 +287,23 @@
                 </div>
             </div>
         </form>
+        <form id="pdfForm" method="post" action="/WarehouseManagement/InventoryTransactionReport/ExportToPdf" target="_blank">
+            <input type="hidden" name="FromDateString" id="hiddenFromDate">
+            <input type="hidden" name="ToDateString" id="hiddenToDate">
+            <input type="hidden" name="DocumentType" id="hiddenDocumentType">
+
+            <!-- فیلدهای سلسله‌مراتب انبار -->
+            <input type="hidden" name="WarehouseName" id="hiddenWarehouse">
+            <input type="hidden" name="ZoneName" id="hiddenZone">
+            <input type="hidden" name="SectionName" id="hiddenSection">
+
+            <!-- فیلدهای سلسله‌مراتب محصول -->
+            <input type="hidden" name="CategoryName" id="hiddenCategory">
+            <input type="hidden" name="GroupName" id="hiddenGroup">
+            <input type="hidden" name="StatusName" id="hiddenStatus">
+            <input type="hidden" name="ProductName" id="hiddenProduct">
+        </form>
+
     </div>
 </div>
 
@@ -533,7 +550,10 @@
 
                 tr.innerHTML = `
                     <td class="text-start ps-4">${item.date || '-'}</td>
-                    <td class="text-start">${item.productName || '-'}</td>
+                           <td class="text-start">
+                        ${item.categoryName || '-'} - ${item.groupName || '-'} - ${item.statusName || '-'} -  ${item.productName || '-'} 
+                           </td>
+
                     <td class="text-start">
                         <div class="small">
                             ${item.sourceWarehouseName || '-'} - ${item.sourceDepartmentName || '-'} - ${item.sourceSectionName || '-'}
@@ -611,14 +631,8 @@
                     });
             });
 
-            // توابع پرینت و اکسل
-            window.printPdfReport = function() {
-                const form = document.getElementById('transactionReportForm');
-                form.action = '/WarehouseManagement/InventoryTransactionReport/ExportToPdf';
-                form.method = 'post';
-                form.target = '_blank';
-                form.submit();
-            };
+                     
+
 
             window.exportToExcel = async function() {
                 const formData = $('#transactionReportForm').serialize();
@@ -649,5 +663,28 @@
                 }
             };
         });
+
+                           function printPdfReport() {
+            // فیلترهای زمانی و نوع سند
+            document.getElementById('hiddenFromDate').value = document.getElementById('fromDate').value || '';
+            document.getElementById('hiddenToDate').value = document.getElementById('toDate').value || '';
+            document.getElementById('hiddenDocumentType').value = document.getElementById('docType').value || '';
+
+            // سلسله مراتب انبار
+            document.getElementById('hiddenWarehouse').value = document.getElementById('warehouse').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenZone').value = document.getElementById('zone').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenSection').value = document.getElementById('section').selectedOptions[0]?.text || '';
+
+            // سلسله مراتب محصول
+            document.getElementById('hiddenCategory').value = document.getElementById('category').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenGroup').value = document.getElementById('group').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenStatus').value = document.getElementById('status').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenProduct').value = document.getElementById('product').selectedOptions[0]?.text || '';
+
+            // ارسال فرم
+            document.getElementById('pdfForm').submit();
+        }
+
+
     </script>
 }

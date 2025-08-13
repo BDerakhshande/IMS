@@ -11,11 +11,6 @@ namespace IMS.Application.WarehouseManagement.Services
     public interface IInventoryTransactionReportService
     {
         Task<List<InventoryTransactionReportDto>> GetReportAsync(InventoryTransactionReportItemDto filter);
-
-
-
-
-
         Task<List<SelectListItem>> GetZonesByWarehouseIdAsync(int warehouseId);
         Task<List<SelectListItem>> GetAllZonesAsync();
         Task<List<SelectListItem>> GetAllSectionsAsync();

@@ -1,208 +1,322 @@
-﻿@model List<IMS.Application.WarehouseManagement.DTOs.WarehouseTransactionDetailDto>
+﻿@model IMS.Models.ProMan.WarehouseTransactionDetailViewModel
 
 @{
-    ViewData["Title"] = "گزارش تراکنش‌های انبار";
-    var projects = ViewData["Projects"] as List<IMS.Domain.ProjectManagement.Entities.Project>; // باید namespace درست باشد
-    var projectName = ViewData["ProjectName"]?.ToString();
-    var selectedType = ViewData["TransactionType"]?.ToString();
-   var selectedTransactionType = ViewData["TransactionType"] as string;
-    var uniqueTransactionTypes = ViewData["TransactionTypes"] as Dictionary<string, string>;
-    var transactionTypes = ViewData["TransactionTypes"] as Dictionary<string, string>;
+    ViewData["Title"] = "گزارش پروژه";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 
-}
+    var selectedProjectName = Model.SelectedProjectName;
+    var selectedTransactionType = Model.SelectedTransactionType;
 
-
-    <style>
-        .table-responsive { max-height: 600px; }
-        .table th { cursor: pointer; }
-        .sort-icon::after {
-            content: '↕';
-            margin-left: 5px;
-            display: inline-block;
-        }
-        .sort-asc::after { content: '↑'; }
-        .sort-desc::after { content: '↓'; }
-        .filter-form { background-color: #f8f9fa; padding: 15px; border-radius: 8px; }
-        .transaction-type { min-width: 150px; }
-    </style>
-
-
-<div class="card filter-form mb-4">
-    <form method="get" asp-action="Index" asp-area="WarehouseManagement" id="filterForm">
-        <div class="row g-3 align-items-end">
-    <div class="col-md-4 col-lg-3">
-    <label class="form-label">نام پروژه</label>
-    <select name="projectName" class="form-select">
-        <option value="">انتخاب پروژه</option>
-        @if (projects != null)
-        {
-            foreach (var project in projects)
-            {
-                var isSelected = project.ProjectName == projectName ? "selected" : "";
-                @: <option value="@project.ProjectName" @isSelected>@project.ProjectName</option>
-            }
-        }
-    </select>
-</div>
-
-
-           <div class="col-md-4 col-lg-3">
-    <label class="form-label">نوع تراکنش</label>
-    <select name="transactionType" class="form-select transaction-type">
-        <option value="">انتخاب نوع تراکنش</option>
-        @foreach (var type in uniqueTransactionTypes)
-        {
-            <option value="@type.Key" selected="@(type.Key == selectedTransactionType ? "selected" : null)">
-                @type.Value
-            </option>
-        }
-    </select>
-</div>
-
-            <div class="col-md-4 col-lg-3">
-                <button type="submit" class="btn btn-primary w-100">جستجو</button>
-            </div>
-            <div class="col-md-4 col-lg-3">
-                <button type="button" class="btn btn-secondary w-100" onclick="resetForm()">پاک کردن فیلترها</button>
-            </div>
-        </div>
-    </form>
-</div>
-
-@if (Model == null || !Model.Any())
+    var transactionTypeNames = new Dictionary<string, string>
 {
-    <div class="alert alert-info" role="alert">
-        <i class="bi bi-info-circle me-2"></i>هیچ تراکنشی با این فیلتر یافت نشد.
-    </div>
+    { "Conversion", "تبدیل" },
+    { "Receipt", "رسید" },
+    { "Issue", "حواله" },
+    { "Transfer", "انتقال" }
+};
+
+    var transactionTypes = Model.Transactions
+        .Select(t => t.TransactionType)
+        .Distinct()
+        .ToDictionary(
+            t => t,        // کلید همان مقدار اصلی
+            t => transactionTypeNames[t] // مقدار فارسی
+        );
+
+
 }
-else
-{
-    <div class="card">
-        <div class="card-body table-responsive">
-            <table class="table table-striped table-hover table-bordered">
-                <thead class="table-dark">
-                    <tr>
-                        <th onclick="sortTable(0)">ردیف <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(1)">شماره سند <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(2)">تاریخ <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(3)">نوع تراکنش <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(4)">نام پروژه <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(5)">مبدا <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(6)">مقصد <span class="sort-icon"></span></th>
-                        <th onclick="sortTable(7)">کالا <span class="sort-icon"></span></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 0; i < Model.Count; i++)
-                    {
-                        var item = Model[i];
-                        <tr>
-                            <td>@(i + 1)</td>
-                            <td>@item.DocumentNumber</td>
-                            <td>@item.Date.ToString("yyyy/MM/dd")</td>
-                            <td>
-    @(transactionTypes != null && transactionTypes.ContainsKey(item.TransactionType)
-        ? transactionTypes[item.TransactionType]
-        : item.TransactionType)
-</td>
 
-
-                            <td>@item.ProjectName</td>
-                           <td>
-    @{
-        var source = string.Join(" / ",
-            new[] { item.SourceWarehouse, item.SourceZone, item.SourceSection }
-            .Where(x => !string.IsNullOrWhiteSpace(x)));
-
-        @: @(string.IsNullOrEmpty(source) ? "-" : source)
+<style>
+    body {
+        font-size: 0.9rem;
     }
-</td>
-<td>
-    @{
-        var destination = string.Join(" / ",
-            new[] { item.DestinationWarehouse, item.DestinationZone, item.DestinationSection }
-            .Where(x => !string.IsNullOrWhiteSpace(x)));
 
-        @: @(string.IsNullOrEmpty(destination) ? "-" : destination)
+    select.form-select[dir="rtl"],
+    select.form-select.text-end {
+        direction: rtl;
+        text-align: right;
+        padding-right: 1rem;
+        padding-left: 2rem;
+        background-position: left 0.75rem center !important;
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
     }
-</td>
 
-                            <td>@item.ProductName / @item.CategoryName / @item.GroupName / @item.StatusName</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+    }
+
+    .btn-xs {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 0.8rem;
+    }
+
+    .action-buttons-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .table-container {
+        max-height: 600px;
+        overflow-y: auto;
+        border-radius: 0.35rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa;
+            z-index: 10;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+        }
+
+        .table td {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.75rem;
+            vertical-align: middle;
+        }
+
+    .table-container::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .table-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+    }
+
+    .table-container::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+
+   
+
+    .transaction-type {
+        min-width: 150px;
+    }
+    /* کلاس مشترک برای همه selectها با فلش سمت چپ */
+    .select-left-arrow {
+        appearance: none; /* حذف استایل پیش‌فرض مرورگر */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=US-ASCII,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><polygon points='0,0 16,0 8,8' fill='black'/></svg>");
+        background-repeat: no-repeat;
+        background-position: left 0.5rem center; /* فلش سمت چپ */
+        background-size: 0.6rem; /* اندازه فلش */
+        padding-left: 1.8rem; /* فاصله متن از فلش */
+        padding-right: 0.5rem;
+        direction: rtl; /* متن راست‌چین */
+        text-align: right; /* متن راست‌چین */
+    }
+
+        /* اگر لازم است اندازه فونت و ارتفاع یکسان شود */
+        .select-left-arrow.form-select-sm {
+            font-size: 0.875rem;
+            height: 2rem;
+        }
+
+
+</style>
+
+<div class="card border-0 shadow-sm" dir="rtl">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-exchange-alt ms-1" style="font-size: 0.85rem;"></i>
+            <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
         </div>
-        <div class="card-footer">
-            <div class="d-flex justify-content-between align-items-center">
-                <span>نمایش @Model.Count تراکنش</span>
-                @* Add pagination controls here when implemented in controller *@
+    </div>
+
+    <div class="card-body p-2">
+        <form method="get" asp-action="Index" asp-area="WarehouseManagement" id="filterForm">
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-filter me-2"></i>فیلترهای گزارش
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4 col-lg-3">
+                                <label class="form-label small">نام پروژه</label>
+                                <select name="projectName" class="form-select form-select-sm shadow-sm select-left-arrow">
+                                    <option value="">همه پروژه‌ها</option>
+                                    @foreach (var project in Model.Projects)
+                                    {
+                                        <option value="@project.ProjectName" selected="@(project.ProjectName == selectedProjectName ? "selected" : null)">@project.ProjectName</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 col-lg-3">
+                                <label class="form-label small">نوع تراکنش</label>
+                                <select name="transactionType" class="form-select form-select-sm shadow-sm transaction-type select-left-arrow">
+                                    <option value="">همه انواع</option>
+                                    @foreach (var type in transactionTypes)
+                                    {
+                                        <option value="@type.Key" selected="@(type.Key == selectedTransactionType ? "selected" : null)">
+                                            @type.Value
+                                        </option>
+                                    }
+
+                                </select>
+                            </div>
+
+                        <div class="col-md-4 col-lg-3">
+                            <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">
+                                <i class="fas fa-search me-2"></i> جستجو
+                            </button>
+                        </div>
+                        <div class="col-md-4 col-lg-3">
+                            <button type="button" class="btn btn-sm btn-outline-secondary w-100 rounded-pill" onclick="resetForm()">
+                                <i class="fas fa-undo me-2"></i> بازنشانی
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </form>
+
+        @if (Model.Transactions == null || !Model.Transactions.Any())
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>هیچ تراکنشی با این فیلتر یافت نشد.
+            </div>
+        }
+        else
+        {
+            <div class="action-buttons">
+                <div class="action-buttons-container">
+                    <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">
+                        <i class="fas fa-list-alt ms-1"></i> نتایج گزارش تراکنش‌ها
+                    </h6>
+                    <div class="action-buttons-right">
+                        <form method="post" asp-action="ExportToPdf" asp-controller="WarehouseTransactionDetail" asp-area="WarehouseManagement" style="display:inline;">
+                            <input type="hidden" name="projectName" value="@selectedProjectName" />
+                            <input type="hidden" name="transactionType" value="@selectedTransactionType" />
+                            <button type="submit" class="btn btn-xs btn-outline-primary rounded-pill">
+                                <i class="fas fa-print me-1"></i> پرینت
+                            </button>
+                        </form>
+
+                        <form method="get" asp-action="ExportToExcel" asp-controller="WarehouseTransactionDetail" asp-area="WarehouseManagement" style="display:inline;">
+                            <input type="hidden" name="projectName" value="@selectedProjectName" />
+                            <input type="hidden" name="transactionType" value="@selectedTransactionType" />
+                            <button type="submit" class="btn btn-xs btn-outline-success rounded-pill">
+                                <i class="fas fa-file-excel me-1"></i> اکسل
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mt-2">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exchange-alt ms-1" style="font-size: 0.8rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.85rem;">لیست تراکنش‌های انبار</h5>
+                    </div>
+                    <span class="badge bg-light text-dark" style="font-size: 0.75rem;">
+                        تعداد رکوردها: @Model.Transactions.Count
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-container">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th scope="col" width="5%">ردیف</th>
+                                    <th scope="col" width="10%">شماره سند</th>
+                                    <th scope="col" width="10%">تاریخ</th>
+                                    <th scope="col" width="15%">نوع تراکنش</th>
+                                    <th scope="col" width="15%">کالا</th>
+                                    <th scope="col" width="15%">نام پروژه</th>
+                                    <th scope="col" width="15%">مبدا</th>
+                                    <th scope="col" width="25%">مقصد</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @for (int i = 0; i < Model.Transactions.Count; i++)
+                                {
+                                    var item = Model.Transactions[i];
+                                    <tr>
+                                        <td>@(i + 1)</td>
+                                        <td>@item.DocumentNumber</td>
+                                        <td>@item.Date.ToString("yyyy/MM/dd")</td>
+                                        <td>
+                                            @(transactionTypeNames.ContainsKey(item.TransactionType)
+                                                ? transactionTypeNames[item.TransactionType]
+                                                : item.TransactionType)
+                                        </td>
+                                        <td>@item.CategoryName / @item.GroupName / @item.StatusName / @item.ProductName</td>
+                                        <td>@item.ProjectName</td>
+                                        <td>
+                                            @{
+                                                var source = string.Join(" / ",
+                                                new[] { item.SourceWarehouse, item.SourceZone, item.SourceSection }
+                                                .Where(x => !string.IsNullOrWhiteSpace(x)));
+                                            }
+                                            @(string.IsNullOrEmpty(source) ? "-" : source)
+                                        </td>
+                                        <td>
+                                            @{
+                                                var destination = string.Join(" / ",
+                                                new[] { item.DestinationWarehouse, item.DestinationZone, item.DestinationSection }
+                                                .Where(x => !string.IsNullOrWhiteSpace(x)));
+                                            }
+                                            @(string.IsNullOrEmpty(destination) ? "-" : destination)
+                                        </td>
+                                      
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
-}
+</div>
 
 @section Scripts {
+    <script src="~/js/MenuJs.js"></script>
     <script>
         function resetForm() {
             document.getElementById('filterForm').reset();
-            window.location.href = '@Url.Action("Index", "WarehouseTransactionDetail")';
+            window.location.href = '@Url.Action("Index", "WarehouseTransactionDetail", new { area = "WarehouseManagement" })';
         }
 
-        function sortTable(n) {
-            let table = document.querySelector("table");
-            let rows, switching = true;
-            let i, shouldSwitch, dir = "asc", switchcount = 0;
-            let th = table.getElementsByTagName("th")[n];
-            let headers = table.getElementsByTagName("th");
-
-            // Reset all sort icons
-            for (let header of headers) {
-                header.querySelector('.sort-icon').className = 'sort-icon';
-            }
-
-            while (switching) {
-                switching = false;
-                rows = table.rows;
-
-                for (i = 1; i < (rows.length - 1); i++) {
-                    shouldSwitch = false;
-                    let x = rows[i].getElementsByTagName("TD")[n];
-                    let y = rows[i + 1].getElementsByTagName("TD")[n];
-
-                    let xValue = x.innerHTML.toLowerCase();
-                    let yValue = y.innerHTML.toLowerCase();
-
-                    // Handle numeric sorting for "ردیف" column
-                    if (n === 0) {
-                        xValue = parseInt(xValue);
-                        yValue = parseInt(yValue);
-                    }
-
-                    if (dir === "asc") {
-                        if (xValue > yValue) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    } else if (dir === "desc") {
-                        if (xValue < yValue) {
-                            shouldSwitch = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (shouldSwitch) {
-                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                    switching = true;
-                    switchcount++;
-                } else if (switchcount === 0 && dir === "asc") {
-                    dir = "desc";
-                    switching = true;
-                }
-            }
-
-            th.querySelector('.sort-icon').className = `sort-icon sort-${dir}`;
-        }
+      
     </script>
 }

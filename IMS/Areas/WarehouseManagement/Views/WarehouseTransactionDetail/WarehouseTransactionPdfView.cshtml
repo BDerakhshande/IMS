@@ -1,0 +1,197 @@
+﻿@using IMS.Models.ProMan
+@model WarehouseTransactionDetailPdfViewModel
+
+@functions {
+    public string CleanString(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return input.Replace(";#", ", ").Replace("#", "").Replace("&", "").Trim().TrimEnd(',');
+    }
+
+    public string ToPersianDate(DateTime date)
+    {
+        var pc = new System.Globalization.PersianCalendar();
+        return $"{pc.GetYear(date)}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
+    }
+}
+
+@{
+    Layout = null;
+    var transactionTypeNames = new Dictionary<string, string>
+    {
+        { "Conversion", "تبدیل" },
+        { "Receipt", "رسید" },
+        { "Issue", "حواله" },
+        { "Transfer", "انتقال" }
+    };
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>گزارش تراکنش‌های انبار</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', Tahoma, Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a4a5a;
+        }
+
+            .header h1 {
+                color: #1a4a5a;
+                font-size: 22px;
+                margin-bottom: 5px;
+            }
+
+        .report-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .filters {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-right: 4px solid #1a4a5a;
+        }
+
+            .filters ul {
+                list-style: none;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .filters li {
+                background-color: #e8f4fc;
+                padding: 3px 8px;
+                border-radius: 3px;
+                font-size: 12px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: #1a4a5a;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .summary-row {
+            font-weight: bold;
+            background-color: #f1f1f1 !important;
+        }
+
+            .summary-row td {
+                border-top: 2px solid #1a4a5a;
+                border-bottom: 2px solid #1a4a5a;
+            }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>گزارش تراکنش‌های انبار</h1>
+        <div class="report-info">
+            <span>تاریخ استخراج گزارش: @ToPersianDate(DateTime.Now)</span>
+            <span>تعداد رکوردها: @(Model.Transactions?.Count ?? 0)</span>
+        </div>
+    </div>
+
+    <section class="filters">
+        <h4>فیلترهای اعمال شده:</h4>
+        <ul>
+            @if (!string.IsNullOrWhiteSpace(Model.SelectedProjectName))
+            {
+                <li>پروژه: @Model.SelectedProjectName</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.SelectedTransactionType))
+            {
+                <li>نوع تراکنش: @(transactionTypeNames.ContainsKey(Model.SelectedTransactionType) ? transactionTypeNames[Model.SelectedTransactionType] : Model.SelectedTransactionType)</li>
+            }
+        </ul>
+    </section>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ردیف</th>
+                <th>شماره سند</th>
+                <th>تاریخ</th>
+                <th>نوع تراکنش</th>
+                <th>نام پروژه</th>
+                <th>مبدا</th>
+                <th>مقصد</th>
+                <th>کالا</th>
+                <th>تعداد</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Transactions != null && Model.Transactions.Any())
+            {
+                for (int i = 0; i < Model.Transactions.Count; i++)
+                {
+                    var item = Model.Transactions[i];
+                    var source = string.Join(" / ", new[] { item.SourceWarehouse, item.SourceZone, item.SourceSection }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    var dest = string.Join(" / ", new[] { item.DestinationWarehouse, item.DestinationZone, item.DestinationSection }.Where(x => !string.IsNullOrWhiteSpace(x)));
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@item.DocumentNumber</td>
+                        <td>@ToPersianDate(item.Date)</td>
+                        <td>@(transactionTypeNames.ContainsKey(item.TransactionType) ? transactionTypeNames[item.TransactionType] : item.TransactionType)</td>
+                        <td>@CleanString(item.ProjectName ?? "-")</td>
+                        <td>@(string.IsNullOrEmpty(source) ? "-" : source)</td>
+                        <td>@(string.IsNullOrEmpty(dest) ? "-" : dest)</td>
+                        <td>@($"{item.ProductName} / {item.CategoryName} / {item.GroupName} / {item.StatusName}")</td>
+                        <td>@item.Quantity.ToString("N0")</td>
+                    </tr>
+                }
+                <tr class="summary-row">
+                    <td colspan="8">جمع کل</td>
+                    <td>@Model.Transactions.Sum(t => t.Quantity).ToString("N0")</td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="9" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</body>
+</html>

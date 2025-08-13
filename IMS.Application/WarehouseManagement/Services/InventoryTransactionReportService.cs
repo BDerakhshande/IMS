@@ -384,6 +384,17 @@ namespace IMS.Application.WarehouseManagement.Services
                 }).ToListAsync();
         }
 
+        private string GetDocumentTypeName(string documentType)
+        {
+            return documentType switch
+            {
+                nameof(ReceiptOrIssueType.Receipt) => "رسید",
+                nameof(ReceiptOrIssueType.Issue) => "حواله",
+                nameof(ReceiptOrIssueType.Transfer) => "انتقال",
+                "Conversion" => "تبدیل",
+                _ => "نامشخص"
+            };
+        }
 
 
         public async Task<byte[]> ExportReportToExcelAsync(InventoryTransactionReportItemDto filter)
@@ -415,7 +426,7 @@ namespace IMS.Application.WarehouseManagement.Services
             {
                 worksheet.Cell(row, 1).Value = item.Date;
                 worksheet.Cell(row, 2).Value = item.DocumentNumber;
-                worksheet.Cell(row, 3).Value = item.DocumentType;
+                worksheet.Cell(row, 3).Value = GetDocumentTypeName(item.DocumentType);
                 worksheet.Cell(row, 4).Value = item.ConversionType ?? "";
                 worksheet.Cell(row, 5).Value = item.CategoryName;
                 worksheet.Cell(row, 6).Value = item.GroupName;

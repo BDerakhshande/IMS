@@ -24,5 +24,14 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public DateTime? FromDate { get; set; }     // تاریخ میلادی تبدیل شده
         public DateTime? ToDate { get; set; }
         public string? DocumentType { get; set; }
+        public string? WarehouseName { get; set; }
+        public string? ZoneName { get; set; }
+        public string? SectionName { get; set; }
+
+        public string? CategoryName { get; set; }
+        public string? GroupName { get; set; }
+        public string? StatusName { get; set; }
+        public string? ProductName { get; set; }
+
     }
 }

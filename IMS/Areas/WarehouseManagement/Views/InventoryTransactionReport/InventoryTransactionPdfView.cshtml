@@ -1,5 +1,7 @@
-﻿@using IMS.Models.ProMan
-@model InventoryReportPdfViewModel
+﻿@using IMS.Application.WarehouseManagement.DTOs
+@using IMS.Models.ProMan
+@using System.Linq
+@model InventoryTransactionReportPdfViewModel
 
 @functions {
     public string CleanString(string input)
@@ -24,24 +26,22 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>گزارش موجودی انبار</title>
+    <title>گزارش تراکنش‌های انبار</title>
     <style>
-        /* Reset and Base Styles */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+            font-family: 'B Nazanin', Tahoma, Arial, sans-serif;
         }
 
         body {
             padding: 20px;
-            color: #333;
-            line-height: 1.6;
             font-size: 14px;
+            line-height: 1.6;
+            color: #333;
         }
 
-        /* Header Styles */
         .header {
             text-align: center;
             margin-bottom: 20px;
@@ -58,12 +58,11 @@
         .report-info {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
             font-size: 12px;
             color: #7f8c8d;
+            margin-bottom: 15px;
         }
 
-        /* Filters Section */
         .filters {
             background-color: #f8f9fa;
             padding: 15px;
@@ -79,7 +78,7 @@
             }
 
             .filters ul {
-                list-style-type: none;
+                list-style: none;
                 display: flex;
                 flex-wrap: wrap;
                 gap: 15px;
@@ -92,7 +91,6 @@
                 font-size: 13px;
             }
 
-        /* Table Styles */
         .data-table {
             width: 100%;
             border-collapse: collapse;
@@ -129,83 +127,65 @@
                 border-bottom: 2px solid #1a4a5a;
                 padding: 12px 8px;
             }
-
-      
-        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>گزارش موجودی انبار</h1>
+        <h1>گزارش تراکنش‌های انبار</h1>
         <div class="report-info">
             <span>تاریخ استخراج گزارش: @ToPersianDate(DateTime.Now)</span>
-            <span>تعداد رکوردها: @(Model.Items?.Count ?? 0)</span>
+            <span>تعداد رکوردها: @(Model.Items?.Count() ?? 0)</span>
         </div>
     </div>
-
     <section class="filters">
         <h4>فیلترهای اعمال شده:</h4>
         <ul>
-            @if (Model.Filter.Warehouses != null && Model.Filter.Warehouses.Any())
+            @* فیلتر نوع سند *@
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.DocumentType))
             {
-                <li>
-                    انبارها: @string.Join(", ", Model.Filter.Warehouses.Where(w => w.WarehouseId > 0).Select(w =>
-                    Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId)
-                    ? CleanString(Model.WarehouseNames[w.WarehouseId])
-                    : $"انبار {w.WarehouseId}"
-                    ))
-                </li>
+                <li>نوع سند: @Model.Filter.DocumentType</li>
             }
 
-            @if (Model.Filter.CategoryId.HasValue)
+            @* فیلتر تاریخ‌ها *@
+            @if (Model.Filter.FromDate.HasValue)
             {
-                <li>
-                    دسته‌بندی: @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
-                ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
-                : Model.Filter.CategoryId.Value.ToString())
-                </li>
+                <li>از تاریخ: @ToPersianDate(Model.Filter.FromDate.Value)</li>
+            }
+            @if (Model.Filter.ToDate.HasValue)
+            {
+                <li>تا تاریخ: @ToPersianDate(Model.Filter.ToDate.Value)</li>
             }
 
-            @if (Model.ZoneNames != null && Model.ZoneNames.Any())
+            @* فیلتر سلسله‌مراتب انبار *@
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.WarehouseName))
             {
-                <li>قسمت‌ها: @string.Join(", ", Model.ZoneNames.Values.Select(z => CleanString(z)))</li>
+                <li>انبار: @Model.Filter.WarehouseName</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.ZoneName))
+            {
+                <li>قسمت: @Model.Filter.ZoneName</li>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.SectionName))
+            {
+                <li>بخش: @Model.Filter.SectionName</li>
             }
 
-            @if (Model.SectionNames != null && Model.SectionNames.Any())
+            @* فیلتر سلسله‌مراتب محصول *@
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.CategoryName))
             {
-                <li>بخش‌ها: @string.Join(", ", Model.SectionNames.Values.Select(s => CleanString(s)))</li>
+                <li>دسته‌بندی: @Model.Filter.CategoryName</li>
             }
-
-            @if (Model.Filter.GroupId.HasValue)
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.GroupName))
             {
-                <li>
-                    گروه: @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
-                  ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
-                  : Model.Filter.GroupId.Value.ToString())
-                </li>
+                <li>گروه: @Model.Filter.GroupName</li>
             }
-
-            @if (Model.Filter.StatusId.HasValue)
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.StatusName))
             {
-                <li>
-                    وضعیت: @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
-                 ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
-                 : Model.Filter.StatusId.Value.ToString())
-                </li>
+                <li>وضعیت: @Model.Filter.StatusName</li>
             }
-
-            @if (Model.Filter.ProductId.HasValue)
+            @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductName))
             {
-                <li>
-                    کالا: @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
-                  ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
-                  : Model.Filter.ProductId.Value.ToString())
-                </li>
-            }
-
-            @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductSearch))
-            {
-                <li>جستجوی محصول: @Model.Filter.ProductSearch</li>
+                <li>کالا: @Model.Filter.ProductName</li>
             }
         </ul>
     </section>
@@ -213,14 +193,20 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th>نام انبار</th>
-                <th>قسمت</th>
-                <th>بخش</th>
+                <th>تاریخ</th>
+                <th>شماره سند</th>
+                <th>نوع سند</th>
                 <th>دسته‌بندی</th>
                 <th>گروه</th>
-                <th>طبقه</th>
+                <th>وضعیت</th>
                 <th>کالا</th>
-                <th>موجودی</th>
+                <th>انبار مبدأ</th>
+                <th>قسمت مبدأ</th>
+                <th>بخش مبدأ</th>
+                <th>انبار مقصد</th>
+                <th>قسمت مقصد</th>
+                <th>بخش مقصد</th>
+                <th>مقدار</th>
             </tr>
         </thead>
         <tbody>
@@ -229,25 +215,33 @@
                 foreach (var item in Model.Items)
                 {
                     <tr>
-                        <td>@CleanString(item.WarehouseName ?? "-")</td>
-                        <td>@CleanString(item.ZoneName ?? "-")</td>
-                        <td>@CleanString(item.SectionName ?? "-")</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.Date) ? "-" : item.Date)</td>
+
+
+                        <td>@CleanString(item.DocumentNumber ?? "-")</td>
+                        <td>@CleanString(item.DocumentType ?? "-")</td>
                         <td>@CleanString(item.CategoryName ?? "-")</td>
                         <td>@CleanString(item.GroupName ?? "-")</td>
                         <td>@CleanString(item.StatusName ?? "-")</td>
                         <td>@CleanString(item.ProductName ?? "-")</td>
+                        <td>@CleanString(item.SourceWarehouseName ?? "-")</td>
+                        <td>@CleanString(item.SourceDepartmentName ?? "-")</td>
+                        <td>@CleanString(item.SourceSectionName ?? "-")</td>
+                        <td>@CleanString(item.DestinationWarehouseName ?? "-")</td>
+                        <td>@CleanString(item.DestinationDepartmentName ?? "-")</td>
+                        <td>@CleanString(item.DestinationSectionName ?? "-")</td>
                         <td>@item.Quantity.ToString("N0")</td>
                     </tr>
                 }
                 <tr class="summary-row">
-                    <td colspan="7">جمع کل موجودی</td>
+                    <td colspan="13">جمع کل</td>
                     <td>@(Model.Items.Sum(i => i.Quantity).ToString("N0"))</td>
                 </tr>
             }
             else
             {
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
+                    <td colspan="14" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
                 </tr>
             }
         </tbody>
