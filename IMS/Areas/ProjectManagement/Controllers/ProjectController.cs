@@ -1,4 +1,5 @@
-﻿using IMS.Application.ProjectManagement.DTOs;
+﻿using System.Globalization;
+using IMS.Application.ProjectManagement.DTOs;
 using IMS.Application.ProjectManagement.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -27,18 +28,16 @@ namespace IMS.Areas.ProjectManagement.Controllers
             return View(projects);
         }
 
-        // نمایش فرم ایجاد پروژه
         public async Task<IActionResult> Create()
         {
             var employers = await _employerService.GetAllEmployersAsync();
             var projectTypes = await _projectTypeService.GetAllAsync();
-            // تبدیل به SelectListItem
+
             ViewBag.Employers = employers.Select(e => new SelectListItem
             {
                 Value = e.Id.ToString(),
                 Text = e.CompanyName
             }).ToList();
-
 
             ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
             {
@@ -46,17 +45,31 @@ namespace IMS.Areas.ProjectManagement.Controllers
                 Text = p.Name
             }).ToList();
 
+            // مقدار پیش‌فرض امروز شمسی
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+            var todayShamsi = $"{pc.GetYear(now):0000}/{pc.GetMonth(now):00}/{pc.GetDayOfMonth(now):00}";
 
+            var dto = new ProjectDto
+            {
+                StartDate = now,
+                EndDate = now
+            };
 
-            return View();
+            ViewBag.TodayShamsi = todayShamsi; // مقدار پیش‌فرض برای ویو
+
+            return View(dto);
         }
 
 
-        // ثبت پروژه جدید
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProjectDto dto)
+        public async Task<IActionResult> Create(ProjectDto dto, string StartDate, string EndDate)
         {
+            dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
+            dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
+
             if (!ModelState.IsValid)
                 return View(dto);
 
@@ -68,29 +81,88 @@ namespace IMS.Areas.ProjectManagement.Controllers
             return View(dto);
         }
 
-        // نمایش فرم ویرایش پروژه
+
         public async Task<IActionResult> Edit(int id)
         {
             var project = await _projectService.GetProjectByIdAsync(id);
             if (project == null)
                 return NotFound();
 
+            // Populate ViewBag for Employers and ProjectTypes
+            var employers = await _employerService.GetAllEmployersAsync();
+            var projectTypes = await _projectTypeService.GetAllAsync();
+
+            ViewBag.Employers = employers.Select(e => new SelectListItem
+            {
+                Value = e.Id.ToString(),
+                Text = e.CompanyName,
+                Selected = e.Id == project.EmployerId // Pre-select the current employer
+            }).ToList();
+
+            ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name,
+                Selected = p.Id == project.ProjectTypeId // Pre-select the current project type
+            }).ToList();
+
             return View(project);
         }
 
-        // ثبت تغییرات ویرایش
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(ProjectDto dto)
+        public async Task<IActionResult> Edit(ProjectDto dto, string StartDate, string EndDate)
         {
+            dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
+            dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
+
             if (!ModelState.IsValid)
+            {
+                // Repopulate ViewBag for Employers and ProjectTypes in case of validation errors
+                var employers = await _employerService.GetAllEmployersAsync();
+                var projectTypes = await _projectTypeService.GetAllAsync();
+
+                ViewBag.Employers = employers.Select(e => new SelectListItem
+                {
+                    Value = e.Id.ToString(),
+                    Text = e.CompanyName,
+                    Selected = e.Id == dto.EmployerId
+                }).ToList();
+
+                ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name,
+                    Selected = p.Id == dto.ProjectTypeId
+                }).ToList();
+
                 return View(dto);
+            }
 
             var result = await _projectService.UpdateProjectAsync(dto);
             if (result)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "خطا در به‌روزرسانی پروژه");
+
+            // Repopulate ViewBag again if update fails
+            var employersFail = await _employerService.GetAllEmployersAsync();
+            var projectTypesFail = await _projectTypeService.GetAllAsync();
+
+            ViewBag.Employers = employersFail.Select(e => new SelectListItem
+            {
+                Value = e.Id.ToString(),
+                Text = e.CompanyName,
+                Selected = e.Id == dto.EmployerId
+            }).ToList();
+
+            ViewBag.ProjectTypes = projectTypesFail.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name,
+                Selected = p.Id == dto.ProjectTypeId
+            }).ToList();
+
             return View(dto);
         }
 
@@ -104,14 +176,14 @@ namespace IMS.Areas.ProjectManagement.Controllers
             return View(project);
         }
 
-        // تایید حذف پروژه
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var result = await _projectService.DeleteProjectAsync(id);
             return RedirectToAction(nameof(Index));
         }
+
 
         // مشاهده جزئیات پروژه
         public async Task<IActionResult> Details(int id)
@@ -121,6 +193,42 @@ namespace IMS.Areas.ProjectManagement.Controllers
                 return NotFound();
 
             return View(project);
+        }
+
+
+
+
+        private DateTime? ParsePersianDate(string? persianDate)
+        {
+            if (string.IsNullOrWhiteSpace(persianDate))
+            {
+                Console.WriteLine("Persian date is null or empty");
+                return null;
+            }
+
+            try
+            {
+                var parts = persianDate.Split('/');
+                if (parts.Length != 3)
+                {
+                    Console.WriteLine($"Invalid date format: {persianDate}");
+                    return null;
+                }
+
+                int year = int.Parse(parts[0]);
+                int month = int.Parse(parts[1]);
+                int day = int.Parse(parts[2]);
+
+                var pc = new PersianCalendar();
+                var result = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+                Console.WriteLine($"Parsed date: {persianDate} -> {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing date {persianDate}: {ex.Message}");
+                return null;
+            }
         }
     }
 }

@@ -22,6 +22,8 @@ namespace IMS.Infrastructure.Persistence.ProcurementManagement
         public DbSet<PurchaseRequestItem> PurchaseRequestItems { get; set; } = null!;
         public DbSet<RequestType> RequestTypes { get; set; } = null!;
         public DbSet<Supplier> Supplier { get; set; } = null!;
+        public DbSet<PurchaseRequestFlatItem> PurchaseRequestFlatItems { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

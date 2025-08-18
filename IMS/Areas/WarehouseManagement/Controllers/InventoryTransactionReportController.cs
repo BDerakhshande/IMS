@@ -40,7 +40,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             {
                 filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
 
-                // اگر نوع سند داده شده بود اعتبارسنجی شود، در غیر اینصورت فیلتر نوع سند اعمال نشود
+               
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
                     if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
@@ -51,7 +51,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
                 else
                 {
-                    // اگر DocumentType خالی بود مقدارش را null بگذاریم تا در سرویس فیلتر نشود
+                  
                     filter.DocumentType = null;
                 }
 

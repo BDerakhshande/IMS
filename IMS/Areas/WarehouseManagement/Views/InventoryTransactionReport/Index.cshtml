@@ -293,17 +293,25 @@
             <input type="hidden" name="DocumentType" id="hiddenDocumentType">
 
             <!-- فیلدهای سلسله‌مراتب انبار -->
-            <input type="hidden" name="WarehouseName" id="hiddenWarehouse">
-            <input type="hidden" name="ZoneName" id="hiddenZone">
-            <input type="hidden" name="SectionName" id="hiddenSection">
+            <input type="hidden" name="WarehouseId" id="hiddenWarehouseId">
+            <input type="hidden" name="ZoneId" id="hiddenZoneId">
+            <input type="hidden" name="SectionId" id="hiddenSectionId">
 
             <!-- فیلدهای سلسله‌مراتب محصول -->
-            <input type="hidden" name="CategoryName" id="hiddenCategory">
-            <input type="hidden" name="GroupName" id="hiddenGroup">
-            <input type="hidden" name="StatusName" id="hiddenStatus">
-            <input type="hidden" name="ProductName" id="hiddenProduct">
-        </form>
+            <input type="hidden" name="CategoryId" id="hiddenCategoryId">
+            <input type="hidden" name="GroupId" id="hiddenGroupId">
+            <input type="hidden" name="StatusId" id="hiddenStatusId">
+            <input type="hidden" name="ProductId" id="hiddenProductId">
 
+            <!-- نام‌ها برای نمایش در PDF -->
+            <input type="hidden" name="WarehouseName" id="hiddenWarehouseName">
+            <input type="hidden" name="ZoneName" id="hiddenZoneName">
+            <input type="hidden" name="SectionName" id="hiddenSectionName">
+            <input type="hidden" name="CategoryName" id="hiddenCategoryName">
+            <input type="hidden" name="GroupName" id="hiddenGroupName">
+            <input type="hidden" name="StatusName" id="hiddenStatusName">
+            <input type="hidden" name="ProductName" id="hiddenProductName">
+        </form>
     </div>
 </div>
 
@@ -664,22 +672,29 @@
             };
         });
 
-                           function printPdfReport() {
+                        function printPdfReport() {
             // فیلترهای زمانی و نوع سند
             document.getElementById('hiddenFromDate').value = document.getElementById('fromDate').value || '';
             document.getElementById('hiddenToDate').value = document.getElementById('toDate').value || '';
             document.getElementById('hiddenDocumentType').value = document.getElementById('docType').value || '';
 
             // سلسله مراتب انبار
-            document.getElementById('hiddenWarehouse').value = document.getElementById('warehouse').selectedOptions[0]?.text || '';
-            document.getElementById('hiddenZone').value = document.getElementById('zone').selectedOptions[0]?.text || '';
-            document.getElementById('hiddenSection').value = document.getElementById('section').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenWarehouseId').value = document.getElementById('warehouse').value || '';
+            document.getElementById('hiddenZoneId').value = document.getElementById('zone').value || '';
+            document.getElementById('hiddenSectionId').value = document.getElementById('section').value || '';
+            document.getElementById('hiddenWarehouseName').value = document.getElementById('warehouse').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenZoneName').value = document.getElementById('zone').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenSectionName').value = document.getElementById('section').selectedOptions[0]?.text || '';
 
             // سلسله مراتب محصول
-            document.getElementById('hiddenCategory').value = document.getElementById('category').selectedOptions[0]?.text || '';
-            document.getElementById('hiddenGroup').value = document.getElementById('group').selectedOptions[0]?.text || '';
-            document.getElementById('hiddenStatus').value = document.getElementById('status').selectedOptions[0]?.text || '';
-            document.getElementById('hiddenProduct').value = document.getElementById('product').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenCategoryId').value = document.getElementById('category').value || '';
+            document.getElementById('hiddenGroupId').value = document.getElementById('group').value || '';
+            document.getElementById('hiddenStatusId').value = document.getElementById('status').value || '';
+            document.getElementById('hiddenProductId').value = document.getElementById('product').value || '';
+            document.getElementById('hiddenCategoryName').value = document.getElementById('category').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenGroupName').value = document.getElementById('group').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenStatusName').value = document.getElementById('status').selectedOptions[0]?.text || '';
+            document.getElementById('hiddenProductName').value = document.getElementById('product').selectedOptions[0]?.text || '';
 
             // ارسال فرم
             document.getElementById('pdfForm').submit();

@@ -1,113 +1,263 @@
 ﻿@model IMS.Application.ProjectManagement.DTOs.EmployerDto
-
 @{
-    ViewData["Title"] = "ایجاد کارفرما";
+    ViewData["Title"] = "کارفرمای جدید";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
 
-<h2 class="text-center mb-4">ایجاد کارفرما</h2>
+<div class="container-fluid py-3" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center"
+                     style="background-color: #1a4959; color: white;">
+                    <h5 class="mb-0 text-white">
+                        <i class="fas fa-building me-2"></i> @ViewData["Title"]
+                    </h5>
+                    <a asp-action="Index" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                    </a>
+                </div>
 
-<form asp-action="Create" method="post" class="border p-4 rounded shadow-sm bg-light">
+                <div class="card-body p-3">
+                    <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="CompanyName" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-building me-1"></i> نام شرکت
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-font small"></i></span>
+                                        <input asp-for="CompanyName" class="form-control form-control-sm" placeholder="نام شرکت را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="CompanyName" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
 
-    <div class="form-group mb-3">
-        <label asp-for="CompanyName" class="form-label">نام شرکت</label>
-        <input asp-for="CompanyName" class="form-control" />
-        <span asp-validation-for="CompanyName" class="text-danger"></span>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="NationalId" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-id-card me-1"></i> شناسه ملی
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag small"></i></span>
+                                        <input asp-for="NationalId" class="form-control form-control-sm" placeholder="شناسه ملی را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="NationalId" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="RegistrationNumber" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-file-alt me-1"></i> شماره ثبت
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-hashtag small"></i></span>
+                                        <input asp-for="RegistrationNumber" class="form-control form-control-sm" placeholder="شماره ثبت را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="RegistrationNumber" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="LegalPersonType" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-user-tie me-1"></i> نوع شخصیت حقوقی
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-list small"></i></span>
+                                        <select asp-for="LegalPersonType" class="form-control form-control-sm" asp-items="ViewBag.LegalPersonTypes">
+                                            <option value="">انتخاب کنید</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="LegalPersonType" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="PhoneNumber" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-phone me-1"></i> تلفن
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone-alt small"></i></span>
+                                        <input asp-for="PhoneNumber" class="form-control form-control-sm" placeholder="شماره تلفن را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="PhoneNumber" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="Website" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-globe me-1"></i> وب‌سایت
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-link small"></i></span>
+                                        <input asp-for="Website" class="form-control form-control-sm" placeholder="آدرس وبسایت را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="Website" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Address" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-map-marker-alt me-1"></i> نشانی
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-map small"></i></span>
+                                        <input asp-for="Address" class="form-control form-control-sm" placeholder="آدرس کامل را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="Address" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3 mt-3 mb-3">
+                            <h6 class="fw-bold text-muted">
+                                <i class="fas fa-user me-1"></i> اطلاعات نماینده
+                            </h6>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="RepresentativeName" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-user me-1"></i> نام نماینده
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-font small"></i></span>
+                                        <input asp-for="RepresentativeName" class="form-control form-control-sm" placeholder="نام نماینده را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="RepresentativeName" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="RepresentativePosition" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-briefcase me-1"></i> سمت نماینده
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-user-tie small"></i></span>
+                                        <input asp-for="RepresentativePosition" class="form-control form-control-sm" placeholder="سمت نماینده را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="RepresentativePosition" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="RepresentativeMobile" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-mobile-alt me-1"></i> موبایل نماینده
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-phone small"></i></span>
+                                        <input asp-for="RepresentativeMobile" class="form-control form-control-sm" placeholder="شماره موبایل را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="RepresentativeMobile" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="RepresentativeEmail" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-envelope me-1"></i> ایمیل نماینده
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-at small"></i></span>
+                                        <input asp-for="RepresentativeEmail" class="form-control form-control-sm" placeholder="آدرس ایمیل را وارد کنید" />
+                                    </div>
+                                    <span asp-validation-for="RepresentativeEmail" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="CooperationType" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-handshake me-1"></i> نوع همکاری
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-list small"></i></span>
+                                        <select asp-for="CooperationType" class="form-control form-control-sm" asp-items="ViewBag.CooperationType">
+                                            <option value="">انتخاب کنید</option>
+                                        </select>
+                                    </div>
+                                    <span asp-validation-for="CooperationType" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="CooperationStartDate" class="form-label fw-bold mb-1 small">
+                                        <i class="fas fa-calendar-alt me-1"></i> تاریخ شروع همکاری
+                                    </label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light"><i class="fas fa-clock small"></i></span>
+                                        <input asp-for="CooperationStartDate" type="text" class="form-control form-control-sm" placeholder="تاریخ شروع همکاری" />
+                                    </div>
+                                    <span asp-validation-for="CooperationStartDate" class="text-danger small mt-1 d-block"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label asp-for="AdditionalDescription" class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-align-left me-1"></i> توضیحات تکمیلی
+                                </label>
+                                <textarea asp-for="AdditionalDescription" rows="3" class="form-control form-control-sm" placeholder="توضیحات تکمیلی را وارد کنید"></textarea>
+                                <span asp-validation-for="AdditionalDescription" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
+
+                        <div class="border-top pt-3 mt-3 d-flex justify-content-end gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm px-3">
+                                <i class="fas fa-save me-1"></i> ثبت کارفرما
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-times me-1"></i> انصراف
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="NationalId" class="form-label">شناسه ملی</label>
-        <input asp-for="NationalId" class="form-control" />
-        <span asp-validation-for="NationalId" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="RegistrationNumber" class="form-label">شماره ثبت</label>
-        <input asp-for="RegistrationNumber" class="form-control" />
-        <span asp-validation-for="RegistrationNumber" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="LegalPersonType" class="form-label">نوع شخصیت حقوقی</label>
-        <select asp-for="LegalPersonType" asp-items="ViewBag.LegalPersonTypes" class="form-select">
-            <option value="">-- انتخاب کنید --</option>
-        </select>
-        <span asp-validation-for="LegalPersonType" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Address" class="form-label">نشانی</label>
-        <input asp-for="Address" class="form-control" />
-        <span asp-validation-for="Address" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="PhoneNumber" class="form-label">تلفن</label>
-        <input asp-for="PhoneNumber" class="form-control" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="Website" class="form-label">وب‌سایت</label>
-        <input asp-for="Website" class="form-control" />
-        <span asp-validation-for="Website" class="text-danger"></span>
-    </div>
-
-    <hr class="my-4">
-
-    <div class="form-group mb-3">
-        <label asp-for="RepresentativeName" class="form-label">نام نماینده</label>
-        <input asp-for="RepresentativeName" class="form-control" />
-        <span asp-validation-for="RepresentativeName" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="RepresentativePosition" class="form-label">سمت نماینده</label>
-        <input asp-for="RepresentativePosition" class="form-control" />
-        <span asp-validation-for="RepresentativePosition" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="RepresentativeMobile" class="form-label">موبایل نماینده</label>
-        <input asp-for="RepresentativeMobile" class="form-control" />
-        <span asp-validation-for="RepresentativeMobile" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="RepresentativeEmail" class="form-label">ایمیل نماینده</label>
-        <input asp-for="RepresentativeEmail" class="form-control" />
-        <span asp-validation-for="RepresentativeEmail" class="text-danger"></span>
-    </div>
-
-    <hr class="my-4">
-
-    <div class="form-group mb-3">
-        <label asp-for="CooperationType" class="form-label">نوع همکاری</label>
-        <select asp-for="CooperationType" asp-items="ViewBag.CooperationType" class="form-select">
-            <option value="">-- انتخاب کنید --</option>
-        </select>
-        <span asp-validation-for="CooperationType" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-3">
-        <label asp-for="CooperationStartDate" class="form-label">تاریخ شروع همکاری</label>
-        <input asp-for="CooperationStartDate" type="date" class="form-control" />
-        <span asp-validation-for="CooperationStartDate" class="text-danger"></span>
-    </div>
-
-    <div class="form-group mb-4">
-        <label asp-for="AdditionalDescription" class="form-label">توضیحات تکمیلی</label>
-        <textarea asp-for="AdditionalDescription" rows="3" class="form-control"></textarea>
-        <span asp-validation-for="AdditionalDescription" class="text-danger"></span>
-    </div>
-
-    <div class="d-flex justify-content-between">
-        <button type="submit" class="btn btn-success px-4">ذخیره</button>
-        <a asp-action="Index" class="btn btn-outline-secondary">بازگشت</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        // فعال سازی اعتبارسنجی فرم
+        (function () {
+            'use strict'
+
+            var forms = document.querySelectorAll('.needs-validation')
+
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
 }

@@ -12,48 +12,55 @@ namespace IMS.Application.ProjectManagement.DTOs
     {
         public int Id { get; set; }
 
-
+        [Required(ErrorMessage = "نام پروژه الزامی است")]
+        [StringLength(200, ErrorMessage = "نام پروژه نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد")]
         public string ProjectName { get; set; } = null!;
 
-      
+        [Required(ErrorMessage = "تاریخ شروع الزامی است")]
+        [DataType(DataType.Date)]
         public DateTime StartDate { get; set; }
 
-       
+        [Required(ErrorMessage = "تاریخ پایان الزامی است")]
+        [DataType(DataType.Date)]
         public DateTime EndDate { get; set; }
 
+        [Required(ErrorMessage = "نوع پروژه الزامی است")]
         public int ProjectTypeId { get; set; }
 
-        
+        [Required(ErrorMessage = "وضعیت پروژه الزامی است")]
         public ProjectStatus Status { get; set; }
 
-        
-        public string ProjectManager { get; set; }
+        [Required(ErrorMessage = "نام مدیر پروژه الزامی است")]
+        [StringLength(100, ErrorMessage = "نام مدیر پروژه نمی‌تواند بیشتر از ۱۰۰ کاراکتر باشد")]
+        public string ProjectManager { get; set; } = null!;
 
-        
+        [Range(0, 100, ErrorMessage = "درصد پیشرفت باید بین ۰ تا ۱۰۰ باشد")]
         public double ProgressPercent { get; set; }
 
-      
+        [Required(ErrorMessage = "اولویت پروژه الزامی است")]
         public ProjectPriority Priority { get; set; }
 
-       
+        [Required(ErrorMessage = "موقعیت مکانی الزامی است")]
+        [StringLength(200, ErrorMessage = "موقعیت نمی‌تواند بیشتر از ۲۰۰ کاراکتر باشد")]
         public string Location { get; set; } = null!;
 
-     
+        [Required(ErrorMessage = "اهداف پروژه الزامی است")]
+        [StringLength(500, ErrorMessage = "اهداف پروژه نمی‌تواند بیشتر از ۵۰۰ کاراکتر باشد")]
         public string Objectives { get; set; } = null!;
 
-    
+        [Range(0, double.MaxValue, ErrorMessage = "بودجه باید عددی مثبت باشد")]
         public decimal Budget { get; set; }
 
-       
+        [Required(ErrorMessage = "واحد پول الزامی است")]
         public CurrencyType Currency { get; set; }
 
-       
+        [StringLength(1000, ErrorMessage = "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد")]
+        [Required(ErrorMessage = " توضیحات الزامی است")]
         public string Description { get; set; } = null!;
 
-      
+        [Required(ErrorMessage = "کارفرما الزامی است")]
         public int EmployerId { get; set; }
 
-    
         public string? EmployerName { get; set; }
         public string? ProjectTypeName { get; set; }
     }

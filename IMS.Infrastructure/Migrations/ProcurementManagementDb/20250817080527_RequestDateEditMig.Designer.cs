@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.ProcurementManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 {
     [DbContext(typeof(ProcurementManagementDbContext))]
-    partial class ProcurementManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250817080527_RequestDateEditMig")]
+    partial class RequestDateEditMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -186,12 +189,6 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
                         .HasColumnType("int");
 
                     b.Property<string>("RequestTypeName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StatusName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalStock")

@@ -1,0 +1,669 @@
+﻿@model IMS.Models.ProMan.PurchaseRequestFlatItemsViewModel
+
+@{
+    ViewData["Title"] = "گزارش درخواست‌های خرید";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* استایل‌های مشابه ویوی موجودی انبار */
+    body {
+        font-size: 0.9rem;
+    }
+
+    select.form-select[dir="rtl"],
+    select.form-select.text-end {
+        direction: rtl;
+        text-align: right;
+        padding-right: 1rem;
+        padding-left: 2rem;
+        background-position: left 0.75rem center !important;
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
+    }
+
+    select.form-select,
+    select.select2-hidden-accessible {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none !important;
+    }
+
+    .table-sm-custom {
+        font-size: 0.8rem;
+    }
+
+        .table-sm-custom .form-select,
+        .table-sm-custom .form-control {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.4rem;
+            height: auto;
+        }
+
+        .table-sm-custom label,
+        .table-sm-custom .accordion-button {
+            font-size: 0.78rem;
+        }
+
+        .table-sm-custom .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+
+    .card-header {
+        padding: 0.4rem 0.8rem;
+    }
+
+    .card-body {
+        padding: 0.8rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.2rem;
+    }
+
+    .btn-xs {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .action-buttons {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .action-buttons-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.3rem 0;
+        border-bottom: 1px solid #dee2e6;
+        margin-bottom: 0.8rem;
+    }
+
+    .action-buttons-right {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .table-responsive {
+        border-radius: 0.35rem;
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table th {
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .table td {
+            font-size: 0.78rem;
+            padding: 0.4rem 0.75rem;
+            vertical-align: middle;
+        }
+
+    .alert {
+        font-size: 0.85rem;
+        padding: 0.75rem 1rem;
+    }
+
+        .alert i {
+            font-size: 1.5rem;
+        }
+
+    /* استایل‌های خاص برای این ویو */
+    .product-filter-group {
+        border: 1px solid #dee2e6;
+        border-radius: 0.35rem;
+        padding: 0.8rem;
+        margin-bottom: 0.8rem;
+        background-color: #f8f9fa;
+    }
+
+    /* استایل برای DatePicker شمسی */
+    .persian-datepicker {
+        direction: rtl;
+        text-align: right;
+    }
+</style>
+
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/lib/persian-datepicker/persian-datepicker.min.css" rel="stylesheet" />
+
+<div class="card border-0 shadow-sm" dir="rtl">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-shopping-cart ms-1" style="font-size: 0.85rem;"></i>
+            <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+        </div>
+    </div>
+
+    <div class="card-body p-2">
+        <form method="get" asp-action="FlatItems" id="purchaseRequestForm">
+            <!-- فیلترهای اصلی -->
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-filter me-2"></i>فیلترهای اصلی
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small">شماره درخواست کالا</label>
+                            <input type="text" id="requestNumber" name="requestNumber" class="form-control form-control-sm shadow-sm" value="@Model.SelectedRequestNumber" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">نوع درخواست کالا</label>
+                            <select id="requestTypeId" name="requestTypeId" class="form-select form-select-sm shadow-sm">
+                                <option value="">همه</option>
+                                @foreach (var requestType in Model.RequestTypes)
+                                {
+                                    <option value="@requestType.Id" selected="@(Model.SelectedRequestTypeId == requestType.Id ? "selected" : null)">
+                                        @requestType.Name
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">پروژه</label>
+                            <select id="projectId" name="projectId" class="form-select form-select-sm shadow-sm">
+                                <option value="">همه</option>
+                                @foreach (var project in Model.Projects)
+                                {
+                                    <option value="@project.Id" selected="@(Model.SelectedProjectId == project.Id ? "selected" : null)">
+                                        @project.ProjectName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فیلترهای سلسله مراتب کالا (چند کالایی) -->
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-boxes me-2"></i>فیلتر بر اساس کالا
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="productFiltersContainer">
+                        @for (int i = 0; i < Model.Products.Count; i++)
+                        {
+                            var product = Model.Products[i];
+                            <div class="product-filter-group">
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label small">دسته‌بندی</label>
+                                        <select name="Products[@i].CategoryId" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadGroups(this)">
+                                            <option value="">انتخاب دسته‌بندی</option>
+                                            @foreach (var category in Model.Categories)
+                                            {
+                                                <option value="@category.Id" selected="@(category.Id == product.CategoryId ? "selected" : null)">
+                                                    @category.Name
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small">گروه</label>
+                                        <select name="Products[@i].GroupId" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadStatuses(this)" disabled="@(product.CategoryId == null ? "disabled" : null)">
+                                            @if (product.CategoryId != null)
+                                            {
+                                                <option value="">انتخاب گروه</option>
+                                                @foreach (var group in Model.Groups.Where(g => g.CategoryId == product.CategoryId))
+                                                {
+                                                    <option value="@group.Id" selected="@(group.Id == product.GroupId)">@group.Name</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">ابتدا دسته‌بندی را انتخاب کنید</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small">وضعیت</label>
+                                        <select name="Products[@i].StatusId" class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadProducts(this)" disabled="@(product.GroupId == null ? "disabled" : null)">
+                                            @if (product.GroupId != null)
+                                            {
+                                                <option value="">انتخاب وضعیت</option>
+                                                @foreach (var status in Model.Statuses.Where(s => s.GroupId == product.GroupId))
+                                                {
+                                                    <option value="@status.Id" selected="@(status.Id == product.StatusId)">@status.Name</option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">ابتدا گروه را انتخاب کنید</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small">کالا</label>
+                                        <select name="Products[@i].ProductId" class="form-select form-select-sm shadow-sm" data-index="@i" disabled="@(product.StatusId == null ? "disabled" : null)">
+                                            @if (product.StatusId != null)
+                                            {
+                                                <option value="">انتخاب کالا</option>
+                                                @foreach (var prod in Model.Products.Where(p => p.StatusId == product.StatusId))
+                                                {
+                                                    <option value="@prod.ProductId" selected="@(prod.ProductId == product.ProductId ? "selected" : null)">
+                                                        @prod.Name
+                                                    </option>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <option value="">ابتدا وضعیت را انتخاب کنید</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeProductFilter(this)">
+                                        <i class="fas fa-times me-1"></i> حذف
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- دکمه اضافه کردن کالای جدید -->
+                    <div class="text-end mt-3">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill" onclick="addProductFilter()">
+                            <i class="fas fa-plus me-1"></i> افزودن کالای دیگر
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فیلترهای زمانی -->
+            <div class="card mb-4 border-info">
+                <div class="card-header bg-light-info d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-black">
+                        <i class="fas fa-calendar-alt me-2"></i>فیلترهای زمانی
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <label class="form-label small">از تاریخ</label>
+                            <input type="text" id="fromDate" name="fromDateString" class="form-control form-control-sm shadow-sm persian-datepicker" placeholder="yyyy/mm/dd" value="@Model.FromDateString" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">تا تاریخ</label>
+                            <input type="text" id="toDate" name="toDateString" class="form-control form-control-sm shadow-sm persian-datepicker" placeholder="yyyy/mm/dd" value="@Model.ToDateString" />
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-sm btn-primary px-4 rounded-pill">
+                                <i class="fas fa-search me-2"></i> جستجو
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+ @if (Model.FlatItems != null && Model.FlatItems.Any())
+{ 
+    <!-- نمایش جدول نتایج با چیدمان بهبود یافته -->
+    <div class="action-buttons" dir="rtl">
+        <div class="action-buttons-container">
+            <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">
+                <i class="fas fa-list-alt ms-1"></i> نتایج درخواست‌های خرید
+            </h6>
+            <div class="action-buttons-right">
+                <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick="printReport()">
+                    <i class="fas fa-print me-1"></i> پرینت
+                </button>
+                <button type="button" class="btn btn-xs btn-outline-success rounded-pill" onclick="exportToExcel()">
+                    <i class="fas fa-file-excel me-1"></i> اکسل
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="reportResults" class="mt-2" dir="rtl">
+        <div class="card shadow-sm">
+            <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-shopping-cart ms-1" style="font-size: 0.8rem;"></i>
+                    <h5 class="mb-0 fw-bold" style="font-size: 0.85rem;">آیتم‌های درخواست خرید</h5>
+                </div>
+                <span class="badge bg-light text-dark" style="font-size: 0.75rem;">
+                    تعداد رکوردها: @Model.FlatItems.Count()
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" width="10%" class="text-start ps-4"> شماره درخواست کالا</th>
+                                <th scope="col" width="10%" class="text-start">نوع درخواست کالا</th>
+                                <th scope="col" width="10%" class="text-start">تاریخ درخواست کالا</th>
+                                <th scope="col" width="10%" class="text-start">پروژه</th>
+                                <th scope="col" width="25%" class="text-start">محصول</th>
+                                <th scope="col" width="10%" class="text-end">تعداد</th>
+                                <th scope="col" width="10%" class="text-end pe-4">نیاز به تامین</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.FlatItems)
+                            {
+                                <tr class="align-middle">
+                                    <td class="text-start ps-4">@item.RequestNumber</td>
+                                    <td class="text-start">@item.RequestTypeName</td>
+                                    <td class="text-start">@(item.RequestDate.ToString("yyyy/MM/dd", new System.Globalization.CultureInfo("fa-IR")))</td>
+                                    <td class="text-start">@item.ProjectName</td>
+                                    <td class="text-start">
+                                        <div class="small">
+                                            @item.CategoryName | @item.GroupName | @item.StatusName | @item.ProductName
+                                        </div>
+                                    </td>
+                                    <td class="text-end">@item.Quantity</td>
+                                    <td class="text-end pe-4 fw-bold">
+                                        <span class="badge bg-@(item.NeedToSupply > 0 ? "danger" : "success") bg-opacity-10 text-@(item.NeedToSupply > 0 ? "danger" : "success")">
+                                            @item.NeedToSupply
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+ } 
+ else if (Model.FlatItems != null && !Model.FlatItems.Any())
+{
+    <div class="alert alert-info mt-3 text-center py-2" dir="rtl">
+        <i class="fas fa-box-open fa-1x mb-2 d-block"></i>
+        <h5 class="fw-semibold" style="font-size: 0.9rem;">موردی برای نمایش وجود ندارد</h5>
+        <p class="text-muted mb-0" style="font-size: 0.8rem;">هیچ آیتمی با فیلترهای انتخاب شده یافت نشد.</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-warning mt-3 text-center py-2" dir="rtl">
+        <i class="fas fa-info-circle fa-1x mb-2 d-block"></i>
+        <h5 class="fw-semibold" style="font-size: 0.9rem;">لطفاً ابتدا فیلترها را انتخاب کنید</h5>
+        <p class="text-muted mb-0" style="font-size: 0.8rem;">برای مشاهده نتایج، باید ابتدا پارامترهای فیلتر را تنظیم کنید.</p>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/moment/moment.min.js"></script>
+    <script src="~/lib/jalali-moment/jalali-moment.min.js"></script>
+    <script src="~/lib/persian-datepicker/persian-datepicker.min.js"></script>
+
+    <script>
+         function toPersianDateString(date) {
+            const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).format(date);
+
+            return persian.replaceAll('۰','0').replaceAll('۱','1')
+                          .replaceAll('۲','2').replaceAll('۳','3')
+                          .replaceAll('۴','4').replaceAll('۵','5')
+                          .replaceAll('۶','6').replaceAll('۷','7')
+                          .replaceAll('۸','8').replaceAll('۹','9');
+        }
+
+        // بازنشانی فرم
+        function resetForm() {
+            $('#purchaseRequestForm')[0].reset();
+            const today = moment().format('jYYYY/jMM/jDD');
+            $('#fromDate').val(today);
+            $('#toDate').val(today);
+            $('#productFiltersContainer').html(getInitialProductFilter());
+            $('.persian-datepicker').persianDatepicker('refresh');
+        }
+
+        // دریافت فیلتر اولیه کالا
+        function getInitialProductFilter() {
+            const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Categories.Select(c => new { c.Id, c.Name })));
+            let optionsHtml = '<option value="">انتخاب دسته‌بندی</option>';
+            categories.forEach(c => optionsHtml += `<option value="${c.Id}">${c.Name}</option>`);
+
+            return `
+            <div class="product-filter-group">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label small">دسته‌بندی</label>
+                        <select name="Products[0].CategoryId" class="form-select form-select-sm shadow-sm" data-index="0" onchange="loadGroups(this)">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">گروه</label>
+                        <select name="Products[0].GroupId" class="form-select form-select-sm shadow-sm" data-index="0" onchange="loadStatuses(this)" disabled>
+                            <option>ابتدا دسته‌بندی را انتخاب کنید</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">وضعیت</label>
+                        <select name="Products[0].StatusId" class="form-select form-select-sm shadow-sm" data-index="0" onchange="loadProducts(this)" disabled>
+                            <option>ابتدا گروه را انتخاب کنید</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">کالا</label>
+                        <select name="Products[0].ProductId" class="form-select form-select-sm shadow-sm" data-index="0" disabled>
+                            <option>ابتدا وضعیت را انتخاب کنید</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-end mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeProductFilter(this)">
+                        <i class="fas fa-times me-1"></i> حذف
+                    </button>
+                </div>
+            </div>
+            `;
+        }
+
+        // بارگذاری گروه‌ها بر اساس دسته‌بندی
+        function loadGroups(selectElement) {
+            const categoryId = selectElement.value;
+            const index = $(selectElement).data('index');
+            const groupSelect = $(`select[name="Products[${index}].GroupId"]`);
+            const statusSelect = $(`select[name="Products[${index}].StatusId"]`);
+            const productSelect = $(`select[name="Products[${index}].ProductId"]`);
+
+            // ریست گروه، وضعیت و کالا
+            groupSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>');
+            statusSelect.prop('disabled', true).html('<option>ابتدا گروه را انتخاب کنید</option>');
+            productSelect.prop('disabled', true).html('<option>ابتدا وضعیت را انتخاب کنید</option>');
+
+            if (!categoryId) {
+                groupSelect.prop('disabled', true).html('<option>ابتدا دسته‌بندی را انتخاب کنید</option>');
+                return;
+            }
+
+            fetch(`/ProcurementManagement/PurchaseRequestFlatItem/GetGroupsByCategoryId?categoryId=${categoryId}`)
+                .then(res => res.json())
+                .then(data => {
+                    groupSelect.empty().append('<option value="">انتخاب گروه</option>');
+                    data.forEach(g => groupSelect.append(new Option(g.name, g.id)));
+                    groupSelect.prop('disabled', false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    groupSelect.html('<option>خطا در بارگذاری</option>');
+                });
+        }
+
+        // بارگذاری وضعیت‌ها بر اساس گروه
+        function loadStatuses(selectElement) {
+            const groupId = selectElement.value;
+            const index = $(selectElement).data('index');
+            const statusSelect = $(`select[name="Products[${index}].StatusId"]`);
+            const productSelect = $(`select[name="Products[${index}].ProductId"]`);
+
+            statusSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>');
+            productSelect.prop('disabled', true).html('<option>ابتدا وضعیت را انتخاب کنید</option>');
+
+            if (!groupId) {
+                statusSelect.prop('disabled', true).html('<option>ابتدا گروه را انتخاب کنید</option>');
+                return;
+            }
+
+            fetch(`/ProcurementManagement/PurchaseRequestFlatItem/GetStatusesByGroupId?groupId=${groupId}`)
+                .then(res => res.json())
+                .then(data => {
+                    statusSelect.empty().append('<option value="">انتخاب وضعیت</option>');
+                    data.forEach(s => statusSelect.append(new Option(s.name, s.id)));
+                    statusSelect.prop('disabled', false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    statusSelect.html('<option>خطا در بارگذاری</option>');
+                });
+        }
+
+        // بارگذاری کالاها بر اساس وضعیت
+        function loadProducts(selectElement) {
+            const statusId = selectElement.value;
+            const index = $(selectElement).data('index');
+            const productSelect = $(`select[name="Products[${index}].ProductId"]`);
+
+            productSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>');
+
+            if (!statusId) {
+                productSelect.prop('disabled', true).html('<option>ابتدا وضعیت را انتخاب کنید</option>');
+                return;
+            }
+
+            fetch(`/ProcurementManagement/PurchaseRequestFlatItem/GetProductsByStatusId?statusId=${statusId}`)
+                .then(res => res.json())
+                .then(data => {
+                    productSelect.empty().append('<option value="">انتخاب کالا</option>');
+                    data.forEach(p => productSelect.append(new Option(p.name, p.id)));
+                    productSelect.prop('disabled', false);
+                })
+                .catch(err => {
+                    console.error(err);
+                    productSelect.html('<option>خطا در بارگذاری</option>');
+                });
+        }
+
+        // افزودن فیلتر جدید
+        function addProductFilter() {
+            const container = $('#productFiltersContainer');
+            const newIndex = container.children().length;
+
+            // دریافت دسته‌بندی‌ها از سرور به صورت JSON
+            const categories = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Categories.Select(c => new { c.Id, c.Name })));
+
+            let optionsHtml = '<option value="">انتخاب دسته‌بندی</option>';
+            categories.forEach(c => optionsHtml += `<option value="${c.Id}">${c.Name}</option>`);
+
+            const filterHtml = `
+            <div class="product-filter-group">
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <label class="form-label small">دسته‌بندی</label>
+                        <select name="Products[${newIndex}].CategoryId" class="form-select form-select-sm shadow-sm" data-index="${newIndex}" onchange="loadGroups(this)">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">گروه</label>
+                        <select name="Products[${newIndex}].GroupId" class="form-select form-select-sm shadow-sm" data-index="${newIndex}" onchange="loadStatuses(this)" disabled>
+                            <option>ابتدا دسته‌بندی را انتخاب کنید</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">وضعیت</label>
+                        <select name="Products[${newIndex}].StatusId" class="form-select form-select-sm shadow-sm" data-index="${newIndex}" onchange="loadProducts(this)" disabled>
+                            <option>ابتدا گروه را انتخاب کنید</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">کالا</label>
+                        <select name="Products[${newIndex}].ProductId" class="form-select form-select-sm shadow-sm" data-index="${newIndex}" disabled>
+                            <option>ابتدا وضعیت را انتخاب کنید</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-end mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" onclick="removeProductFilter(this)">
+                        <i class="fas fa-times me-1"></i> حذف
+                    </button>
+                </div>
+            </div>
+            `;
+
+            container.append(filterHtml);
+        }
+
+        // حذف فیلتر
+        function removeProductFilter(button) {
+            const container = $('#productFiltersContainer');
+            if (container.children('.product-filter-group').length > 1) {
+                $(button).closest('.product-filter-group').remove();
+                // بازنشانی اندیس‌ها
+                container.children('.product-filter-group').each(function(i){
+                    $(this).find('select').each(function(){
+                        const name = $(this).attr('name').replace(/\[\d+\]/, `[${i}]`);
+                        $(this).attr('name', name).data('index', i);
+                    });
+                });
+            } else {
+                alert('حداقل یک فیلتر کالا باید باقی بماند.');
+            }
+        }
+
+        // چاپ گزارش
+        function printReport() {
+            const printContents = document.getElementById('reportResults').innerHTML;
+            const originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            window.location.reload(); // بازگرداندن صفحه به حالت اولیه
+        }
+
+        // خروجی به اکسل
+        function exportToExcel() {
+            const table = document.querySelector('#reportResults table');
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+            for (let row of rows) {
+                const cols = row.querySelectorAll('th, td');
+                let rowData = [];
+                for (let col of cols) {
+                    rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+                }
+                csv.push(rowData.join(','));
+            }
+            const csvFile = new Blob(["\ufeff" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const downloadLink = document.createElement('a');
+            downloadLink.download = 'PurchaseRequests.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.click();
+        }
+    </script>
+}

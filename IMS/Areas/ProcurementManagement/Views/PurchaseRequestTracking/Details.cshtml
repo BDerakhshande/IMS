@@ -3,7 +3,7 @@
 @using System.Reflection
 @model PurchaseRequestDetailsViewModel
 @{
-    ViewData["Title"] = "جزئیات درخواست خرید";
+    ViewData["Title"] = "جزئیات درخواست کالا";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var isCompleted = Model.Status == Status.Completed;
 }
@@ -53,19 +53,50 @@
     .disabled-row {
         opacity: 0.5;
         user-select: none;
-        /* حذف pointer-events از اینجا */
     }
 
         .disabled-row td:not(:last-child) {
-            pointer-events: none; /* فقط سلول‌های غیرعملیاتی غیرکلیک */
+            pointer-events: none;
         }
 
 
+    .add-to-flatitems-btn {
+        background-color: #28a745; /* سبز */
+        color: white;
+    }
 
+        .add-to-flatitems-btn.stopped {
+            background-color: transparent;
+            color: #28a745;
+        }
+
+    .toggle-disable-btn {
+        color: #dc3545; /* قرمز */
+        border-color: #dc3545;
+    }
+
+        .toggle-disable-btn.active {
+            background-color: #dc3545;
+            color: white;
+        }
 
 </style>
 
 <div class="container-fluid py-3" dir="rtl">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
@@ -83,38 +114,32 @@
                     @if (isCompleted)
                     {
                         <div class="completion-message text-center text-white">
-                            <i class="fas fa-check-circle fa-2x mb-2"></i> 
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
                             <h4 style="font-size: 1.2rem; margin-bottom: 0.25rem;">درخواست خرید تکمیل شده است</h4>
                             <p style="font-size: 0.9rem; margin-bottom: 0;">این درخواست به صورت کامل پردازش شده است.</p>
                         </div>
                     }
 
+                    <!-- اطلاعات کلی -->
                     <div class="row g-3 mb-3">
-                        <!-- تاریخ درخواست -->
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="form-label fw-bold mb-1 small">
-                                    <i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست
-                                </label>
-                                <div class="input-group input-group-sm bg-light rounded p-2">
-                                    @Model.RequestDate.ToString("yyyy/MM/dd")
-                                </div>
+                            <label class="form-label fw-bold mb-1 small">
+                                <i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست
+                            </label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">
+                                @Model.RequestDate.ToString("yyyy/MM/dd")
                             </div>
                         </div>
 
-                        <!-- عنوان -->
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="form-label fw-bold mb-1 small">
-                                    <i class="fas fa-heading me-1 text-muted"></i> عنوان
-                                </label>
-                                <div class="input-group input-group-sm bg-light rounded p-2">
-                                    @Model.Title
-                                </div>
+                            <label class="form-label fw-bold mb-1 small">
+                                <i class="fas fa-heading me-1 text-muted"></i> عنوان
+                            </label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">
+                                @Model.Title
                             </div>
                         </div>
 
-                        <!-- وضعیت -->
                         @{
                             var statusDescription = Model.Status.GetType()
                             .GetField(Model.Status.ToString())
@@ -122,130 +147,109 @@
                             .Description ?? Model.Status.ToString();
                         }
                         <div class="col-md-4">
-                            <div class="form-group">
-                                <label class="form-label fw-bold mb-1 small">
-                                    <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
-                                </label>
-                                <div class="input-group input-group-sm bg-light rounded p-2">
-                                    @statusDescription
-                                </div>
+                            <label class="form-label fw-bold mb-1 small">
+                                <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
+                            </label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">
+                                @statusDescription
                             </div>
                         </div>
                     </div>
 
+                    <!-- جدول آیتم‌ها -->
                     <div class="table-responsive">
                         <table class="table table-hover table-sm">
                             <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
-                                <tr >
+                                <tr>
                                     <th class="text-center py-1">کالا</th>
                                     <th class="text-center py-1">تعداد درخواست</th>
-                                    <th class="text-center py-1">موجودی کل </th>
-                                    <th class="text-center py-1"> در انتظار تامین</th>
+                                    <th class="text-center py-1">موجودی کل</th>
+                                    <th class="text-center py-1">درخواست‌های قبلی</th>
                                     <th class="text-center py-1">نیاز به تامین</th>
                                     <th class="text-center py-1">توضیحات</th>
                                     <th class="text-center py-1">عملیات</th>
                                 </tr>
                             </thead>
-                            <tbody style="font-size: 0.8rem;" >
+                            <tbody style="font-size: 0.8rem;">
                                 @foreach (var item in Model.Items)
                                 {
                                     <tr data-item-id="@item.Id" class="@(item.IsSupplyStopped ? "disabled-row" : "")">
                                         <td class="text-center py-1 align-middle">
-                                            @item.CategoryName | @item.GroupName | @item.Status |  @item.ProductName
+                                            @item.CategoryName | @item.GroupName | @item.Status | @item.ProductName
                                         </td>
                                         <td class="text-center py-1 align-middle quantity">@item.Quantity</td>
                                         <td class="text-center py-1 align-middle total-stock">@item.TotalStock</td>
                                         <td class="text-center py-1 align-middle pending-requests">@item.PendingRequests</td>
                                         <td class="text-center py-1 align-middle need-to-supply">@item.NeedToSupply</td>
-
                                         <td class="text-center py-1 align-middle">@item.Description</td>
                                         <td class="text-center py-1 align-middle">
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle me-1" title="درخواست خرید" @(isCompleted ? "disabled" : "")>
-                                                <i class="bi bi-cart-check"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle toggle-disable-btn" title="توقف تامین" @(isCompleted ? "disabled" : "")>
+                                            <form method="post" action="@Url.Action("AddToFlatItemsAndShow", "PurchaseRequestTracking", new { area = "ProcurementManagement" })" style="display:inline">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success add-to-flatitems-btn rounded-circle me-1"
+                                                        title="در حال تدارکات" @(isCompleted ? "disabled" : "")>
+                                                    <i class="bi bi-cart-check"></i>
+                                                </button>
+                                            </form>
+
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle toggle-disable-btn"
+                                                    title="توقف تامین" @(isCompleted ? "disabled" : "")>
                                                 <i class="bi bi-slash-circle"></i>
                                             </button>
                                         </td>
                                     </tr>
                                 }
                             </tbody>
-
                         </table>
                     </div>
+
+                    <!-- اینجا FlatItems لود میشه -->
+                    <div id="flatItemsContainer" class="mt-3"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-    <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-
-}
-
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
-               $(document).ready(function() {
-          $(".toggle-disable-btn").click(function() {
+        $(document).ready(function () {
+
+                 $(".toggle-disable-btn").click(function () {
             var btn = $(this);
             var row = btn.closest("tr");
             var itemId = row.data('item-id');
+            var addBtn = row.find(".add-to-flatitems-btn");
             var isStopping = !row.hasClass("disabled-row");
 
-            $.ajax({
-              url: '@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
-              method: 'POST',
-              data: { id: itemId, stopSupply: isStopping },
-              success: function(response) {
-                       if (response.success) {
-            if (response.isSupplyStopped) {
-                row.addClass("disabled-row");
-                btn
-                  .attr("title", "فعال کردن تامین")
-                  .removeClass("btn-outline-danger")
-                  .addClass("btn-outline-success")
-                  .html('<i class="bi bi-check-circle"></i>');
-                row.find(".supply-status").text("توقف تامین");
-            } else {
-                row.removeClass("disabled-row");
-                btn
-                  .attr("title", "توقف تامین")
-                  .removeClass("btn-outline-success")
-                  .addClass("btn-outline-danger")
-                  .html('<i class="bi bi-slash-circle"></i>');
-                row.find(".supply-status").text("فعال");
-            }
-
-            // غیرفعال کردن همه دکمه‌های ستون عملیات بجز دکمه توقف تامین
-            var operationCell = row.find('td:last-child');
-            operationCell.find('button').prop('disabled', true);
-            operationCell.find('button.toggle-disable-btn').prop('disabled', false);
-
-            // آپدیت بقیه ستون‌ها اگر داده آمد
-            if (response.updatedItems) {
-                response.updatedItems.forEach(function(updatedItem) {
-                    var r = $('tr[data-item-id="' + updatedItem.Id + '"]');
-                    if (r.length) {
-                        r.find('.quantity').text(updatedItem.Quantity + ' ' + (updatedItem.Unit || ''));
-                        r.find('.total-stock').text(updatedItem.TotalStock);
-                        r.find('.need-to-supply').text(updatedItem.NeedToSupply);
+            $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
+                { id: itemId, stopSupply: isStopping },
+                function (response) {
+                    if (response.success) {
+                        if (response.isSupplyStopped) {
+                            row.addClass("disabled-row");
+                            btn.addClass("active")
+                               .attr("title", "فعال کردن تامین")
+                               .html('<i class="bi bi-check-circle"></i>');
+                            addBtn.addClass("stopped");
+                        } else {
+                            row.removeClass("disabled-row");
+                            btn.removeClass("active")
+                               .attr("title", "توقف تامین")
+                               .html('<i class="bi bi-slash-circle"></i>');
+                            addBtn.removeClass("stopped");
+                        }
+                    } else {
+                        alert("خطا: " + response.message);
                     }
+                }).fail(function () {
+                    alert("خطا در ارتباط با سرور!");
                 });
-            }
-        }
-         else {
-                  alert("خطا: " + response.message);
-                }
-              },
-              error: function() {
-                alert("خطا در ارتباط با سرور!");
-              }
-            });
-          });
         });
 
+
+         
+
+        });
     </script>
 }

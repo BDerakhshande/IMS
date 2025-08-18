@@ -4,6 +4,7 @@ using IMS.Application.ProcurementManagement.Service;
 using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Domain.ProcurementManagement.Entities;
 using IMS.Domain.ProcurementManagement.Enums;
 using IMS.Infrastructure.Persistence.ProcurementManagement;
 using IMS.Models.ProMan;
@@ -22,14 +23,18 @@ namespace IMS.Areas.ProcurementManagement.Controllers
         private readonly IProcurementManagementDbContext _procurementManagementDbContext;
         private readonly ICategoryService _categoryService;
         private readonly IApplicationDbContext _applicationDbContext;
+        private readonly IWarehouseDbContext _warehouseContext;
+
+      
 
         public PurchaseRequestController(IPurchaseRequestService purchaseRequestService , IProcurementManagementDbContext procurementManagementDbContext,
-            ICategoryService categoryService, IApplicationDbContext applicationDbContext)
+            ICategoryService categoryService, IApplicationDbContext applicationDbContext , IWarehouseDbContext warehouseContext)
         {
             _purchaseRequestService = purchaseRequestService;
             _procurementManagementDbContext = procurementManagementDbContext;
             _categoryService = categoryService;
             _applicationDbContext = applicationDbContext;
+            _warehouseContext = warehouseContext;
 
         }
 
@@ -444,6 +449,9 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+    
+
 
     }
 }

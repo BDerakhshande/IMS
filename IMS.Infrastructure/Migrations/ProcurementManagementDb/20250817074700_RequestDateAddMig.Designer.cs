@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.ProcurementManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 {
     [DbContext(typeof(ProcurementManagementDbContext))]
-    partial class ProcurementManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250817074700_RequestDateAddMig")]
+    partial class RequestDateAddMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,80 +132,6 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
                     b.HasIndex("RequestTypeId");
 
                     b.ToTable("PurchaseRequests");
-                });
-
-            modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.PurchaseRequestFlatItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CategoryName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("GroupId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("GroupName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsSupplyStopped")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("NeedToSupply")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PendingRequests")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProductName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ProjectId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ProjectName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("RequestDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RequestNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RequestTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RequestTypeName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("StatusName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalStock")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Unit")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PurchaseRequestFlatItems");
                 });
 
             modelBuilder.Entity("IMS.Domain.ProcurementManagement.Entities.PurchaseRequestItem", b =>

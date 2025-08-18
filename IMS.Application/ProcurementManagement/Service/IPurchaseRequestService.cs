@@ -19,6 +19,6 @@ namespace IMS.Application.ProcurementManagement.Service
         Task<List<SelectListItem>> GetProductsByStatus(int statusId);
         Task<List<SelectListItem>> GetStatusesByGroupAsync(int groupId);
         Task<List<SelectListItem>> GetCategoriesAsync();
-
+      
     }
 }

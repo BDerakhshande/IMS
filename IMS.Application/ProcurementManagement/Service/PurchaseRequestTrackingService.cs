@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.ProcurementManagement.DTOs;
+using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.Services;
 using IMS.Domain.ProcurementManagement.Entities;
 using IMS.Domain.ProcurementManagement.Enums;
@@ -16,11 +17,14 @@ namespace IMS.Application.ProcurementManagement.Service
     
         private readonly IProcurementManagementDbContext _procurementDb;
         private readonly IWarehouseDbContext _warehouseDb;
-
-        public PurchaseRequestTrackingService(IProcurementManagementDbContext procurementDb, IWarehouseDbContext warehouseDb)
+        private readonly IApplicationDbContext _projectContext;
+    
+        public PurchaseRequestTrackingService(IProcurementManagementDbContext procurementDb, IWarehouseDbContext warehouseDb ,
+            IApplicationDbContext projectContext)
         {
             _procurementDb = procurementDb;
             _warehouseDb = warehouseDb;
+            _projectContext = projectContext;
         }
         public async Task<List<PurchaseRequest>> GetAllAsync(CancellationToken cancellationToken = default)
         {
@@ -105,5 +109,78 @@ namespace IMS.Application.ProcurementManagement.Service
 
             return result;
         }
+
+
+
+     //   public async Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
+     //DateTime? fromDate = null,
+     //DateTime? toDate = null,
+     //int? projectId = null,
+     //int? categoryId = null,
+     //int? groupId = null,
+     //int? productId = null,
+     //int? requestTypeId = null,
+     //CancellationToken cancellationToken = default)
+     //   {
+     //       // ساخت کوئری پایه روی PurchaseRequests
+     //       var query = _procurementDb.PurchaseRequests
+     //           .Include(pr => pr.RequestType)
+     //           .Include(pr => pr.Items)
+     //           .AsQueryable();
+
+     //       // اعمال فیلترهای مربوط به PurchaseRequest روی دیتابیس
+     //       if (fromDate.HasValue)
+     //           query = query.Where(pr => pr.RequestDate >= fromDate.Value);
+     //       if (toDate.HasValue)
+     //           query = query.Where(pr => pr.RequestDate <= toDate.Value);
+     //       if (requestTypeId.HasValue)
+     //           query = query.Where(pr => pr.RequestTypeId == requestTypeId.Value);
+
+     //       // گرفتن داده‌ها از دیتابیس
+     //       var requests = await query.ToListAsync(cancellationToken);
+
+     //       // گرفتن داده‌های جانبی از دیتابیس (Categories, Groups, Products, Projects, Status)
+     //       var categories = await _warehouseDb.Categories.ToListAsync(cancellationToken);
+     //       var groups = await _warehouseDb.Groups.ToListAsync(cancellationToken);
+     //       var products = await _warehouseDb.Products
+     //                       .Include(p => p.Status)  // وضعیت محصول
+     //                       .ToListAsync(cancellationToken);
+     //       var projects = await _projectContext.Projects.ToListAsync(cancellationToken);
+
+     //       // ساخت flatItems
+     //       var flatItems = requests
+     //           .SelectMany(pr => pr.Items, (pr, item) => {
+     //               var product = products.FirstOrDefault(p => p.Id == item.ProductId);
+
+     //               return new PurchaseRequestFlatItemDto
+     //               {
+     //                   Id = item.Id,
+     //                   RequestNumber = pr.RequestNumber,
+     //                   RequestTypeId = pr.RequestTypeId,
+     //                   RequestTypeName = pr.RequestType?.Name,
+     //                   ProjectId = item.ProjectId ?? 0,
+     //                   ProjectName = item.ProjectId.HasValue ? projects.FirstOrDefault(p => p.Id == item.ProjectId.Value)?.ProjectName : null,
+     //                   CategoryId = item.CategoryId,
+     //                   CategoryName = categories.FirstOrDefault(c => c.Id == item.CategoryId)?.Name,
+     //                   GroupId = item.GroupId,
+     //                   GroupName = groups.FirstOrDefault(g => g.Id == item.GroupId)?.Name,
+     //                   ProductId = item.ProductId,
+     //                   ProductName = product?.Name,
+     //                   Quantity = item.Quantity,
+     //                   Unit = item.Unit,
+     //                   TotalStock = 0,
+     //                   PendingRequests = 0,
+     //                   NeedToSupply = item.Quantity,
+     //                   IsSupplyStopped = item.IsSupplyStopped,
+     //                   RequestDate = pr.RequestDate,
+     //                   StatusId = product?.Status?.Id ?? 0,        // اضافه شده
+     //                   StatusName = product?.Status?.Name          // اضافه شده
+     //               };
+     //           })
+     //           .ToList();
+
+     //       return flatItems;
+     //   }
+
     }
 }

@@ -17,6 +17,19 @@
         return $"{pc.GetYear(date)}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
     }
 }
+@functions {
+    public string GetDocTypeFa(string docType)
+    {
+        return docType switch
+        {
+            "Receipt" => "رسید",
+            "Issue" => "حواله",
+            "Transfer" => "انتقال",
+            "Conversion" => "تبدیل",
+            _ => docType
+        };
+    }
+}
 
 @{
     Layout = null;
@@ -143,7 +156,8 @@
             @* فیلتر نوع سند *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.DocumentType))
             {
-                <li>نوع سند: @Model.Filter.DocumentType</li>
+                <li>نوع سند: @GetDocTypeFa(Model.Filter.DocumentType)</li>
+
             }
 
             @* فیلتر تاریخ‌ها *@
@@ -219,7 +233,7 @@
 
 
                         <td>@CleanString(item.DocumentNumber ?? "-")</td>
-                        <td>@CleanString(item.DocumentType ?? "-")</td>
+                        <td>@GetDocTypeFa(item.DocumentType)</td>
                         <td>@CleanString(item.CategoryName ?? "-")</td>
                         <td>@CleanString(item.GroupName ?? "-")</td>
                         <td>@CleanString(item.StatusName ?? "-")</td>

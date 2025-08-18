@@ -145,66 +145,43 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
         {
-
-            // Log the filter object to verify its contents
-           
-            Console.WriteLine(JsonSerializer.Serialize(filter));
+            // گرفتن داده‌های اصلی بر اساس فیلتر
             var items = await _inventoryReportService.GetInventoryReportAsync(filter);
 
-            var warehouseIds = filter.Warehouses?.Select(w => w.WarehouseId).ToList() ?? new List<int>();
-            var warehouseNames = await _dbContext.Warehouses
-                .Where(w => warehouseIds.Contains(w.Id))
-                .ToDictionaryAsync(w => w.Id, w => w.Name);
+            // پر کردن SelectListها و نام‌ها مثل Index
+            await PopulateSelectLists(filter);
 
-            var categoryNames = new Dictionary<int, string>();
-            if (filter.CategoryId.HasValue)
-            {
-                var cat = await _dbContext.Categories.FindAsync(filter.CategoryId.Value);
-                if (cat != null)
-                    categoryNames[cat.Id] = cat.Name;
-            }
+            // محاسبه نام‌ها برای فیلتر انتخاب‌شده (با استفاده از ViewBag که PopulateSelectLists پر کرده)
+            var warehouseNames = (await _warehouseService.GetAllWarehousesAsync())
+                .ToDictionary(w => w.Id, w => w.Name);
 
-            var groupNames = new Dictionary<int, string>();
-            if (filter.GroupId.HasValue)
-            {
-                var group = await _dbContext.Groups.FindAsync(filter.GroupId.Value);
-                if (group != null)
-                    groupNames[group.Id] = group.Name;
-            }
+            var categoryNames = (await _categoryService.GetAllAsync())
+                .ToDictionary(c => c.Id, c => c.Name);
 
-            var statusNames = new Dictionary<int, string>();
-            if (filter.StatusId.HasValue)
-            {
-                var status = await _dbContext.Statuses.FindAsync(filter.StatusId.Value);
-                if (status != null)
-                    statusNames[status.Id] = status.Name;
-            }
+            var groupNames = (await _inventoryReportService.GetAllGroupsAsync())
+                .ToDictionary(g => int.Parse(g.Value), g => g.Text);
 
-            var productNames = new Dictionary<int, string>();
-            if (filter.ProductId.HasValue)
-            {
-                var product = await _dbContext.Products.FindAsync(filter.ProductId.Value);
-                if (product != null)
-                    productNames[product.Id] = product.Name;
-            }
+            var statusNames = (await _inventoryReportService.GetAllStatusesAsync())
+                .ToDictionary(s => int.Parse(s.Value), s => s.Text);
 
+            var productNames = (await _inventoryReportService.GetAllProductsAsync())
+                .ToDictionary(p => int.Parse(p.Value), p => p.Text);
+
+            // گرفتن نام زون‌ها و سکشن‌ها از آیتم‌هایی که فیلتر شد
             var zoneNames = items
-     .Where(i => i.ZoneName != null)
-     .GroupBy(i => new { i.ZoneId, i.ZoneName })
-     .ToDictionary(g => g.Key.ZoneId ?? 0, g => g.Key.ZoneName);
+                .Where(i => i.ZoneId.HasValue && !string.IsNullOrEmpty(i.ZoneName))
+                .GroupBy(i => i.ZoneId.Value)
+                .ToDictionary(g => g.Key, g => g.First().ZoneName);
 
             var sectionNames = items
-                .Where(i => i.SectionName != null)
-                .GroupBy(i => new { i.SectionId, i.SectionName })
-                .ToDictionary(g => g.Key.SectionId ?? 0, g => g.Key.SectionName);
+                .Where(i => i.SectionId.HasValue && !string.IsNullOrEmpty(i.SectionName))
+                .GroupBy(i => i.SectionId.Value)
+                .ToDictionary(g => g.Key, g => g.First().SectionName);
 
-
-
-
+            // ساخت ViewModel برای PDF
             var vm = new InventoryReportPdfViewModel
             {
                 Items = items,
@@ -214,10 +191,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 GroupNames = groupNames,
                 StatusNames = statusNames,
                 ProductNames = productNames,
-                ZoneNames =  zoneNames,
+                ZoneNames = zoneNames,
                 SectionNames = sectionNames
             };
 
+            // خروجی PDF
             return new ViewAsPdf("InventoryPdfView", vm)
             {
                 FileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
@@ -226,7 +204,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
                 CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
             };
-
         }
 
 
