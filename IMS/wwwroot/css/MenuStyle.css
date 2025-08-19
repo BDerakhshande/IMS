@@ -1,4 +1,9 @@
-﻿/* ===== متغیرها ===== */
+﻿@font-face {
+    font-family: 'Vazirmatn';
+    src: url('/vazirmatn/Vazirmatn-RD-Medium.woff2') format('woff2');
+}
+
+/* ===== متغیرها ===== */
 :root {
     --primary-color: #1aaea2;
     --primary-dark: #148f85;

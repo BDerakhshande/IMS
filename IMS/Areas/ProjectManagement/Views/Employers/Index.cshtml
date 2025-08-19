@@ -1,7 +1,7 @@
 ﻿@model List<IMS.Application.ProjectManagement.DTOs.EmployerDto>
 @{
     ViewData["Title"] = "مدیریت کارفرماها";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/ProjectManagement/Views/Shared/_Layout.cshtml";
 }
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
@@ -128,6 +128,7 @@
 </div>
 
 @section Scripts {
+    <script src="/js/MenuJs.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const globalSearch = document.getElementById('globalSearch');

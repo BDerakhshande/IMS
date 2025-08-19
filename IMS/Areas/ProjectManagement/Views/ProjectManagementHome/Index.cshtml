@@ -1,59 +1,14 @@
 ﻿@{
     ViewData["Title"] = "صفحه اصلی مدیریت پروژه";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/ProjectManagement/Views/Shared/_Layout.cshtml";
 }
-<!DOCTYPE html>
-<html lang="fa">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@ViewData["Title"]</title>
 
-    <!-- فونت و آیکون‌ها -->
-    <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
-    <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/management.css" />
-</head>
-<body>
-    <div class="header-bar">
-        <button class="toggle-btn" id="toggleBtn">☰</button>
-        <img src="/image/logo.png" alt="لوگو" id="logo" class="logo-icon" />
-    </div>
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link rel="stylesheet" href="~/css/MenuStyle.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
+<h1 style="direction:rtl">Test menu!!!!</h1>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <a href="/ProjectManagement/Dashboard" class="menu-item active">
-                <i class="fas fa-home"></i>
-                <span>داشبورد</span>
-            </a>
-
-            <div class="menu-item has-submenu">
-                <i class="fas fa-user"></i>
-                <span>تعاریف</span>
-                <i class="submenu-toggle fas fa-chevron-down"></i>
-            </div>
-            <div class="submenu">
-                <a class="submenu-item" href="/ProjectManagement/Project/Index"><i class="fas fa-box"></i> <span>پروژه ها</span></a>
-                <a class="submenu-item" href="/ProjectManagement/ProjectType/Index"><i class="fas fa-tags"></i> <span>انواع پروژه</span></a>
-                <a class="submenu-item" href="/ProjectManagement/Employers/Index"><i class="fas fa-tags"></i> <span>کارفرما</span></a>
-            </div>
-
-            <a  asp-area="ProjectManagement" asp-controller="ProjectReport" asp-action="Index" class="menu-item active">
-                <i class="fas fa-chart-bar"></i>
-                <span>گزارشات</span>
-            </a>
-            <a asp-controller="ProjectManagementHome" asp-action="Index" class="menu-item active">
-                <i class="fas fa-right-from-bracket"></i>
-                <span>خروج</span>
-            </a>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <h1>Main Content ...drhsh</h1>
-    </div>
-
-    <script src="~/js/management.js"></script>
-</body>
-</html>
+@section Scripts {
+    <script src="~/js/MenuJs.js"></script>
+}
