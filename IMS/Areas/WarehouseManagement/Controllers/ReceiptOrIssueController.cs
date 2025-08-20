@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore.Options;
 using Rotativa.AspNetCore;
 using IMS.Application.ProjectManagement.Service;
+using IMS.Application.ProcurementManagement.Service;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -24,15 +25,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IWarehouseDbContext _context;
         private readonly IApplicationDbContext _projectContext;
         private readonly IProjectService _projectService;
+        private readonly IProcurementManagementDbContext _procurementContext;
+
         public ReceiptOrIssueController(IReceiptOrIssueService service, IWarehouseService warehouseService, IProductService productService
-            , ICategoryService categoryService ,IGroupService groupService ,IStatusService statusService , IWarehouseDbContext context, IApplicationDbContext projectContext , IProjectService projectService)
+            , ICategoryService categoryService ,IGroupService groupService ,IStatusService statusService , IWarehouseDbContext context, IApplicationDbContext projectContext ,
+            IProjectService projectService , IProcurementManagementDbContext procurementManagementDb)
         {
             _service = service;
             _warehouseService = warehouseService;
             _productService = productService;
             _categoryService = categoryService; _groupService = groupService; _statusService = statusService;
             _context = context;
-            _projectContext = projectContext;_projectService = projectService;
+            _projectContext = projectContext;_projectService = projectService; _procurementContext = procurementManagementDb;
         }
 
 
@@ -104,15 +108,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
                 return Json(new { success = true, documentId = createdDto.Id });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                // اگر خطای خاص نداشتن آیتم در سرویس بود، می‌تونی اینجا چک کنی و پیام مناسب اضافه کنی
-                if (ex.Message.Contains("Items collection cannot be empty"))
+                // خطاهای اعتبارسنجی
+                string message = ex.Message switch
                 {
-                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
+                    string m when m.Contains("Items collection cannot be empty") => "باید حداقل یک آیتم وارد کنید.",
+                    string m when m.Contains("ProductId must be greater than zero") => "شناسه کالا معتبر نیست.",
+                    string m when m.Contains("Quantity must be greater than zero") => "تعداد باید بیشتر از صفر باشد.",
+                    _ => "خطای اعتبارسنجی رخ داد."
+                };
+
+                return Json(new { success = false, errors = new[] { message } });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // خطاهای عملیات نامعتبر
+                string message = ex.Message; // می‌توانید پیام‌های خاص را هم فارسی کنید
+                if (message.Contains("موجودی مبدأ یا مقصد برای کالای"))
+                {
+                    // پیام فارسی را مستقیم بفرست
                 }
 
-                return Json(new { success = false, errors = new[] { "اطلاعات داخل آیتم ها را پر کنید." } });
+                return Json(new { success = false, errors = new[] { message } });
+            }
+            catch (Exception)
+            {
+                // سایر خطاها
+                return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
             }
         }
 
@@ -189,6 +212,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var projectItems = projects.Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.ProjectName }).ToList();
             projectItems.Insert(0, new SelectListItem { Value = "", Text = "انتخاب کنید" });
             ViewBag.Projects = projectItems;
+
+
+            var purchaseRequests = await _procurementContext.PurchaseRequests
+    .Select(pr => new { pr.Id, pr.Title })
+    .ToListAsync();
+
+            var purchaseRequestItems = purchaseRequests
+                .Select(pr => new SelectListItem { Value = pr.Id.ToString(), Text = pr.Title })
+                .ToList();
+
+            purchaseRequestItems.Insert(0, new SelectListItem { Value = "", Text = "انتخاب کنید" });
+            ViewBag.PurchaseRequests = purchaseRequestItems;
+
+
+
 
             ViewBag.Groups = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
             ViewBag.Statuses = new List<SelectListItem> { new SelectListItem { Value = "", Text = "انتخاب کنید" } };
@@ -348,10 +386,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     GroupId = i.GroupId,
                     StatusId = i.StatusId,
                     ProductId = i.ProductId,
-                    ProjectId =  i.ProjectId,
+                    ProjectId = i.ProjectId,
+                    PurchaseRequestId = i.PurchaseRequestId  // جدید
                 }).ToList()
             };
         }
+
 
 
 
@@ -710,6 +750,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             };
         }
 
+
+
+
+        public JsonResult CheckProductInPurchaseRequest(int productId, int purchaseRequestId)
+        {
+            var exists = _procurementContext.PurchaseRequestItems
+                            .Any(i => i.ProductId == productId && i.PurchaseRequestId == purchaseRequestId);
+
+            return Json(new { exists });
+        }
 
 
 

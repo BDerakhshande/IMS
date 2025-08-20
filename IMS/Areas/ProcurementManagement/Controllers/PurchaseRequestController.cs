@@ -89,11 +89,11 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 }
             }
 
-            //if (!ModelState.IsValid)
-            //{
-            //    await PopulateSelectListsAsync(vm);
-            //    return View(vm);
-            //}
+            if (!ModelState.IsValid)
+            {
+                await PopulateSelectListsAsync(vm);
+                return View(vm);
+            }
 
             var dto = MapToDto(vm);
 

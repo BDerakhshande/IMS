@@ -37,16 +37,16 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
 
 
-
         [HttpGet]
         public async Task<IActionResult> FlatItems(
-          List<ProductFilterDto>? products = null,  // ← اضافه کردن این پارامتر
-          string? requestNumber = null,
-          string? fromDateString = null,
-          string? toDateString = null,
-          int? requestTypeId = null,
-          int? projectId = null,
-          CancellationToken cancellationToken = default)
+            List<ProductFilterDto>? products = null,
+            string? requestNumber = null,
+            string? requestTitle = null,   // ← اضافه شد
+            string? fromDateString = null,
+            string? toDateString = null,
+            int? requestTypeId = null,
+            int? projectId = null,
+            CancellationToken cancellationToken = default)
         {
             // تنظیم تاریخ پیش‌فرض
             var today = DateTime.Today;
@@ -61,6 +61,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             var flatItems = await _flatItemService.GetFlatItemsAsync(
                 requestNumber,
+                requestTitle, // حالا این متغیر معتبر است
                 fromDate,
                 toDate,
                 requestTypeId,
@@ -82,6 +83,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 Products = products ?? new List<ProductFilterDto> { new ProductFilterDto() },
                 RequestTypes = requestTypes,
                 SelectedRequestNumber = requestNumber,
+                SelectedRequestTitle = requestTitle, // ← اگر در ViewModel دارید
                 SelectedRequestTypeId = requestTypeId,
                 FromDateString = fromDateString,
                 ToDateString = toDateString
@@ -89,6 +91,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             return View(model);
         }
+
 
 
 

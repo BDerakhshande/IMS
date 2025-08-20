@@ -10,7 +10,9 @@ namespace IMS.Application.ProcurementManagement.DTOs
     {
         public int Id { get; set; }
         public string RequestNumber { get; set; } = null!;
-        // اضافه کردن تاریخ درخواست
+
+
+        public string? RequestTitle { get; set; }
         public DateTime RequestDate { get; set; }
         public int ProjectId { get; set; }
         public string? ProjectName { get; set; }

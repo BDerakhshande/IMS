@@ -35,7 +35,6 @@ namespace IMS.Application.ProjectManagement.DTOs
         [RegularExpression(@"^\d{8,11}$", ErrorMessage = "شماره تلفن معتبر نیست")]
         public string PhoneNumber { get; set; } = null!;
 
-        [Url(ErrorMessage = "آدرس وب‌سایت معتبر نیست")]
         public string Website { get; set; } = null!;
 
         [Required(ErrorMessage = "نام نماینده الزامی است")]
@@ -56,6 +55,8 @@ namespace IMS.Application.ProjectManagement.DTOs
 
         [Required(ErrorMessage = "تاریخ شروع همکاری الزامی است")]
         public DateTime CooperationStartDate { get; set; }
+
+
 
         [StringLength(500, ErrorMessage = "توضیحات بیشتر نمی‌تواند بیشتر از 500 کاراکتر باشد")]
         public string AdditionalDescription { get; set; } = null!;

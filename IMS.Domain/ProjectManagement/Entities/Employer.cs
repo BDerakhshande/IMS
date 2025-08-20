@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,8 +49,10 @@ namespace IMS.Domain.ProjectManagement.Entities
         // نوع همکاری شرکت با ما (قرارداد، مشارکت و غیره)
         public CooperationType CooperationType { get; set; }
 
-        // تاریخ شروع همکاری
+        [Required]
         public DateTime CooperationStartDate { get; set; }
+
+  
 
         // توضیحات تکمیلی
         public string AdditionalDescription { get; set; } = null!;

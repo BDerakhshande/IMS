@@ -15,24 +15,25 @@ namespace IMS.Models.ProMan
         public int? DestinationWarehouseId { get; set; }
         public int? DestinationZoneId { get; set; }
         public int? DestinationSectionId { get; set; }
+
+        public int? ProjectId { get; set; }
+        public string? ProjectTitle { get; set; }
+
+        public int? PurchaseRequestId { get; set; }  // جدید
+        public string? PurchaseRequestTitle { get; set; }  // جدید
+
         public List<SelectListItem>? AvailableGroups { get; set; }
         public List<SelectListItem>? AvailableStatuses { get; set; }
         public List<SelectListItem>? AvailableProducts { get; set; }
-
-       
+        public List<SelectListItem>? AvailableProjects { get; set; }
+        public List<SelectListItem>? AvailablePurchaseRequests { get; set; } // جدید
 
         public List<SelectListItem>? AvailableSourceWarehouses { get; set; }
         public List<SelectListItem>? AvailableSourceZones { get; set; }
         public List<SelectListItem>? AvailableSourceSections { get; set; }
-
         public List<SelectListItem>? AvailableDestinationWarehouses { get; set; }
         public List<SelectListItem>? AvailableDestinationZones { get; set; }
         public List<SelectListItem>? AvailableDestinationSections { get; set; }
-
-
-        public List<SelectListItem>? AvailableProjects { get; set; }
-
-        public int? ProjectId { get; set; }
-        public string? ProjectTitle { get; set; }
     }
+
 }

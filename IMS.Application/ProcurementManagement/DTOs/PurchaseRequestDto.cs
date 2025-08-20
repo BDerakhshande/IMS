@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,16 +12,18 @@ namespace IMS.Application.ProcurementManagement.DTOs
     {
         public int Id { get; set; }
 
+        [Required(ErrorMessage = "عنوان درخواست خرید الزامی است.")]
         public string RequestNumber { get; set; } = null!;
 
+        [Required(ErrorMessage = "تاریخ درخواست الزامی است.")]
         public DateTime RequestDate { get; set; }
 
-     
-
+        [Required(ErrorMessage = "نوع درخواست الزامی است.")]
         public int RequestTypeId { get; set; }
 
-        public string? RequestTypeName { get; set; } // برای نمایش نام تامین‌کننده
+        public string? RequestTypeName { get; set; } // نمایش نام تامین‌کننده
 
+        [Required(ErrorMessage = "عنوان درخواست خرید الزامی است.")]
         public string? Title { get; set; }
 
         public string? Notes { get; set; }

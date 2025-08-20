@@ -206,7 +206,12 @@
                                     </label>
                                     <div class="input-group input-group-sm">
                                         <span class="input-group-text bg-light"><i class="fas fa-clock small"></i></span>
-                                        <input asp-for="CooperationStartDate" type="text" class="form-control form-control-sm" placeholder="تاریخ شروع همکاری" />
+                                        <input asp-for="CooperationStartDate"
+                                               type="text"
+                                               class="form-control form-control-sm"
+                                               placeholder="تاریخ شروع همکاری"
+                                               value="@(ViewBag.CooperationStartDatePersian ?? ViewBag.TodayShamsi)" />
+
                                     </div>
                                     <span asp-validation-for="CooperationStartDate" class="text-danger small mt-1 d-block"></span>
                                 </div>

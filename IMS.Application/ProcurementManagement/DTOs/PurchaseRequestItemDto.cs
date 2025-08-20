@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,25 +12,29 @@ namespace IMS.Application.ProcurementManagement.DTOs
     public class PurchaseRequestItemDto
     {
         public int Id { get; set; }
-        public DateTime RequestDate { get; set; }
 
         public int PurchaseRequestId { get; set; }
 
+        [Required(ErrorMessage = "دسته‌بندی کالا الزامی است.")]
         public int CategoryId { get; set; }
-        public string? CategoryName { get; set; } // برای نمایش در UI
+        public string? CategoryName { get; set; }
 
+        [Required(ErrorMessage = "گروه کالا الزامی است.")]
         public int GroupId { get; set; }
-        public string? GroupName { get; set; } // برای نمایش در UI
+        public string? GroupName { get; set; }
 
-
+        [Required(ErrorMessage = "وضعیت کالا الزامی است.")]
         public int StatusId { get; set; }
         public string? Status { get; set; }
 
+        [Required(ErrorMessage = "کالا الزامی است.")]
         public int ProductId { get; set; }
-        public string? ProductName { get; set; } // برای نمایش در UI
+        public string? ProductName { get; set; }
 
         public string? Description { get; set; }
 
+        [Required(ErrorMessage = "تعداد کالا الزامی است.")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "مقدار باید بزرگ‌تر از صفر باشد.")]
         public decimal Quantity { get; set; }
 
         public string? Unit { get; set; }
@@ -37,15 +42,10 @@ namespace IMS.Application.ProcurementManagement.DTOs
         public int? ProjectId { get; set; }
         public string? ProjectName { get; set; }
 
-
-
-        // اینجا پراپرتی های مورد نیاز اضافه می شوند:
         public decimal TotalStock { get; set; }
         public decimal PendingRequests { get; set; }
         public decimal NeedToSupply { get; set; }
 
-
         public bool IsSupplyStopped { get; set; } = false;
-
     }
 }

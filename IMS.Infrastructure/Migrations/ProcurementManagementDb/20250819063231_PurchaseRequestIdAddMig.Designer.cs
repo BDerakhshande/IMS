@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.ProcurementManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 {
     [DbContext(typeof(ProcurementManagementDbContext))]
-    partial class ProcurementManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250819063231_PurchaseRequestIdAddMig")]
+    partial class PurchaseRequestIdAddMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,7 +124,6 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
@@ -181,9 +183,6 @@ namespace IMS.Infrastructure.Migrations.ProcurementManagementDb
 
                     b.Property<string>("RequestNumber")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RequestTitle")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("RequestTypeId")

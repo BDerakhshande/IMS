@@ -5,6 +5,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Globalization;
+using IMS.Areas.AccountManagement.Helper;
 
 namespace IMS.Areas.ProjectManagement.Controllers
 {
@@ -43,14 +45,33 @@ namespace IMS.Areas.ProjectManagement.Controllers
         {
             ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
             ViewBag.CooperationType = GetSelectListItems<CooperationType>();
-            return View();
+
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+            var todayShamsi = $"{pc.GetYear(now):0000}/{pc.GetMonth(now):00}/{pc.GetDayOfMonth(now):00}";
+
+            var dto = new EmployerDto
+            {
+                CooperationStartDate = now,
+               
+            };
+
+            ViewBag.TodayShamsi = todayShamsi; // برای نمایش در ویو
+            return View(dto);
         }
 
+
         [HttpPost]
-        public async Task<IActionResult> Create(EmployerDto dto)
+        public async Task<IActionResult> Create(EmployerDto dto, string CooperationStartDatePersian, string? CooperationEndDatePersian)
         {
+            dto.CooperationStartDate = ParsePersianDate(CooperationStartDatePersian) ?? DateTime.Now;
+
             if (!ModelState.IsValid)
+            {
+                ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
+                ViewBag.CooperationType = GetSelectListItems<CooperationType>();
                 return View(dto);
+            }
 
             await _employerService.CreateEmployerAsync(dto);
             return RedirectToAction(nameof(Index));
@@ -60,16 +81,28 @@ namespace IMS.Areas.ProjectManagement.Controllers
         {
             var dto = await _employerService.GetEmployerByIdAsync(id);
             if (dto == null) return NotFound();
+
             ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
             ViewBag.CooperationType = GetSelectListItems<CooperationType>();
+
+            var pc = new PersianCalendar();
+            ViewBag.CooperationStartDatePersian = $"{pc.GetYear(dto.CooperationStartDate):0000}/{pc.GetMonth(dto.CooperationStartDate):00}/{pc.GetDayOfMonth(dto.CooperationStartDate):00}";
+          
+
             return View(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(EmployerDto dto)
+        public async Task<IActionResult> Edit(EmployerDto dto, string CooperationStartDatePersian, string? CooperationEndDatePersian)
         {
+            dto.CooperationStartDate = ParsePersianDate(CooperationStartDatePersian) ?? DateTime.Now;
+           
             if (!ModelState.IsValid)
+            {
+                ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
+                ViewBag.CooperationType = GetSelectListItems<CooperationType>();
                 return View(dto);
+            }
 
             var result = await _employerService.UpdateEmployerAsync(dto);
             if (!result) return NotFound();
@@ -81,6 +114,40 @@ namespace IMS.Areas.ProjectManagement.Controllers
         {
             var result = await _employerService.DeleteEmployerAsync(id);
             return RedirectToAction(nameof(Index));
+        }
+
+
+        private DateTime? ParsePersianDate(string? persianDate)
+        {
+            if (string.IsNullOrWhiteSpace(persianDate))
+            {
+                Console.WriteLine("Persian date is null or empty");
+                return null;
+            }
+
+            try
+            {
+                var parts = persianDate.Split('/');
+                if (parts.Length != 3)
+                {
+                    Console.WriteLine($"Invalid date format: {persianDate}");
+                    return null;
+                }
+
+                int year = int.Parse(parts[0]);
+                int month = int.Parse(parts[1]);
+                int day = int.Parse(parts[2]);
+
+                var pc = new PersianCalendar();
+                var result = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+                Console.WriteLine($"Parsed date: {persianDate} -> {result}");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error parsing date {persianDate}: {ex.Message}");
+                return null;
+            }
         }
     }
 }

@@ -55,11 +55,13 @@ namespace IMS.Application.ProcurementManagement.Service
 
             // موجودی کل محصولات
             var stocks = await _warehouseDb.Inventories
-                .AsNoTracking()
-                .Where(inv => productIds.Contains(inv.ProductId))
-                .GroupBy(inv => inv.ProductId)
-                .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
-                .ToDictionaryAsync(x => x.ProductId, x => x.TotalQuantity, cancellationToken);
+    .AsNoTracking()
+    .Where(inv => productIds.Contains(inv.ProductId)
+                  && inv.Warehouse.Name.Contains("مرکزی"))
+    .GroupBy(inv => inv.ProductId)
+    .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
+    .ToDictionaryAsync(x => x.ProductId, x => x.TotalQuantity, cancellationToken);
+
 
             // مجموع درخواست‌های باز و **غیرفعال نشده**
             var pendingRequests = await _procurementDb.PurchaseRequestItems

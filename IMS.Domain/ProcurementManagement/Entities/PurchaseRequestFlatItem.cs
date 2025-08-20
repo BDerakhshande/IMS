@@ -10,7 +10,7 @@ namespace IMS.Domain.ProcurementManagement.Entities
     {
         public int Id { get; set; }
         public string RequestNumber { get; set; } = null!;
-
+        public string? RequestTitle { get; set; } // عنوان درخواست
         public DateTime RequestDate { get; set; }
         public int ProjectId { get; set; }
         public string? ProjectName { get; set; }

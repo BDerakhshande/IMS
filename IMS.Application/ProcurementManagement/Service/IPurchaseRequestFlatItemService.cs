@@ -10,14 +10,15 @@ namespace IMS.Application.ProcurementManagement.Service
 {
     public interface IPurchaseRequestFlatItemService
     {
-        Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
-          string? requestNumber = null,
-          DateTime? fromDate = null,
-          DateTime? toDate = null,
-          int? requestTypeId = null,
-          int? projectId = null,
-          List<ProductFilterDto>? products = null,  // ← لیست محصولات
-          CancellationToken cancellationToken = default);
+ Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
+           string? requestNumber = null,
+           string? requestTitle = null, // اضافه شد
+           DateTime? fromDate = null,
+           DateTime? toDate = null,
+           int? requestTypeId = null,
+           int? projectId = null,
+           List<ProductFilterDto>? products = null,
+           CancellationToken cancellationToken = default);
 
 
 

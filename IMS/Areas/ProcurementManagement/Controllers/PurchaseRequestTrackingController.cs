@@ -164,71 +164,87 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         [HttpPost]
         public async Task<IActionResult> AddToFlatItemsAndShow(
-    int id,
-    int? projectId = null,
-    int? categoryId = null,
-    int? groupId = null,
-    int? statusId = null,
-    int? productId = null,
-    int? requestTypeId = null,
-    DateTime? fromDate = null,
-    DateTime? toDate = null)
+      int id,
+      int? projectId = null,
+      int? categoryId = null,
+      int? groupId = null,
+      int? statusId = null,
+      int? productId = null,
+      int? requestTypeId = null,
+      DateTime? fromDate = null,
+      DateTime? toDate = null)
         {
             try
             {
+                // بارگذاری آیتم همراه با درخواست خرید و نوع درخواست
                 var item = await _procurementManagementDbContext.PurchaseRequestItems
                     .Include(i => i.PurchaseRequest)
-                    .Include(i => i.PurchaseRequest.RequestType)
+                        .ThenInclude(r => r.RequestType)
                     .FirstOrDefaultAsync(i => i.Id == id);
 
                 if (item == null)
                     return NotFound();
 
+                // بررسی وجود آیتم در لیست تخت
                 var exists = await _procurementManagementDbContext.PurchaseRequestFlatItems
                     .AnyAsync(f => f.ProductId == item.ProductId && f.RequestNumber == item.PurchaseRequest.RequestNumber);
 
                 if (exists)
                 {
-                    TempData["ErrorMessage"] = $"محصول از قبل در درخواست خرید اضافه شده است.";
+                    TempData["ErrorMessage"] = "محصول از قبل در درخواست خرید اضافه شده است.";
                     return RedirectToAction(
                         "Details",
                         "PurchaseRequestTracking",
-                        new { area = "ProcurementManagement", purchaseRequestId = item.PurchaseRequestId }
-                    );
+                        new { area = "ProcurementManagement", purchaseRequestId = item.PurchaseRequestId });
                 }
 
+                // گرفتن همه نام‌های مرتبط در یک مرحله
+                var projectNameTask = item.ProjectId.HasValue
+                    ? _applicationDbContext.Projects
+                        .Where(p => p.Id == item.ProjectId.Value)
+                        .Select(p => p.ProjectName)
+                        .FirstOrDefaultAsync()
+                    : Task.FromResult<string?>(null);
+
+                var categoryNameTask = _warehouseContext.Categories
+                    .Where(c => c.Id == item.CategoryId)
+                    .Select(c => c.Name)
+                    .FirstOrDefaultAsync();
+
+                var groupNameTask = _warehouseContext.Groups
+                    .Where(g => g.Id == item.GroupId)
+                    .Select(g => g.Name)
+                    .FirstOrDefaultAsync();
+
+                var statusNameTask = _warehouseContext.Statuses
+                    .Where(s => s.Id == item.StatusId)
+                    .Select(s => s.Name)
+                    .FirstOrDefaultAsync();
+
+                var productNameTask = _warehouseContext.Products
+                    .Where(p => p.Id == item.ProductId)
+                    .Select(p => p.Name)
+                    .FirstOrDefaultAsync();
+
+                await Task.WhenAll(projectNameTask, categoryNameTask, groupNameTask, statusNameTask, productNameTask);
+
+                // ایجاد موجودیت تخت
                 var flatEntity = new PurchaseRequestFlatItem
                 {
                     RequestNumber = item.PurchaseRequest.RequestNumber,
+                    RequestTitle = item.PurchaseRequest.Title,
                     RequestTypeId = item.PurchaseRequest.RequestTypeId,
                     RequestTypeName = item.PurchaseRequest.RequestType?.Name,
                     ProjectId = item.ProjectId ?? 0,
-                    ProjectName = item.ProjectId.HasValue
-                        ? await _applicationDbContext.Projects
-                              .Where(p => p.Id == item.ProjectId.Value)
-                              .Select(p => p.ProjectName)
-                              .FirstOrDefaultAsync()
-                        : null,
+                    ProjectName = projectNameTask.Result,
                     CategoryId = item.CategoryId,
-                    CategoryName = await _warehouseContext.Categories
-                                          .Where(c => c.Id == item.CategoryId)
-                                          .Select(c => c.Name)
-                                          .FirstOrDefaultAsync(),
+                    CategoryName = categoryNameTask.Result,
                     GroupId = item.GroupId,
-                    GroupName = await _warehouseContext.Groups
-                                          .Where(g => g.Id == item.GroupId)
-                                          .Select(g => g.Name)
-                                          .FirstOrDefaultAsync(),
+                    GroupName = groupNameTask.Result,
                     StatusId = item.StatusId,
-                    StatusName = await _warehouseContext.Statuses
-                                          .Where(s => s.Id == item.StatusId)
-                                          .Select(s => s.Name)
-                                          .FirstOrDefaultAsync(),
+                    StatusName = statusNameTask.Result,
                     ProductId = item.ProductId,
-                    ProductName = await _warehouseContext.Products
-                                          .Where(p => p.Id == item.ProductId)
-                                          .Select(p => p.Name)
-                                          .FirstOrDefaultAsync(),
+                    ProductName = productNameTask.Result,
                     Quantity = item.Quantity,
                     Unit = item.Unit,
                     TotalStock = 0,
@@ -242,6 +258,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
 
                 TempData["SuccessMessage"] = "محصول با موفقیت به درخواست خرید اضافه شد.";
+
                 return RedirectToAction(
                     "FlatItems",
                     "PurchaseRequestFlatItem",
@@ -264,6 +281,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 return RedirectToAction("Index");
             }
         }
+
 
 
     }

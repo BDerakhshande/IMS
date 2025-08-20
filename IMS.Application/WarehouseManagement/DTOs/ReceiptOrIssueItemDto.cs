@@ -43,5 +43,9 @@ namespace IMS.Application.WarehouseManagement.DTOs
         // اطلاعات پروژه
         public int? ProjectId { get; set; }
         public string? ProjectTitle { get; set; }
+
+
+        public int? PurchaseRequestId { get; set; }      // ارتباط به درخواست خرید
+        public string? PurchaseRequestTitle { get; set; } // عنوان درخواست خرید
     }
 }

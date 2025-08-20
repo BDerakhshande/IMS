@@ -187,6 +187,25 @@
                                 }
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">عنوان درخواست</label>
+                            <input type="text"
+                                   id="requestTitle"
+                                   name="requestTitle"
+                                   class="form-control form-control-sm shadow-sm"
+                                   list="requestTitles"
+                                   value="@Model.SelectedRequestTitle"
+                                   placeholder="جستجو بر اساس عنوان" />
+
+                            <datalist id="requestTitles">
+                                @foreach (var title in Model.FlatItems.Select(x => x.RequestTitle).Distinct())
+                                {
+                                    <option value="@title"></option>
+                                }
+                            </datalist>
+                        </div>
+
+
                     </div>
                 </div>
             </div>
@@ -354,13 +373,13 @@
                     <table class="table table-sm table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col" width="10%" class="text-start ps-4"> شماره درخواست کالا</th>
-                                <th scope="col" width="10%" class="text-start">نوع درخواست کالا</th>
-                                <th scope="col" width="10%" class="text-start">تاریخ درخواست کالا</th>
+                                <th scope="col" width="10%" class="text-start ps-4"> شماره درخواست </th>
+                                <th scope="col" width="10%" class="text-start ps-4"> عنوان درخواست</th>
+                                <th scope="col" width="15%" class="text-start">نوع درخواست </th>
+                                <th scope="col" width="10%" class="text-start">تاریخ درخواست </th>
                                 <th scope="col" width="10%" class="text-start">پروژه</th>
                                 <th scope="col" width="25%" class="text-start">محصول</th>
-                                <th scope="col" width="10%" class="text-end">تعداد</th>
-                                <th scope="col" width="10%" class="text-end pe-4">نیاز به تامین</th>
+                                <th scope="col" width="5%" class="text-end">تعداد</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -368,6 +387,7 @@
                             {
                                 <tr class="align-middle">
                                     <td class="text-start ps-4">@item.RequestNumber</td>
+                                    <td class="text-start ps-4">@item.RequestTitle</td>
                                     <td class="text-start">@item.RequestTypeName</td>
                                     <td class="text-start">@(item.RequestDate.ToString("yyyy/MM/dd", new System.Globalization.CultureInfo("fa-IR")))</td>
                                     <td class="text-start">@item.ProjectName</td>
@@ -377,11 +397,7 @@
                                         </div>
                                     </td>
                                     <td class="text-end">@item.Quantity</td>
-                                    <td class="text-end pe-4 fw-bold">
-                                        <span class="badge bg-@(item.NeedToSupply > 0 ? "danger" : "success") bg-opacity-10 text-@(item.NeedToSupply > 0 ? "danger" : "success")">
-                                            @item.NeedToSupply
-                                        </span>
-                                    </td>
+                                 
                                 </tr>
                             }
                         </tbody>

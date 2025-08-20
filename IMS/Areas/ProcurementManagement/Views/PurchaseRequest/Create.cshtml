@@ -78,17 +78,10 @@
     <div class="card-body p-2">
         <form asp-action="Create" method="post" id="purchaseRequestForm">
             @Html.AntiForgeryToken()
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger small py-2 px-3 mb-3 text-end">
-                    <strong class="d-block mb-1">خطا!</strong>
-                    @Html.ValidationSummary(true)
-                </div>
-            }
+
 
             <div class="row g-2 mb-3">
                
-
                 <div class="col-md-3">
                     <label asp-for="RequestNumber" class="form-label fw-bold small text-end w-100">شماره درخواست</label>
                     <div class="input-group input-group-sm">
@@ -113,16 +106,17 @@
                         <option value="">انتخاب‌ نوع درخواست...</option>
                     </select>
                     <span asp-validation-for="RequestTypeId" class="text-danger small d-block text-end"></span>
-                </div>
-            </div>
 
-            <div class="row g-2 mb-3">
-                <div class="col-md-6">
-                    <label asp-for="Title" class="form-label fw-bold small text-end w-100">عنوان درخواست</label>
-                    <input asp-for="Title" class="form-control form-control-sm" placeholder="عنوان درخواست را وارد کنید" />
-                    <span asp-validation-for="Title" class="text-danger small d-block text-end"></span>
                 </div>
-            </div>
+
+                    <div class="col-md-3">
+                        <label asp-for="Title" class="form-label fw-bold small text-end w-100">عنوان درخواست</label>
+                        <input asp-for="Title" class="form-control form-control-sm" placeholder="عنوان درخواست را وارد کنید" />
+                        <span asp-validation-for="Title" class="text-danger small d-block text-end"></span>
+                    </div>
+
+                </div>
+
 
             <hr class="my-3" />
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -255,11 +249,21 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- سپس Select2 -->
     <script src="~/lib/select2/js/select2.full.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <!-- سپس Bootstrap -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- سپس validation -->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+
+
     <script type="text/html" id="CategoryTemplateOptions">
         @foreach (var category in Model.Items.FirstOrDefault()?.AvailableCategories ?? new List<SelectListItem>())
         {
@@ -567,7 +571,9 @@
 
             // فعال‌سازی اولیه Select2
             initSelect2($('.select2'));
-        });
 
+           
+        });
+         
     </script>
 }

@@ -79,20 +79,26 @@ namespace IMS.Application.ProcurementManagement.Service
         }
 
 
+
+        #region Get Flat Items
         public async Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
-     string? requestNumber = null,
-     DateTime? fromDate = null,
-     DateTime? toDate = null,
-     int? requestTypeId = null,
-     int? projectId = null,
-     List<ProductFilterDto>? products = null,  // ← لیست محصولات
-     CancellationToken cancellationToken = default)
+            string? requestNumber = null,
+            string? requestTitle = null, // اضافه شد
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int? requestTypeId = null,
+            int? projectId = null,
+            List<ProductFilterDto>? products = null,
+            CancellationToken cancellationToken = default)
         {
             // مرحله 1: اعمال فیلترهای ساده در دیتابیس
             var query = _procurementContext.PurchaseRequestFlatItems.AsQueryable();
 
             if (!string.IsNullOrEmpty(requestNumber))
                 query = query.Where(x => x.RequestNumber.Contains(requestNumber));
+
+            if (!string.IsNullOrEmpty(requestTitle))
+                query = query.Where(x => x.RequestTitle.Contains(requestTitle));
 
             if (fromDate.HasValue)
                 query = query.Where(x => x.RequestDate >= fromDate.Value);
@@ -136,6 +142,7 @@ namespace IMS.Application.ProcurementManagement.Service
             {
                 Id = x.Id,
                 RequestNumber = x.RequestNumber,
+                RequestTitle = x.RequestTitle,
                 RequestDate = x.RequestDate,
                 RequestTypeId = x.RequestTypeId,
                 RequestTypeName = x.RequestTypeName,
@@ -159,7 +166,7 @@ namespace IMS.Application.ProcurementManagement.Service
 
             return result;
         }
-
+        #endregion
 
     }
 }

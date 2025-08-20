@@ -149,6 +149,7 @@
                             <th class="py-2">مبدا</th>
                             <th class="py-2">مقصد</th>
                             <th class="py-2">پروژه</th>
+                            <th class="py-2">عنوان درخواست</th>
                             <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
@@ -323,6 +324,16 @@
                                     </select>
                                     <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
                                 </td>
+                                <td>
+                                    <select asp-for="Items[i].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="@i">
+                                        <option value="">انتخاب درخواست خرید...</option>
+                                        @foreach (var pr in ViewBag.PurchaseRequests as List<SelectListItem> ?? new List<SelectListItem>())
+                                        {
+                                            <option value="@pr.Value" selected="@(pr.Value == Model.Items[i].PurchaseRequestId?.ToString())">@pr.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Items[i].PurchaseRequestId" class="text-danger small d-block text-end"></span>
+                                </td>
 
                                 <!-- دکمه‌ها -->
                                 <td class="text-center">
@@ -376,6 +387,7 @@
         const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
         const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
         const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
+        const purchaseRequests = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests));
 
 
 
@@ -526,6 +538,13 @@
                     </select>
                     <span class="text-danger small d-block text-end"></span>
                 </td>
+                <td>
+                            <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="${rowCount}">
+            ${buildOptions(purchaseRequests)}
+        </select>
+        <span class="text-danger small d-block text-end"></span>
+
+                    </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
@@ -948,38 +967,47 @@
             $errorRow.remove();
         });
 
-                      $(document).on('click', '.save-item', function () {
+                       $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]');
             const index = $row.data('index');
             const prefix = 'Items';
 
+            console.log("==== شروع ذخیره آیتم ====");
+            console.log("index:", index);
+
             // استخراج مقادیر
             const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+            const purchaseRequestId = $row.find(`select[name="${prefix}[${index}].PurchaseRequestId"]`).val();
             const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+
+            console.log("productId:", productId);
+            console.log("purchaseRequestId:", purchaseRequestId);
+            console.log("quantity:", quantity);
 
             // مقادیر مبدا
             const sourceWarehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
             const sourceZoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
             const sourceSectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
 
+            console.log("Source -> Warehouse:", sourceWarehouseId, "Zone:", sourceZoneId, "Section:", sourceSectionId);
+
             // مقادیر مقصد
             const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
             const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
             const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
 
+            console.log("Destination -> Warehouse:", destWarehouseId, "Zone:", destZoneId, "Section:", destSectionId);
+
             // اعتبارسنجی فیلدها
             let errorMessages = [];
 
-            // اعتبارسنجی کالا و تعداد
             if (!productId) errorMessages.push("کالا انتخاب نشده است.");
             if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
 
-            // اعتبارسنجی مبدا
             if (!sourceWarehouseId) errorMessages.push("انبار مبدا انتخاب نشده است.");
             if (!sourceZoneId) errorMessages.push("قسمت مبدا انتخاب نشده است.");
             if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
 
-            // اعتبارسنجی مقصد
             if (!destWarehouseId) errorMessages.push("انبار مقصد انتخاب نشده است.");
             if (!destZoneId) errorMessages.push("قسمت مقصد انتخاب نشده است.");
             if (!destSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
@@ -988,6 +1016,7 @@
             const $errorBox = $errorRow.find('.error-message-list');
 
             if (errorMessages.length > 0) {
+                console.warn("خطاهای اعتبارسنجی:", errorMessages);
                 $errorBox.html(`<ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
                 $errorRow.show();
                 return;
@@ -996,43 +1025,69 @@
                 $errorRow.hide();
             }
 
-            // دریافت متن‌های خلاصه برای کالا
+            // اگر درخواست خرید وارد نشده بود
+            if (!purchaseRequestId) {
+                console.log("درخواست خرید انتخاب نشده → ادامه بدون بررسی");
+                finalizeRow($row, index, prefix);
+                return;
+            }
+
+            // بررسی وجود کالا در درخواست خرید
+            console.log("ارسال درخواست به سرور برای بررسی وجود کالا در درخواست خرید...");
+           $.get('/WarehouseManagement/ReceiptOrIssue/CheckProductInPurchaseRequest',
+                { productId: productId, purchaseRequestId: purchaseRequestId },
+                function(response) {
+                    console.log("پاسخ سرور:", response);
+
+                    if (!response.exists) {
+                        console.error("❌ کالا در درخواست خرید وجود ندارد");
+                        $errorBox.html(`<ul><li>این کالا در درخواست خرید انتخاب شده وجود ندارد.</li></ul>`);
+                        $errorRow.show();
+                        return;
+                    }
+
+                    console.log("✅ کالا در درخواست خرید موجود است → ادامه ذخیره");
+                    finalizeRow($row, index, prefix);
+                })
+                .fail(function(xhr) {
+                    console.error("خطا در ارتباط با سرور:", xhr.responseText);
+                });
+        });
+
+
+        // تابع برای بستن آکاردئون‌ها و درج خلاصه متن
+        function finalizeRow($row, index, prefix) {
             const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
             const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
             const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
             const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
             const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
 
-            // دریافت متن‌های خلاصه برای مکان مبدا
             const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
             const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
             const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
             const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
 
-            // دریافت متن‌های خلاصه برای مکان مقصد
             const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
             const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
             const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
             const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
 
-            // بستن آکاردئون کالا و درج خلاصه متن
             const $productCollapse = $row.find(`#productCollapse_${index}`);
             const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
             $productHeader.html(productSummary);
             bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
 
-            // بستن آکاردئون مکان مبدا و درج خلاصه متن
             const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
             const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
             $sourceHeader.html(sourceSummary);
             bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
 
-            // بستن آکاردئون مکان مقصد و درج خلاصه متن
             const $destCollapse = $row.find(`#destCollapse_${index}`);
             const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
             $destHeader.html(destSummary);
             bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
-        });
+        }
 
 
 

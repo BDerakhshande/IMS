@@ -65,9 +65,11 @@
         color: white;
     }
 
+      
+
         .add-to-flatitems-btn.stopped {
-            background-color: transparent;
-            color: #28a745;
+            opacity: 0.5; /* فقط ظاهر خاکستری */
+            /* pointer-events: none; <- این خط را حذف کنید */
         }
 
     .toggle-disable-btn {
@@ -215,7 +217,7 @@
     <script>
         $(document).ready(function () {
 
-                 $(".toggle-disable-btn").click(function () {
+                $(".toggle-disable-btn").click(function () {
             var btn = $(this);
             var row = btn.closest("tr");
             var itemId = row.data('item-id');
@@ -227,22 +229,27 @@
                 function (response) {
                     if (response.success) {
                         if (response.isSupplyStopped) {
+                            // اضافه کردن کلاس و غیرفعال کردن دکمه
                             row.addClass("disabled-row");
                             btn.addClass("active")
                                .attr("title", "فعال کردن تامین")
                                .html('<i class="bi bi-check-circle"></i>');
-                            addBtn.addClass("stopped");
+                            addBtn.addClass("stopped")
+                                  .prop("disabled", true); // غیرفعال کردن دکمه
                         } else {
+                            // حذف کلاس و فعال کردن دوباره دکمه
                             row.removeClass("disabled-row");
                             btn.removeClass("active")
                                .attr("title", "توقف تامین")
                                .html('<i class="bi bi-slash-circle"></i>');
-                            addBtn.removeClass("stopped");
+                            addBtn.removeClass("stopped")
+                                  .prop("disabled", false); // فعال کردن دکمه
                         }
                     } else {
                         alert("خطا: " + response.message);
                     }
-                }).fail(function () {
+                })
+                .fail(function () {
                     alert("خطا در ارتباط با سرور!");
                 });
         });

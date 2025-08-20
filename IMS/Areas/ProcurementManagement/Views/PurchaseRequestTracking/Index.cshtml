@@ -59,7 +59,7 @@
                                 <tbody style="font-size: 0.8rem;">
                                     @foreach (var pr in Model)
                                     {
-                                        <tr>
+                                        <tr data-id="@pr.Id">
                                             <td class="text-center fw-bold py-1 align-middle">@pr.RequestNumber</td>
                                             <td class="text-center py-1 align-middle">@pr.RequestDate.ToString("yyyy/MM/dd")</td>
                                             <td class="text-center py-1 align-middle">@pr.Title</td>
@@ -79,9 +79,9 @@
                                                    style="font-size: 0.75rem; height: 26px;">
                                                     <i class="fas fa-eye me-1"></i> مشاهده وضعیت
                                                 </a>
-
                                             </td>
                                         </tr>
+
 
                                         <tr id="items-@pr.Id" style="display:none;">
                                             <td colspan="6">
@@ -206,20 +206,28 @@
                 goToPage(currentPage + 1);
             });
 
-            // پیاده‌سازی جستجو
-            document.getElementById('globalSearch').addEventListener('input', function() {
-                const searchTerm = this.value.trim().toLowerCase();
+                  document.getElementById('globalSearch').addEventListener('input', function() {
+            const searchTerm = this.value.trim().toLowerCase();
 
-                filteredRows = allRows.filter(row => {
-                    const cells = row.querySelectorAll('td:not(:last-child)');
-                    return Array.from(cells).some(cell =>
-                        cell.textContent.toLowerCase().includes(searchTerm)
-                });
-
-                currentPage = 1;
-                updateTableDisplay();
-                setupPagination();
+            filteredRows = allRows.filter(row => {
+                const cells = row.querySelectorAll('td:not(:last-child)'); // سلول‌های متنی اصلی
+                return Array.from(cells).some(cell =>
+                    cell.textContent.toLowerCase().includes(searchTerm)
+                );
             });
+
+            // بعد از فیلتر، همه سطرهای آیتم‌ها را مخفی کنید
+            filteredRows.forEach(row => {
+                const id = row.dataset.itemId || row.querySelector('td')?.textContent; // یا استفاده از id مناسب
+                const itemsRow = document.getElementById('items-' + (row.dataset.id || ''));
+                if (itemsRow) itemsRow.style.display = 'none';
+            });
+
+            currentPage = 1;
+            updateTableDisplay();
+            setupPagination();
+        });
+
 
             // مقداردهی اولیه
             setupPagination();
