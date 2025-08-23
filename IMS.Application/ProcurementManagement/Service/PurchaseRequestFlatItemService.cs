@@ -83,7 +83,7 @@ namespace IMS.Application.ProcurementManagement.Service
         #region Get Flat Items
         public async Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
             string? requestNumber = null,
-            string? requestTitle = null, // اضافه شد
+            string? requestTitle = null, 
             DateTime? fromDate = null,
             DateTime? toDate = null,
             int? requestTypeId = null,

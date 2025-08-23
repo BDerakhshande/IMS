@@ -8,8 +8,6 @@ using IMS.Domain.ProcurementManagement.Enums;
 
 namespace IMS.Domain.ProcurementManagement.Entities
 {
-    // هدر درخواست خرید
-    // هدر درخواست خرید
     public class PurchaseRequest
     {
         public int Id { get; set; }
