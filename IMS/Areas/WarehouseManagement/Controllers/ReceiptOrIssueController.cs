@@ -97,7 +97,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return Json(new
                 {
                     success = false,
-                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                    errors = ModelState.Values.SelectMany(v => v.Errors)
+                                              .Select(e => e.ErrorMessage)
                 });
             }
 
@@ -110,32 +111,41 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (ArgumentException ex)
             {
-                // خطاهای اعتبارسنجی
+                // پیام فارسی برای خطاهای اعتبارسنجی سرویس
                 string message = ex.Message switch
                 {
                     string m when m.Contains("Items collection cannot be empty") => "باید حداقل یک آیتم وارد کنید.",
                     string m when m.Contains("ProductId must be greater than zero") => "شناسه کالا معتبر نیست.",
                     string m when m.Contains("Quantity must be greater than zero") => "تعداد باید بیشتر از صفر باشد.",
-                    _ => "خطای اعتبارسنجی رخ داد."
+                    _ => ex.Message
                 };
 
                 return Json(new { success = false, errors = new[] { message } });
             }
             catch (InvalidOperationException ex)
             {
-                // خطاهای عملیات نامعتبر
-                string message = ex.Message; // می‌توانید پیام‌های خاص را هم فارسی کنید
-                if (message.Contains("موجودی مبدأ یا مقصد برای کالای"))
-                {
-                    // پیام فارسی را مستقیم بفرست
-                }
+                // پیام فارسی برای خطاهای عملیات نامعتبر
+                string message = ex.Message;
+
+                // نمونه تبدیل پیام سرویس به پیام کاربر پسند
+                if (message.Contains("متوقف شده است"))
+                    message = "کالا متوقف شده و امکان رسید/حواله ندارد.";
+                else if (message.Contains("هنوز در حال تدارکات نیست"))
+                    message = "کالا هنوز در تدارکات نیست و امکان رسید/حواله ندارد.";
+                else if (message.Contains("موجودی مبدأ یا مقصد برای کالای"))
+                    message = "موجودی کالا در انبار مبدأ یا مقصد کافی نیست.";
 
                 return Json(new { success = false, errors = new[] { message } });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex); // یا از ILogger استفاده کن
                 // سایر خطاها
-                return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
+                return Json(new
+                {
+                    success = false,
+                    errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." }
+                });
             }
         }
 

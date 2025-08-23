@@ -50,5 +50,8 @@ namespace IMS.Domain.ProcurementManagement.Entities
         public Project? Project { get; set; }
 
         public bool IsSupplyStopped { get; set; } = false;
+   
+        public bool IsFullySupplied { get; set; } = false;
+
     }
 }

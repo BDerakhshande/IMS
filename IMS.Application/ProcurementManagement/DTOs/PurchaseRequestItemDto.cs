@@ -47,5 +47,6 @@ namespace IMS.Application.ProcurementManagement.DTOs
         public decimal NeedToSupply { get; set; }
 
         public bool IsSupplyStopped { get; set; } = false;
+        public bool IsFullySupplied { get; set; } = false;
     }
 }

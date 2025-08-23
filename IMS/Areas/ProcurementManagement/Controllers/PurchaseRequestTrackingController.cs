@@ -71,6 +71,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             return View(model);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> ToggleSupplyStop(int id, bool stopSupply)
         {
@@ -81,18 +82,12 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             item.IsSupplyStopped = stopSupply;
             await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
 
-            // گرفتن داده‌های به‌روز شده آیتم‌ها برای بازگرداندن به کلاینت
-            var updatedItems = await _purchaseRequestTrackingService.GetItemsWithStockAndNeedAsync(item.PurchaseRequestId);
-
-            // بازگرداندن وضعیت و داده‌های به‌روز شده به کلاینت
             return Json(new
             {
                 success = true,
-                isSupplyStopped = item.IsSupplyStopped,
-                updatedItems = updatedItems
+                isSupplyStopped = item.IsSupplyStopped
             });
         }
-
 
 
         [HttpPost]

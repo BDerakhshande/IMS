@@ -35,16 +35,22 @@ namespace IMS.Application.ProcurementManagement.Service
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<List<PurchaseRequestItemDto>> GetItemsWithStockAndNeedAsync(int purchaseRequestId, CancellationToken cancellationToken = default)
+        public async Task<List<PurchaseRequestItemDto>> GetItemsWithStockAndNeedAsync(
+       int purchaseRequestId,
+       CancellationToken cancellationToken = default)
         {
-            // گرفتن همه آیتم‌های درخواست خرید (شامل وضعیت توقف تامین)
-            var items = await _procurementDb.PurchaseRequestItems
-                .AsNoTracking()
-                .Where(i => i.PurchaseRequestId == purchaseRequestId)
-                .ToListAsync(cancellationToken);
+    
+            var purchaseRequest = await _procurementDb.PurchaseRequests
+                .Include(pr => pr.Items)
+                .FirstOrDefaultAsync(pr => pr.Id == purchaseRequestId, cancellationToken);
 
+            if (purchaseRequest == null)
+                return new List<PurchaseRequestItemDto>();
+
+            var items = purchaseRequest.Items.ToList();
             var productIds = items.Select(i => i.ProductId).Distinct().ToList();
 
+            // محصولات و وضعیت‌ها
             var products = await _warehouseDb.Products
                 .AsNoTracking()
                 .Where(p => productIds.Contains(p.Id))
@@ -53,23 +59,21 @@ namespace IMS.Application.ProcurementManagement.Service
                         .ThenInclude(g => g.Category)
                 .ToListAsync(cancellationToken);
 
-            // موجودی کل محصولات
+            // موجودی کل محصولات در انبار مرکزی
             var stocks = await _warehouseDb.Inventories
-    .AsNoTracking()
-    .Where(inv => productIds.Contains(inv.ProductId)
-                  && inv.Warehouse.Name.Contains("مرکزی"))
-    .GroupBy(inv => inv.ProductId)
-    .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
-    .ToDictionaryAsync(x => x.ProductId, x => x.TotalQuantity, cancellationToken);
+                .AsNoTracking()
+                .Where(inv => productIds.Contains(inv.ProductId) && inv.Warehouse.Name.Contains("مرکزی"))
+                .GroupBy(inv => inv.ProductId)
+                .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.TotalQuantity, cancellationToken);
 
-
-            // مجموع درخواست‌های باز و **غیرفعال نشده**
+  
             var pendingRequests = await _procurementDb.PurchaseRequestItems
                 .AsNoTracking()
                 .Where(i => productIds.Contains(i.ProductId)
                             && i.PurchaseRequest.Status != Status.Completed
-                            && !i.IsSupplyStopped          // فیلتر توقف تامین شده‌ها
-                            && i.PurchaseRequestId != purchaseRequestId) // حذف درخواست جاری
+                            && !i.IsSupplyStopped
+                            && i.PurchaseRequestId != purchaseRequestId)
                 .GroupBy(i => i.ProductId)
                 .Select(g => new { ProductId = g.Key, TotalPendingQuantity = g.Sum(x => x.Quantity) })
                 .ToDictionaryAsync(x => x.ProductId, x => x.TotalPendingQuantity, cancellationToken);
@@ -85,6 +89,12 @@ namespace IMS.Application.ProcurementManagement.Service
                 pendingRequests.TryGetValue(item.ProductId, out decimal totalPending);
 
                 var needToSupply = Math.Max(0, (totalPending + item.Quantity) - totalStock);
+
+                // بروزرسانی وضعیت آیتم
+                if (needToSupply == 0 && !item.IsFullySupplied)
+                {
+                    item.IsFullySupplied = true;
+                }
 
                 result.Add(new PurchaseRequestItemDto
                 {
@@ -104,85 +114,21 @@ namespace IMS.Application.ProcurementManagement.Service
                     GroupName = product.Status.Group.Name,
                     CategoryId = product.Status.Group.Category.Id,
                     CategoryName = product.Status.Group.Category.Name,
-                    IsSupplyStopped = item.IsSupplyStopped  
+                    IsSupplyStopped = item.IsSupplyStopped,
+                    IsFullySupplied = item.IsFullySupplied
                 });
-
             }
+
+            // بروزرسانی وضعیت هدر درخواست
+            if (purchaseRequest.Items.All(i => i.IsFullySupplied))
+            {
+                purchaseRequest.Status = Status.Completed;
+            }
+
+            await _procurementDb.SaveChangesAsync(cancellationToken);
 
             return result;
         }
-
-
-
-     //   public async Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
-     //DateTime? fromDate = null,
-     //DateTime? toDate = null,
-     //int? projectId = null,
-     //int? categoryId = null,
-     //int? groupId = null,
-     //int? productId = null,
-     //int? requestTypeId = null,
-     //CancellationToken cancellationToken = default)
-     //   {
-     //       // ساخت کوئری پایه روی PurchaseRequests
-     //       var query = _procurementDb.PurchaseRequests
-     //           .Include(pr => pr.RequestType)
-     //           .Include(pr => pr.Items)
-     //           .AsQueryable();
-
-     //       // اعمال فیلترهای مربوط به PurchaseRequest روی دیتابیس
-     //       if (fromDate.HasValue)
-     //           query = query.Where(pr => pr.RequestDate >= fromDate.Value);
-     //       if (toDate.HasValue)
-     //           query = query.Where(pr => pr.RequestDate <= toDate.Value);
-     //       if (requestTypeId.HasValue)
-     //           query = query.Where(pr => pr.RequestTypeId == requestTypeId.Value);
-
-     //       // گرفتن داده‌ها از دیتابیس
-     //       var requests = await query.ToListAsync(cancellationToken);
-
-     //       // گرفتن داده‌های جانبی از دیتابیس (Categories, Groups, Products, Projects, Status)
-     //       var categories = await _warehouseDb.Categories.ToListAsync(cancellationToken);
-     //       var groups = await _warehouseDb.Groups.ToListAsync(cancellationToken);
-     //       var products = await _warehouseDb.Products
-     //                       .Include(p => p.Status)  // وضعیت محصول
-     //                       .ToListAsync(cancellationToken);
-     //       var projects = await _projectContext.Projects.ToListAsync(cancellationToken);
-
-     //       // ساخت flatItems
-     //       var flatItems = requests
-     //           .SelectMany(pr => pr.Items, (pr, item) => {
-     //               var product = products.FirstOrDefault(p => p.Id == item.ProductId);
-
-     //               return new PurchaseRequestFlatItemDto
-     //               {
-     //                   Id = item.Id,
-     //                   RequestNumber = pr.RequestNumber,
-     //                   RequestTypeId = pr.RequestTypeId,
-     //                   RequestTypeName = pr.RequestType?.Name,
-     //                   ProjectId = item.ProjectId ?? 0,
-     //                   ProjectName = item.ProjectId.HasValue ? projects.FirstOrDefault(p => p.Id == item.ProjectId.Value)?.ProjectName : null,
-     //                   CategoryId = item.CategoryId,
-     //                   CategoryName = categories.FirstOrDefault(c => c.Id == item.CategoryId)?.Name,
-     //                   GroupId = item.GroupId,
-     //                   GroupName = groups.FirstOrDefault(g => g.Id == item.GroupId)?.Name,
-     //                   ProductId = item.ProductId,
-     //                   ProductName = product?.Name,
-     //                   Quantity = item.Quantity,
-     //                   Unit = item.Unit,
-     //                   TotalStock = 0,
-     //                   PendingRequests = 0,
-     //                   NeedToSupply = item.Quantity,
-     //                   IsSupplyStopped = item.IsSupplyStopped,
-     //                   RequestDate = pr.RequestDate,
-     //                   StatusId = product?.Status?.Id ?? 0,        // اضافه شده
-     //                   StatusName = product?.Status?.Name          // اضافه شده
-     //               };
-     //           })
-     //           .ToList();
-
-     //       return flatItems;
-     //   }
 
     }
 }

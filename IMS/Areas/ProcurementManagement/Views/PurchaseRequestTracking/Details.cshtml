@@ -32,7 +32,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(255,255,255,0.7);
             z-index: 100;
         }
 
@@ -59,21 +59,17 @@
             pointer-events: none;
         }
 
-
     .add-to-flatitems-btn {
-        background-color: #28a745; /* سبز */
+        background-color: #28a745;
         color: white;
     }
 
-      
-
         .add-to-flatitems-btn.stopped {
-            opacity: 0.5; /* فقط ظاهر خاکستری */
-            /* pointer-events: none; <- این خط را حذف کنید */
+            opacity: 0.5;
         }
 
     .toggle-disable-btn {
-        color: #dc3545; /* قرمز */
+        color: #dc3545;
         border-color: #dc3545;
     }
 
@@ -87,29 +83,20 @@
 <div class="container-fluid py-3" dir="rtl">
     @if (TempData["ErrorMessage"] != null)
     {
-        <div class="alert alert-danger">
-            @TempData["ErrorMessage"]
-        </div>
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
 
     @if (TempData["SuccessMessage"] != null)
     {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
     }
 
     <div class="row">
         <div class="col-12">
-            <div class="card border-0 shadow" style="box-shadow: 0 4px 8px rgba(13, 110, 253, 0.1);">
-                <div class="card-header py-2 d-flex justify-content-between align-items-center"
-                     style="background-color: #1a4959; color: white;">
-                    <h5 class="mb-0 text-white">
-                        <i class="fas fa-file-invoice me-2"></i> @ViewData["Title"] شماره @Model.RequestNumber
-                    </h5>
-                    <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm">
-                        <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
-                    </a>
+            <div class="card border-0 shadow">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <h5 class="mb-0 text-white"><i class="fas fa-file-invoice me-2"></i> @ViewData["Title"] شماره @Model.RequestNumber</h5>
+                    <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm"><i class="fas fa-arrow-right me-1"></i> بازگشت به لیست</a>
                 </div>
 
                 <div class="card-body p-2 @(isCompleted ? "disabled-content" : "")">
@@ -122,26 +109,15 @@
                         </div>
                     }
 
-                    <!-- اطلاعات کلی -->
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-1 small">
-                                <i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست
-                            </label>
-                            <div class="input-group input-group-sm bg-light rounded p-2">
-                                @Model.RequestDate.ToString("yyyy/MM/dd")
-                            </div>
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.RequestDate.ToString("yyyy/MM/dd")</div>
                         </div>
-
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-1 small">
-                                <i class="fas fa-heading me-1 text-muted"></i> عنوان
-                            </label>
-                            <div class="input-group input-group-sm bg-light rounded p-2">
-                                @Model.Title
-                            </div>
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-heading me-1 text-muted"></i> عنوان</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.Title</div>
                         </div>
-
                         @{
                             var statusDescription = Model.Status.GetType()
                             .GetField(Model.Status.ToString())
@@ -149,16 +125,11 @@
                             .Description ?? Model.Status.ToString();
                         }
                         <div class="col-md-4">
-                            <label class="form-label fw-bold mb-1 small">
-                                <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
-                            </label>
-                            <div class="input-group input-group-sm bg-light rounded p-2">
-                                @statusDescription
-                            </div>
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-info-circle me-1 text-muted"></i> وضعیت</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@statusDescription</div>
                         </div>
                     </div>
 
-                    <!-- جدول آیتم‌ها -->
                     <div class="table-responsive">
                         <table class="table table-hover table-sm">
                             <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
@@ -168,6 +139,7 @@
                                     <th class="text-center py-1">موجودی کل</th>
                                     <th class="text-center py-1">درخواست‌های قبلی</th>
                                     <th class="text-center py-1">نیاز به تامین</th>
+                                    <th class="text-center py-1">تأمین کامل</th>
                                     <th class="text-center py-1">توضیحات</th>
                                     <th class="text-center py-1">عملیات</th>
                                 </tr>
@@ -175,36 +147,48 @@
                             <tbody style="font-size: 0.8rem;">
                                 @foreach (var item in Model.Items)
                                 {
-                                    <tr data-item-id="@item.Id" class="@(item.IsSupplyStopped ? "disabled-row" : "")">
-                                        <td class="text-center py-1 align-middle">
-                                            @item.CategoryName | @item.GroupName | @item.Status | @item.ProductName
-                                        </td>
+                                    var rowClass = item.IsSupplyStopped ? "disabled-row" : "";
+                                    var isAddDisabled = isCompleted || item.IsSupplyStopped || item.IsFullySupplied;
+                                    var toggleDisabled = isCompleted || item.IsSupplyStopped;
+
+                                    <tr data-item-id="@item.Id" class="@rowClass">
+                                        <td class="text-center py-1 align-middle">@item.CategoryName | @item.GroupName | @item.Status | @item.ProductName</td>
                                         <td class="text-center py-1 align-middle quantity">@item.Quantity</td>
                                         <td class="text-center py-1 align-middle total-stock">@item.TotalStock</td>
                                         <td class="text-center py-1 align-middle pending-requests">@item.PendingRequests</td>
                                         <td class="text-center py-1 align-middle need-to-supply">@item.NeedToSupply</td>
+                                        <td class="text-center py-1 align-middle">
+                                            @* ستون تأمین کامل با شرط Razor و HTML *@
+                                            @if (item.IsFullySupplied)
+                                            {
+                                                <i class="bi bi-check-lg text-success"></i>
+                                            }
+                                        </td>
                                         <td class="text-center py-1 align-middle">@item.Description</td>
                                         <td class="text-center py-1 align-middle">
                                             <form method="post" action="@Url.Action("AddToFlatItemsAndShow", "PurchaseRequestTracking", new { area = "ProcurementManagement" })" style="display:inline">
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success add-to-flatitems-btn rounded-circle me-1"
-                                                        title="در حال تدارکات" @(isCompleted ? "disabled" : "")>
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success add-to-flatitems-btn rounded-circle me-1 @(item.IsSupplyStopped || item.IsFullySupplied ? "stopped" : "")"
+                                                        title="در حال تدارکات" @(isAddDisabled ? "disabled" : "")>
                                                     <i class="bi bi-cart-check"></i>
                                                 </button>
                                             </form>
 
-                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle toggle-disable-btn"
-                                                    title="توقف تامین" @(isCompleted ? "disabled" : "")>
-                                                <i class="bi bi-slash-circle"></i>
-                                            </button>
+                                            @if (!item.IsFullySupplied)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle toggle-disable-btn"
+                                                        title="توقف تامین" @(toggleDisabled ? "disabled" : "")>
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            }
                                         </td>
                                     </tr>
                                 }
                             </tbody>
+
                         </table>
                     </div>
 
-                    <!-- اینجا FlatItems لود میشه -->
                     <div id="flatItemsContainer" class="mt-3"></div>
                 </div>
             </div>
@@ -216,47 +200,34 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
+            $(".toggle-disable-btn").click(function () {
+                var btn = $(this);
+                var row = btn.closest("tr");
+                var itemId = row.data('item-id');
+                var addBtn = row.find(".add-to-flatitems-btn");
+                var isStopping = !row.hasClass("disabled-row");
 
-                $(".toggle-disable-btn").click(function () {
-            var btn = $(this);
-            var row = btn.closest("tr");
-            var itemId = row.data('item-id');
-            var addBtn = row.find(".add-to-flatitems-btn");
-            var isStopping = !row.hasClass("disabled-row");
-
-            $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
-                { id: itemId, stopSupply: isStopping },
-                function (response) {
-                    if (response.success) {
-                        if (response.isSupplyStopped) {
-                            // اضافه کردن کلاس و غیرفعال کردن دکمه
-                            row.addClass("disabled-row");
-                            btn.addClass("active")
-                               .attr("title", "فعال کردن تامین")
-                               .html('<i class="bi bi-check-circle"></i>');
-                            addBtn.addClass("stopped")
-                                  .prop("disabled", true); // غیرفعال کردن دکمه
+                $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
+                    { id: itemId, stopSupply: isStopping },
+                    function (response) {
+                        if (response.success) {
+                            if (response.isSupplyStopped) {
+                                row.addClass("disabled-row");
+                                btn.addClass("active").attr("title", "فعال کردن تامین").html('<i class="bi bi-check-circle"></i>');
+                                addBtn.addClass("stopped").prop("disabled", true);
+                            } else {
+                                row.removeClass("disabled-row");
+                                btn.removeClass("active").attr("title", "توقف تامین").html('<i class="bi bi-slash-circle"></i>');
+                                addBtn.removeClass("stopped").prop("disabled", false);
+                            }
                         } else {
-                            // حذف کلاس و فعال کردن دوباره دکمه
-                            row.removeClass("disabled-row");
-                            btn.removeClass("active")
-                               .attr("title", "توقف تامین")
-                               .html('<i class="bi bi-slash-circle"></i>');
-                            addBtn.removeClass("stopped")
-                                  .prop("disabled", false); // فعال کردن دکمه
+                            alert("خطا: " + response.message);
                         }
-                    } else {
-                        alert("خطا: " + response.message);
-                    }
-                })
-                .fail(function () {
-                    alert("خطا در ارتباط با سرور!");
-                });
-        });
-
-
-         
-
+                    })
+                    .fail(function () {
+                        alert("خطا در ارتباط با سرور!");
+                    });
+            });
         });
     </script>
 }
