@@ -131,7 +131,8 @@ namespace IMS.Application.ProcurementManagement.Service
                     StatusId = i.StatusId,
                     ProductId = i.ProductId,
                     Description = i.Description,
-                    Quantity = i.Quantity,
+                    InitialQuantity = i.InitialQuantity,
+                    RemainingQuantity = i.InitialQuantity,
                     Unit = i.Unit,
                     ProjectId = i.ProjectId
                 }).ToList()
@@ -273,7 +274,7 @@ namespace IMS.Application.ProcurementManagement.Service
                 existingItem.StatusId = dtoItem.StatusId;
                 existingItem.ProductId = dtoItem.ProductId;
                 existingItem.Description = dtoItem.Description;
-                existingItem.Quantity = dtoItem.Quantity;
+                existingItem.InitialQuantity = dtoItem.InitialQuantity;
                 existingItem.Unit = dtoItem.Unit;
                 existingItem.ProjectId = dtoItem.ProjectId;
             }
@@ -289,7 +290,8 @@ namespace IMS.Application.ProcurementManagement.Service
                     StatusId = i.StatusId,
                     ProductId = i.ProductId,
                     Description = i.Description,
-                    Quantity = i.Quantity,
+                    InitialQuantity = i.InitialQuantity,
+                    RemainingQuantity = i.InitialQuantity,
                     Unit = i.Unit,
                     ProjectId = i.ProjectId
                 })
@@ -342,7 +344,7 @@ namespace IMS.Application.ProcurementManagement.Service
                     ProductId = i.ProductId,
                     ProductName = i.Product?.Name,
                     Description = i.Description,
-                    Quantity = i.Quantity,
+                    InitialQuantity = i.InitialQuantity,
                     Unit = i.Unit,
                     ProjectId = i.ProjectId,
                     ProjectName = i.Project?.ProjectName

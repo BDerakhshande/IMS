@@ -189,7 +189,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     
                     ProductId = i.ProductId,
                     Description = i.Description,
-                    Quantity = i.Quantity,
+                    InitialQuantity = i.Quantity,
                     Unit = i.Unit,
                     ProjectId = i.ProjectId
                 }).ToList()
@@ -242,7 +242,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     ProductId = i.ProductId,
                     ProductName = i.ProductName,
                     Description = i.Description,
-                    Quantity = i.Quantity,
+                    Quantity = i.InitialQuantity,
                     Unit = i.Unit,
                     ProjectId = i.ProjectId,
                     ProjectName = i.ProjectName

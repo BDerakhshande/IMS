@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.InkML;
+﻿using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.InkML;
 using IMS.Application.ProcurementManagement.DTOs;
 using IMS.Application.ProcurementManagement.Service;
 using IMS.Application.ProjectManagement.Service;
@@ -80,7 +81,12 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                 return Json(new { success = false, message = "آیتم پیدا نشد." });
 
             item.IsSupplyStopped = stopSupply;
+         
+            if (stopSupply)
+                item.IsAddedToFlatItems = false;
             await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
+
+
 
             return Json(new
             {
@@ -118,7 +124,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     GroupId = dto.GroupId,
                     StatusId = dto.StatusId,
                     ProductId = dto.ProductId,
-                    Quantity = dto.Quantity,
+                    RemainingQuantity = dto.RemainingQuantity,
                     Unit = dto.Unit,
                     ProjectId = dto.ProjectId,
                     Description = dto.Description
@@ -139,7 +145,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     GroupName = dto.GroupName,
                     Status = dto.Status,
                     ProductName = dto.ProductName,
-                    Quantity = dto.Quantity,
+                    Quantity = dto.RemainingQuantity,
                     Unit = dto.Unit,
                     ProjectName = dto.ProjectName,
                     Description = dto.Description,
@@ -157,125 +163,119 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             }
         }
 
+  
+
+
+
         [HttpPost]
-        public async Task<IActionResult> AddToFlatItemsAndShow(
-      int id,
-      int? projectId = null,
-      int? categoryId = null,
-      int? groupId = null,
-      int? statusId = null,
-      int? productId = null,
-      int? requestTypeId = null,
-      DateTime? fromDate = null,
-      DateTime? toDate = null)
+        public async Task<IActionResult> AddToFlatItemsAndShow(int id)
         {
             try
             {
-                // بارگذاری آیتم همراه با درخواست خرید و نوع درخواست
                 var item = await _procurementManagementDbContext.PurchaseRequestItems
                     .Include(i => i.PurchaseRequest)
                         .ThenInclude(r => r.RequestType)
                     .FirstOrDefaultAsync(i => i.Id == id);
 
                 if (item == null)
-                    return NotFound();
+                    return Json(new { success = false, message = "آیتم پیدا نشد." });
 
-                // بررسی وجود آیتم در لیست تخت
                 var exists = await _procurementManagementDbContext.PurchaseRequestFlatItems
-                    .AnyAsync(f => f.ProductId == item.ProductId && f.RequestNumber == item.PurchaseRequest.RequestNumber);
+                    .AnyAsync(f =>
+                        f.ProductId == item.ProductId &&
+                        f.RequestNumber == item.PurchaseRequest.RequestNumber &&
+                        f.ProjectId == item.ProjectId &&
+                        f.CategoryId == item.CategoryId &&
+                        f.GroupId == item.GroupId &&
+                        f.RequestTitle == item.PurchaseRequest.Title
+                    );
 
                 if (exists)
-                {
-                    TempData["ErrorMessage"] = "محصول از قبل در درخواست خرید اضافه شده است.";
-                    return RedirectToAction(
-                        "Details",
-                        "PurchaseRequestTracking",
-                        new { area = "ProcurementManagement", purchaseRequestId = item.PurchaseRequestId });
-                }
+                    return Json(new { success = false, message = "محصول از قبل در درخواست خرید اضافه شده است." });
+            
+                         string? projectName = item.ProjectId.HasValue
+                             ? await _applicationDbContext.Projects
+                                 .Where(p => p.Id == item.ProjectId.Value)
+                                 .Select(p => p.ProjectName)
+                                 .FirstOrDefaultAsync()
+                             : null;
 
-                // گرفتن همه نام‌های مرتبط در یک مرحله
-                var projectNameTask = item.ProjectId.HasValue
-                    ? _applicationDbContext.Projects
-                        .Where(p => p.Id == item.ProjectId.Value)
-                        .Select(p => p.ProjectName)
-                        .FirstOrDefaultAsync()
-                    : Task.FromResult<string?>(null);
-
-                var categoryNameTask = _warehouseContext.Categories
+                string? categoryName = await _warehouseContext.Categories
                     .Where(c => c.Id == item.CategoryId)
                     .Select(c => c.Name)
                     .FirstOrDefaultAsync();
 
-                var groupNameTask = _warehouseContext.Groups
+                string? groupName = await _warehouseContext.Groups
                     .Where(g => g.Id == item.GroupId)
                     .Select(g => g.Name)
                     .FirstOrDefaultAsync();
 
-                var statusNameTask = _warehouseContext.Statuses
+                string? statusName = await _warehouseContext.Statuses
                     .Where(s => s.Id == item.StatusId)
                     .Select(s => s.Name)
                     .FirstOrDefaultAsync();
 
-                var productNameTask = _warehouseContext.Products
+                string? productName = await _warehouseContext.Products
                     .Where(p => p.Id == item.ProductId)
                     .Select(p => p.Name)
                     .FirstOrDefaultAsync();
+                // محاسبه مقادیر به‌روز: موجودی انبار مرکزی
+                var totalStock = await _warehouseContext.Inventories
+                    .Where(inv => inv.ProductId == item.ProductId && inv.Warehouse.Name.Contains("مرکزی"))
+                    .SumAsync(inv => (decimal?)inv.Quantity) ?? 0;
 
-                await Task.WhenAll(projectNameTask, categoryNameTask, groupNameTask, statusNameTask, productNameTask);
+                // محاسبه درخواست‌های معلق برای محصول
+                var totalPending = await _procurementManagementDbContext.PurchaseRequestItems
+                    .Where(i => i.ProductId == item.ProductId
+                                && i.PurchaseRequest.Status != Domain.ProcurementManagement.Enums.Status.Completed
+                                && !i.IsSupplyStopped
+                                && i.PurchaseRequestId != item.PurchaseRequestId)
+                    .SumAsync(i => (decimal?)i.RemainingQuantity) ?? 0;
 
-                // ایجاد موجودیت تخت
+                // محاسبه نیاز به تامین واقعی
+                var needToSupply = Math.Max(0, item.RemainingQuantity - totalStock);
+
                 var flatEntity = new PurchaseRequestFlatItem
-                {
-                    RequestNumber = item.PurchaseRequest.RequestNumber,
-                    RequestTitle = item.PurchaseRequest.Title,
-                    RequestTypeId = item.PurchaseRequest.RequestTypeId,
-                    RequestTypeName = item.PurchaseRequest.RequestType?.Name,
-                    ProjectId = item.ProjectId ?? 0,
-                    ProjectName = projectNameTask.Result,
-                    CategoryId = item.CategoryId,
-                    CategoryName = categoryNameTask.Result,
-                    GroupId = item.GroupId,
-                    GroupName = groupNameTask.Result,
-                    StatusId = item.StatusId,
-                    StatusName = statusNameTask.Result,
-                    ProductId = item.ProductId,
-                    ProductName = productNameTask.Result,
-                    Quantity = item.Quantity,
-                    Unit = item.Unit,
-                    TotalStock = 0,
-                    PendingRequests = 0,
-                    NeedToSupply = item.Quantity,
-                    IsSupplyStopped = item.IsSupplyStopped,
-                    RequestDate = item.PurchaseRequest.RequestDate
-                };
+                        {
+                            RequestNumber = item.PurchaseRequest.RequestNumber,
+                            RequestTitle = item.PurchaseRequest.Title,
+                            RequestTypeId = item.PurchaseRequest.RequestTypeId,
+                            RequestTypeName = item.PurchaseRequest.RequestType?.Name,
+                            ProjectId = item.ProjectId ?? 0,
+                            ProjectName = projectName,
+                            CategoryId = item.CategoryId,
+                            CategoryName = categoryName,
+                            GroupId = item.GroupId,
+                            GroupName = groupName,
+                            StatusId = item.StatusId,
+                            StatusName = statusName,
+                            ProductId = item.ProductId,
+                            ProductName = productName,
+                            Quantity = item.RemainingQuantity,
+                            Unit = item.Unit,
+                            TotalStock = totalStock,
+                            PendingRequests = totalPending,
+                            NeedToSupply = needToSupply,
+                            IsSupplyStopped = item.IsSupplyStopped,
+                            RequestDate = item.PurchaseRequest.RequestDate
+                        };
 
                 _procurementManagementDbContext.PurchaseRequestFlatItems.Add(flatEntity);
+                item.IsAddedToFlatItems = true;
                 await _procurementManagementDbContext.SaveChangesAsync(CancellationToken.None);
 
-                TempData["SuccessMessage"] = "محصول با موفقیت به درخواست خرید اضافه شد.";
-
-                return RedirectToAction(
-                    "FlatItems",
-                    "PurchaseRequestFlatItem",
-                    new
-                    {
-                        area = "ProcurementManagement",
-                        projectId,
-                        categoryId,
-                        groupId,
-                        statusId,
-                        productId,
-                        requestTypeId,
-                        fromDate,
-                        toDate
-                    });
+                return Json(new { success = true, message = "درخواست خرید با موفقیت ارسال شد." });
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"خطایی رخ داد: {ex.Message}";
-                return RedirectToAction("Index");
+                return Json(new { success = false, message = $"❌ خطا: {ex.Message}" });
             }
         }
+
+
+
+
+
 
 
 

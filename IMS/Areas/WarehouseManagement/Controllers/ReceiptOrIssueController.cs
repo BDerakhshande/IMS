@@ -105,29 +105,23 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             try
             {
                 var dto = MapViewModelToDto(model);
-                var createdDto = await _service.CreateAsync(dto);
+                // تغییر: دریافت Result و Errors از سرویس
+                var (createdDto, errors) = await _service.CreateAsync(dto);
 
-                return Json(new { success = true, documentId = createdDto.Id });
-            }
-            catch (ArgumentException ex)
-            {
-                // پیام فارسی برای خطاهای اعتبارسنجی سرویس
-                string message = ex.Message switch
+                if (errors != null && errors.Any())
                 {
-                    string m when m.Contains("Items collection cannot be empty") => "باید حداقل یک آیتم وارد کنید.",
-                    string m when m.Contains("ProductId must be greater than zero") => "شناسه کالا معتبر نیست.",
-                    string m when m.Contains("Quantity must be greater than zero") => "تعداد باید بیشتر از صفر باشد.",
-                    _ => ex.Message
-                };
+                    // خطاهای سرویس را به کاربر بازگردان
+                    return Json(new { success = false, errors });
+                }
 
-                return Json(new { success = false, errors = new[] { message } });
+                // موفقیت
+                return Json(new { success = true, documentId = createdDto!.Id });
             }
             catch (InvalidOperationException ex)
             {
                 // پیام فارسی برای خطاهای عملیات نامعتبر
                 string message = ex.Message;
 
-                // نمونه تبدیل پیام سرویس به پیام کاربر پسند
                 if (message.Contains("متوقف شده است"))
                     message = "کالا متوقف شده و امکان رسید/حواله ندارد.";
                 else if (message.Contains("هنوز در حال تدارکات نیست"))
@@ -140,7 +134,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine(ex); // یا از ILogger استفاده کن
-                // سایر خطاها
                 return Json(new
                 {
                     success = false,
@@ -148,7 +141,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 });
             }
         }
-
 
 
 
@@ -365,6 +357,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             {
                 item.AvailableDestinationSections = new List<SelectListItem>();
             }
+
+            // --- پر کردن لیست درخواست‌های خرید ---
+            var allPurchaseRequests = await _procurementContext.PurchaseRequests
+                .Select(pr => new { pr.Id, pr.Title })
+                .ToListAsync();
+
+            item.AvailablePurchaseRequests = allPurchaseRequests.Select(pr => new SelectListItem
+            {
+                Value = pr.Id.ToString(),
+                Text = pr.Title,
+                Selected = pr.Id == item.PurchaseRequestId
+            }).ToList();
         }
 
 
@@ -418,21 +422,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Items = new List<ReceiptOrIssueItemViewModel>()
             };
 
-            // 1. استخراج ProjectId های یکتا از آیتم‌ها
-            var projectIds = dto.Items
-                .Where(i => i.ProjectId.HasValue)
-                .Select(i => i.ProjectId!.Value)
-                .Distinct()
-                .ToList();
-
-            // 2. بارگذاری عنوان پروژه‌ها از DbContext پروژه
+            // --- پروژه‌ها ---
             var allProjects = await _projectContext.Projects
                 .Select(p => new { p.Id, p.ProjectName })
                 .ToListAsync();
 
             var projectTitles = allProjects.ToDictionary(p => p.Id, p => p.ProjectName);
 
-            // 3. پر کردن آیتم‌ها با اطلاعات کامل
+            // --- درخواست‌های خرید ---
+            var allPurchaseRequests = await _procurementContext.PurchaseRequests
+                .Select(pr => new { pr.Id, pr.Title })
+                .ToListAsync();
+
+            var purchaseRequestTitles = allPurchaseRequests.ToDictionary(pr => pr.Id, pr => pr.Title);
+
+            // --- ساخت آیتم‌ها ---
             foreach (var i in dto.Items)
             {
                 var item = new ReceiptOrIssueItemViewModel
@@ -444,6 +448,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     StatusId = i.StatusId,
                     SourceSectionId = i.SourceSectionId,
                     DestinationSectionId = i.DestinationSectionId,
+
+                    // --- پروژه ---
                     ProjectId = i.ProjectId,
                     ProjectTitle = i.ProjectId.HasValue && projectTitles.ContainsKey(i.ProjectId.Value)
                         ? projectTitles[i.ProjectId.Value]
@@ -453,10 +459,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                         Value = p.Id.ToString(),
                         Text = p.ProjectName,
                         Selected = (p.Id == i.ProjectId)
+                    }).ToList(),
+
+                    // --- درخواست خرید ---
+                    PurchaseRequestId = i.PurchaseRequestId,
+                    PurchaseRequestTitle = i.PurchaseRequestId.HasValue && purchaseRequestTitles.ContainsKey(i.PurchaseRequestId.Value)
+                        ? purchaseRequestTitles[i.PurchaseRequestId.Value]
+                        : null,
+                    AvailablePurchaseRequests = allPurchaseRequests.Select(pr => new SelectListItem
+                    {
+                        Value = pr.Id.ToString(),
+                        Text = pr.Title,
+                        Selected = (pr.Id == i.PurchaseRequestId)
                     }).ToList()
                 };
 
-                // تعیین اطلاعات مبدأ
+                // --- تعیین اطلاعات مبدأ ---
                 if (i.SourceSectionId.HasValue)
                 {
                     var section = await _warehouseService.GetSectionByIdAsync(i.SourceSectionId.Value);
@@ -474,7 +492,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     item.SourceWarehouseId = i.SourceWarehouseId;
                 }
 
-                // تعیین اطلاعات مقصد
+                // --- تعیین اطلاعات مقصد ---
                 if (i.DestinationSectionId.HasValue)
                 {
                     var section = await _warehouseService.GetSectionByIdAsync(i.DestinationSectionId.Value);
@@ -497,6 +515,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             return viewModel;
         }
+
 
 
 
@@ -639,10 +658,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 var dto = MapViewModelToDto(model);
                 var updatedDto = await _service.UpdateAsync(dto.Id, dto);
 
-                if (updatedDto == null)
-                {
-                    return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
-                }
+                //if (updatedDto == null)
+                //{
+                //    return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
+                //}
 
                 return Json(new { success = true, documentId = dto.Id });
             }

@@ -21,6 +21,14 @@ namespace IMS.Application.ProjectManagement.DTOs
         public DateTime? StartDateTo { get; set; }
         public DateTime? EndDateFrom { get; set; }
         public DateTime? EndDateTo { get; set; }
+
+
+        public string? StartDateFromShamsi { get; set; }
+        public string? StartDateToShamsi { get; set; }
+        public string? EndDateFromShamsi { get; set; }
+        public string? EndDateToShamsi { get; set; }
+
+
         public int? EmployerId { get; set; }
         public int? ProjectTypeId { get; set; }
     }

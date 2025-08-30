@@ -28,9 +28,9 @@ namespace IMS.Application.ProcurementManagement.Service
         }
         public async Task<List<PurchaseRequest>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            // فقط داده‌های هدر درخواست خرید را بارگذاری می‌کنیم (بدون Include آیتم‌ها)
+           
             return await _procurementDb.PurchaseRequests
-                .AsNoTracking() // چون صرفا خواندنی است
+                .AsNoTracking()
                 .OrderByDescending(pr => pr.RequestDate)
                 .ToListAsync(cancellationToken);
         }
@@ -75,7 +75,7 @@ namespace IMS.Application.ProcurementManagement.Service
                             && !i.IsSupplyStopped
                             && i.PurchaseRequestId != purchaseRequestId)
                 .GroupBy(i => i.ProductId)
-                .Select(g => new { ProductId = g.Key, TotalPendingQuantity = g.Sum(x => x.Quantity) })
+                .Select(g => new { ProductId = g.Key, TotalPendingQuantity = g.Sum(x => x.RemainingQuantity) })
                 .ToDictionaryAsync(x => x.ProductId, x => x.TotalPendingQuantity, cancellationToken);
 
             var result = new List<PurchaseRequestItemDto>();
@@ -88,13 +88,13 @@ namespace IMS.Application.ProcurementManagement.Service
                 stocks.TryGetValue(item.ProductId, out decimal totalStock);
                 pendingRequests.TryGetValue(item.ProductId, out decimal totalPending);
 
-                var needToSupply = Math.Max(0, (totalPending + item.Quantity) - totalStock);
+                var needToSupply = Math.Max(0, item.RemainingQuantity - totalStock);
 
-                // بروزرسانی وضعیت آیتم
-                if (needToSupply == 0 && !item.IsFullySupplied)
-                {
-                    item.IsFullySupplied = true;
-                }
+                // بروزرسانی وضعیت‌ها
+                item.IsFullySupplied = needToSupply <= 0;
+
+                // اگر Remaining صفر شد و تأمین متوقف نشده است => تحویل کامل
+                item.IsFullyDelivered = item.RemainingQuantity <= 0 && !item.IsSupplyStopped;
 
                 result.Add(new PurchaseRequestItemDto
                 {
@@ -103,7 +103,8 @@ namespace IMS.Application.ProcurementManagement.Service
                     ProductId = item.ProductId,
                     ProductName = product.Name,
                     Description = item.Description,
-                    Quantity = item.Quantity,
+                    InitialQuantity = item.InitialQuantity,
+                    RemainingQuantity = item.RemainingQuantity,
                     Unit = item.Unit,
                     TotalStock = totalStock,
                     PendingRequests = totalPending,
@@ -115,9 +116,14 @@ namespace IMS.Application.ProcurementManagement.Service
                     CategoryId = product.Status.Group.Category.Id,
                     CategoryName = product.Status.Group.Category.Name,
                     IsSupplyStopped = item.IsSupplyStopped,
-                    IsFullySupplied = item.IsFullySupplied
+                    IsFullySupplied = item.IsFullySupplied,
+                    IsFullyDelivered = item.IsFullyDelivered,
+                    RequestNumber = purchaseRequest.RequestNumber,
+                    IsAddedToFlatItems = await _procurementDb.PurchaseRequestFlatItems
+                        .AnyAsync(f => f.ProductId == item.ProductId && f.RequestNumber == purchaseRequest.RequestNumber, cancellationToken)
                 });
             }
+
 
             // بروزرسانی وضعیت هدر درخواست
             if (purchaseRequest.Items.All(i => i.IsFullySupplied))

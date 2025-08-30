@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using IMS.Application.ProcurementManagement.DTOs;
 using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Domain.ProcurementManagement.Enums;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
@@ -83,7 +84,7 @@ namespace IMS.Application.ProcurementManagement.Service
         #region Get Flat Items
         public async Task<List<PurchaseRequestFlatItemDto>> GetFlatItemsAsync(
             string? requestNumber = null,
-            string? requestTitle = null, 
+            string? requestTitle = null,
             DateTime? fromDate = null,
             DateTime? toDate = null,
             int? requestTypeId = null,
@@ -91,7 +92,7 @@ namespace IMS.Application.ProcurementManagement.Service
             List<ProductFilterDto>? products = null,
             CancellationToken cancellationToken = default)
         {
-            // مرحله 1: اعمال فیلترهای ساده در دیتابیس
+            // مرحله 1: اعمال فیلترهای ساده روی دیتابیس
             var query = _procurementContext.PurchaseRequestFlatItems.AsQueryable();
 
             if (!string.IsNullOrEmpty(requestNumber))
@@ -112,12 +113,12 @@ namespace IMS.Application.ProcurementManagement.Service
             if (projectId.HasValue)
                 query = query.Where(x => x.ProjectId == projectId.Value);
 
-            // مرحله 2: دریافت داده‌ها از دیتابیس قبل از اعمال فیلتر سلسله‌مراتبی
+            // دریافت داده‌ها از دیتابیس
             var flatItemsList = await query
                 .OrderByDescending(x => x.RequestDate)
                 .ToListAsync(cancellationToken);
 
-            // مرحله 3: اعمال فیلتر سلسله‌مراتبی محصولات در حافظه
+            // اعمال فیلتر سلسله‌مراتبی محصولات در حافظه
             if (products != null && products.Any())
             {
                 var conditions = products
@@ -137,36 +138,74 @@ namespace IMS.Application.ProcurementManagement.Service
                 }
             }
 
-            // مرحله 4: تبدیل به DTO
-            var result = flatItemsList.Select(x => new PurchaseRequestFlatItemDto
+            // جمع‌آوری productIds برای محاسبه موجودی و درخواست‌های معلق
+            var productIds = flatItemsList.Select(x => x.ProductId).Distinct().ToList();
+
+            // موجودی کل محصولات در انبار مرکزی
+            var stocksDict = await _warehouseContext.Inventories
+                .Where(inv => productIds.Contains(inv.ProductId) && inv.Warehouse.Name.Contains("مرکزی"))
+                .GroupBy(inv => inv.ProductId)
+                .Select(g => new { ProductId = g.Key, TotalQuantity = g.Sum(x => x.Quantity) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.TotalQuantity, cancellationToken);
+
+            // درخواست‌های معلق برای محصولات
+            var pendingDict = await _procurementContext.PurchaseRequestItems
+                .Where(i => productIds.Contains(i.ProductId) && i.PurchaseRequest.Status != Status.Completed && !i.IsSupplyStopped)
+                .GroupBy(i => i.ProductId)
+                .Select(g => new { ProductId = g.Key, TotalPendingQuantity = g.Sum(x => x.RemainingQuantity) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.TotalPendingQuantity, cancellationToken);
+
+            var result = new List<PurchaseRequestFlatItemDto>();
+
+            // حلقه امن روی کپی لیست برای حذف آیتم‌ها در صورت نیاز
+            foreach (var x in flatItemsList.ToList())
             {
-                Id = x.Id,
-                RequestNumber = x.RequestNumber,
-                RequestTitle = x.RequestTitle,
-                RequestDate = x.RequestDate,
-                RequestTypeId = x.RequestTypeId,
-                RequestTypeName = x.RequestTypeName,
-                ProjectId = x.ProjectId,
-                ProjectName = x.ProjectName,
-                CategoryId = x.CategoryId,
-                CategoryName = x.CategoryName,
-                GroupId = x.GroupId,
-                GroupName = x.GroupName,
-                StatusId = x.StatusId,
-                StatusName = x.StatusName,
-                ProductId = x.ProductId,
-                ProductName = x.ProductName,
-                Quantity = x.Quantity,
-                Unit = x.Unit,
-                TotalStock = x.TotalStock,
-                PendingRequests = x.PendingRequests,
-                NeedToSupply = x.NeedToSupply,
-                IsSupplyStopped = x.IsSupplyStopped
-            }).ToList();
+                stocksDict.TryGetValue(x.ProductId, out decimal totalStock);
+                pendingDict.TryGetValue(x.ProductId, out decimal totalPending);
+
+                var needToSupply = Math.Max(0, x.Quantity - totalStock);
+
+                // حذف آیتم‌هایی که نیاز به تامین صفر دارند و تامین متوقف نشده
+                if (needToSupply == 0 && !x.IsSupplyStopped)
+                {
+                    _procurementContext.PurchaseRequestFlatItems.Remove(x);
+                    continue; // از افزودن به خروجی جلوگیری شود
+                }
+
+                result.Add(new PurchaseRequestFlatItemDto
+                {
+                    Id = x.Id,
+                    RequestNumber = x.RequestNumber,
+                    RequestTitle = x.RequestTitle,
+                    RequestDate = x.RequestDate,
+                    RequestTypeId = x.RequestTypeId,
+                    RequestTypeName = x.RequestTypeName,
+                    ProjectId = x.ProjectId,
+                    ProjectName = x.ProjectName,
+                    CategoryId = x.CategoryId,
+                    CategoryName = x.CategoryName,
+                    GroupId = x.GroupId,
+                    GroupName = x.GroupName,
+                    StatusId = x.StatusId,
+                    StatusName = x.StatusName,
+                    ProductId = x.ProductId,
+                    ProductName = x.ProductName,
+                    Quantity = x.Quantity,
+                    Unit = x.Unit,
+                    TotalStock = totalStock,
+                    PendingRequests = totalPending,
+                    NeedToSupply = needToSupply,
+                    IsSupplyStopped = x.IsSupplyStopped
+                });
+            }
+
+            // ذخیره تغییرات حذف شده‌ها
+            await _procurementContext.SaveChangesAsync(cancellationToken);
 
             return result;
         }
         #endregion
+
 
     }
 }

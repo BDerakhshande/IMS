@@ -15,7 +15,8 @@ namespace IMS.Application.WarehouseManagement.Services
 
         Task<List<ReceiptOrIssueDto>> GetAllAsync(int? warehouseId = null);
 
-        Task<ReceiptOrIssueDto> CreateAsync(ReceiptOrIssueDto dto, CancellationToken cancellationToken = default);
+        Task<(ReceiptOrIssueDto? Result, List<string> Errors)> CreateAsync(
+     ReceiptOrIssueDto dto, CancellationToken cancellationToken = default);
         Task<List<StorageSectionDto>> GetSectionsByWarehouseAsync(int warehouseId);
 
         List<SelectListItem> GetZonesByWarehouse(int warehouseId);
@@ -23,10 +24,14 @@ namespace IMS.Application.WarehouseManagement.Services
 
         List<SelectListItem> GetSectionsByZone(int zoneId);
 
-        Task<ReceiptOrIssueDto?> UpdateAsync(int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken = default);
+   
         Task<List<SelectListItem>> GetGroupsByCategoryAsync(int categoryId);
         Task<List<SelectListItem>> GetStatusesByGroupAsync(int groupId);
         Task<List<SelectListItem>> GetProductsByStatus(int statusId);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
+
+        Task<(ReceiptOrIssueDto? Result, List<string> Errors)> UpdateAsync(
+            int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken = default);
+
     }
 }

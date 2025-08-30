@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using IMS.Areas.ProjectManagement.Helper
 @model IMS.Application.ProjectManagement.DTOs.ProjectReportRequestDto
 
 @{
@@ -146,20 +147,21 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ شروع از</label>
-                            <input asp-for="Filter.StartDateFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.StartDateFromShamsi" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ شروع تا</label>
-                            <input asp-for="Filter.StartDateTo" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.StartDateToShamsi" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ پایان از</label>
-                            <input asp-for="Filter.EndDateFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.EndDateFromShamsi" type="text" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ پایان تا</label>
-                            <input asp-for="Filter.EndDateTo" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.EndDateToShamsi" type="text" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -270,10 +272,10 @@
                                         <div class="small">@item.ProjectTypeName</div>
                                     </td>
                                     <td class="text-center">
-                                        <span class="small">@item.StartDate.ToString("yyyy/MM/dd")</span>
+                                        <span class="small">@item.StartDate.ToShamsi()</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="small">@item.EndDate.ToString("yyyy/MM/dd")</span>
+                                        <span class="small">@item.EndDate.ToShamsi()</span>
                                     </td>
                                     <td class="text-end pe-4">
                                         @{
@@ -337,8 +339,14 @@ else
                 }, 500);
             }
         });
+                 $('.persian-date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false
+        });
 
-        function resetForm() {
+
+                function resetForm() {
             const form = document.getElementById('projectReportForm');
             form.reset();
 

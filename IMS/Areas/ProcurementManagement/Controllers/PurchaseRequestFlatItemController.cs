@@ -41,7 +41,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
         public async Task<IActionResult> FlatItems(
             List<ProductFilterDto>? products = null,
             string? requestNumber = null,
-            string? requestTitle = null,   // ← اضافه شد
+            string? requestTitle = null,   
             string? fromDateString = null,
             string? toDateString = null,
             int? requestTypeId = null,
@@ -61,7 +61,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             var flatItems = await _flatItemService.GetFlatItemsAsync(
                 requestNumber,
-                requestTitle, // حالا این متغیر معتبر است
+                requestTitle, 
                 fromDate,
                 toDate,
                 requestTypeId,

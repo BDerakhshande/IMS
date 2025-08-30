@@ -241,6 +241,7 @@
                             <th class="py-2">مبدا</th>
                             <th class="py-2">مقصد</th>
                             <th class="py-2">پروژه</th>
+                            <th class="py-2">عنوان درخواست</th>
                             <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
@@ -439,7 +440,17 @@
                                     </select>
                                     <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
                                 </td>
-
+                                <!-- درخواست -->
+                                <td>
+                                    <select asp-for="Items[i].PurchaseRequestId" class="form-select form-select-sm select2 shadow-sm text-end">
+                                        <option value="">انتخاب درخواست...</option>
+                                        @foreach (var purchaseRequest in Model.Items[i].AvailablePurchaseRequests ?? new List<SelectListItem>())
+                                        {
+                                            <option value="@purchaseRequest.Value" selected="@(purchaseRequest.Value == Model.Items[i].PurchaseRequestId?.ToString())">@purchaseRequest.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Items[i].PurchaseRequestId" class="text-danger small d-block text-end"></span>
+                                </td>
                                 <!-- دکمه‌ها -->
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
@@ -485,7 +496,10 @@
         const warehouses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses));
         const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
         const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
-         const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
+        const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
+        const purchaseRequests = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests));
+
+
 
         $(document).ready(function () {
             $('.select2').select2({
@@ -631,6 +645,13 @@
             </select>
             <span class="text-danger small d-block text-end"></span>
         </td>
+           <td>
+            <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="${rowCount}">
+                ${buildOptions(purchaseRequests)}
+            </select>
+            <span class="text-danger small d-block text-end"></span>
+        </td>
+
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-1">
                             <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
