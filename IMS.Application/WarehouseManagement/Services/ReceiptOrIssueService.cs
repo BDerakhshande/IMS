@@ -127,7 +127,6 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
-
         public async Task<List<ReceiptOrIssueDto>> GetAllAsync(int? warehouseId = null)
         {
             // بارگذاری ReceiptOrIssue ها به همراه آیتم‌ها و سلسله مراتب انبار
@@ -150,7 +149,10 @@ namespace IMS.Application.WarehouseManagement.Services
                 ));
             }
 
-            var list = await query.ToListAsync();
+            // مرتب‌سازی descending بر اساس تاریخ
+            var list = await query
+                .OrderByDescending(r => r.Date)
+                .ToListAsync();
 
             // بارگذاری پروژه‌ها از DbContext دوم
             var projectIds = list
@@ -278,22 +280,23 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
 
-                if (purchaseRequestItem != null)
-                {
-                    if (purchaseRequestItem.IsSupplyStopped)
-                        errors.Add($"آیتم {productName} متوقف شده است و امکان رسید/حواله ندارد.");
-                }
 
                 string? requestNumber = null;
                 if (purchaseRequestItem != null)
                 {
                     requestNumber = purchaseRequestItem.PurchaseRequest?.RequestNumber;
                 }
-                if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped)
+                var stoppedProducts = new HashSet<int>();
+
+                if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped && dto.Type == ReceiptOrIssueType.Receipt)
                 {
-                    errors.Add($"آیتم {productName} متوقف شده است و امکان رسید/حواله ندارد.");
+                    if (!stoppedProducts.Contains(item.ProductId))
+                    {
+                        stoppedProducts.Add(item.ProductId);
+                        errors.Add($"آیتم {productName} متوقف شده است و امکان رسید ندارد.");
+                    }
                 }
-             
+
                 if (dto.Type == ReceiptOrIssueType.Receipt && purchaseRequestItem != null)
                 {
                     var isInFlatItems = flatItems.Any(f => f.ProductId == item.ProductId && f.RequestNumber == requestNumber);
@@ -541,8 +544,17 @@ namespace IMS.Application.WarehouseManagement.Services
                 var purchaseRequestItem = purchaseRequestItems
                     .FirstOrDefault(pri => pri.ProductId == item.ProductId && pri.PurchaseRequestId == item.PurchaseRequestId);
 
-                if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped)
-                    errors.Add($"آیتم {productName} متوقف شده است و امکان رسید/حواله ندارد.");
+                var stoppedProducts = new HashSet<int>();
+
+                if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped && dto.Type == ReceiptOrIssueType.Receipt)
+                {
+                    if (!stoppedProducts.Contains(item.ProductId))
+                    {
+                        stoppedProducts.Add(item.ProductId);
+                        errors.Add($"آیتم {productName} متوقف شده است و امکان رسید ندارد.");
+                    }
+                }
+
 
                 string? requestNumber = purchaseRequestItem?.PurchaseRequest?.RequestNumber;
                 if (dto.Type == ReceiptOrIssueType.Receipt && purchaseRequestItem != null)

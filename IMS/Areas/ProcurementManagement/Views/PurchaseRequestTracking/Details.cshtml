@@ -113,8 +113,17 @@
             <div class="card border-0 shadow">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
                     <h5 class="mb-0 text-white"><i class="fas fa-file-invoice me-2"></i> @ViewData["Title"] شماره @Model.RequestNumber</h5>
-                    <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm"><i class="fas fa-arrow-right me-1"></i> بازگشت به لیست</a>
+                    <div>
+                        <a href="@Url.Action("PrintDetails", "PurchaseRequestTracking", new { area = "ProcurementManagement", purchaseRequestId = Model.PurchaseRequestId })"
+                           class="btn btn-primary btn-sm me-1" target="_blank">
+                            <i class="fas fa-print me-1"></i> پرینت
+                        </a>
+                        <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
                 </div>
+
 
                 <div class="card-body p-2 @* @(isCompleted ? "disabled-content" : "") *@">
                   @*   @if (isCompleted)
@@ -259,35 +268,62 @@
                     });
             });
 
-            // توقف / فعال کردن تامین
-            $(".toggle-disable-btn").click(function () {
-                var btn = $(this);
-                var row = btn.closest("tr");
-                var itemId = row.data('item-id');
-                var addBtn = row.find(".add-to-flatitems-btn");
-                var isStopping = !row.hasClass("disabled-row");
+              // توقف / فعال کردن تامین
+        $(".toggle-disable-btn").click(function () {
+            var btn = $(this);
+            var row = btn.closest("tr");
+            var itemId = row.data('item-id');
+            var addBtn = row.find(".add-to-flatitems-btn");
 
-                $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
-                    { id: itemId, stopSupply: isStopping },
-                    function (response) {
-                        if (response.success) {
-                            if (response.isSupplyStopped) {
-                                row.addClass("disabled-row");
-                                btn.addClass("active").attr("title", "فعال کردن تامین").html('<i class="bi bi-check-circle"></i>');
-                                addBtn.addClass("stopped").prop("disabled", true).removeClass("btn-success");
-                            } else {
-                                row.removeClass("disabled-row");
-                                btn.removeClass("active").attr("title", "توقف تامین").html('<i class="bi bi-slash-circle"></i>');
-                                addBtn.prop("disabled", false).removeClass("stopped").addClass("btn-success");
-                            }
-                        } else {
-                            showMessage("خطا: " + response.message, "danger");
-                        }
-                    })
-                    .fail(function () {
-                        showMessage("خطا در ارتباط با سرور!", "danger");
-                    });
-            });
+            console.log("Clicked button for itemId:", itemId);
+
+            // آیا الان متوقف شده؟
+            var isCurrentlyStopped = row.hasClass("disabled-row");
+            console.log("Currently stopped?", isCurrentlyStopped);
+
+            // برعکس وضعیت فعلی رو می‌فرستیم
+            var stopSupply = !isCurrentlyStopped;
+            console.log("Sending stopSupply =", stopSupply);
+
+            $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
+                { id: itemId, stopSupply: stopSupply },
+                function (response) {
+                    console.log("Response from server:", response);
+
+                    if (!response.success) {
+                        showMessage("خطا: " + response.message, "danger");
+                        return;
+                    }
+
+                    if (response.isSupplyStopped) {
+                        // ✅ آیتم متوقف شد
+                        console.log("Item stopped supply");
+                        row.addClass("disabled-row");
+                        btn.addClass("active")
+                           .attr("title", "فعال کردن تامین")
+                           .html('<i class="bi bi-check-circle"></i>');
+                        addBtn.addClass("stopped")
+                              .prop("disabled", true)
+                              .removeClass("btn-success");
+                    } else {
+                        // ✅ آیتم فعال شد
+                        console.log("Item resumed supply");
+                        row.removeClass("disabled-row");
+                        btn.removeClass("active")
+                           .attr("title", "توقف تامین")
+                           .html('<i class="bi bi-slash-circle"></i>');
+                        addBtn.prop("disabled", false)
+                              .removeClass("stopped")
+                              .addClass("btn-success");
+                    }
+                })
+                .fail(function (xhr, status, error) {
+                    console.error("AJAX failed:", status, error);
+                    showMessage("خطا در ارتباط با سرور!", "danger");
+                });
+        });
+
+
 
             // تابع نمایش پیام
             function showMessage(message, type) {

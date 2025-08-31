@@ -9,6 +9,7 @@ using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DotNet.Scaffolding.Shared.ProjectModel;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
 
 namespace IMS.Areas.ProcurementManagement.Controllers
 {
@@ -273,8 +274,46 @@ namespace IMS.Areas.ProcurementManagement.Controllers
         }
 
 
+        [HttpGet]
+        public async Task<IActionResult> PrintDetails(int purchaseRequestId)
+        {
+            // گرفتن اطلاعات مشابه اکشن Details
+            var items = await _purchaseRequestTrackingService.GetItemsWithStockAndNeedAsync(purchaseRequestId);
 
+            var header = await _procurementManagementDbContext.PurchaseRequests
+                .AsNoTracking()
+                .Where(pr => pr.Id == purchaseRequestId)
+                .Select(pr => new {
+                    pr.Id,
+                    pr.RequestNumber,
+                    pr.RequestDate,
+                    pr.Title,
+                    pr.Status
+                })
+                .FirstOrDefaultAsync();
 
+            if (header == null)
+                return NotFound();
+
+            var model = new PurchaseRequestDetailsViewModel
+            {
+                PurchaseRequestId = header.Id,
+                RequestNumber = header.RequestNumber,
+                RequestDate = header.RequestDate,
+                Title = header.Title,
+                Status = header.Status,
+                Items = items
+            };
+
+            // تبدیل ویو به PDF با استفاده از ویو اختصاصی پرینت
+            return new ViewAsPdf("PrintDetails", model) // نام ویو پرینت اینجا مشخص می‌شود
+            {
+                FileName = $"PurchaseRequest_{model.RequestNumber}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
+            };
+        }
 
 
 

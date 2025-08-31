@@ -38,13 +38,23 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         }
 
-        
+
         public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
             var dtos = await _purchaseRequestService.GetAllAsync(cancellationToken);
-          
+
+            // مرتب‌سازی descending بر اساس تاریخ درخواست
+            dtos = dtos.OrderByDescending(pr => pr.RequestDate).ToList();
+
+            // بررسی آیا درخواست جدیدی اضافه شده است
+            if (TempData["NewPurchaseRequestId"] is int newId)
+            {
+                ViewBag.NewPurchaseRequestId = newId;
+            }
+
             return View(dtos);
         }
+
 
 
 
@@ -96,10 +106,12 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             }
 
             var dto = MapToDto(vm);
-
             var id = await _purchaseRequestService.CreateAsync(dto, cancellationToken);
 
-            return RedirectToAction(nameof(Index), new { id });
+            // اضافه کردن فلگ برای نشان دادن درخواست جدید
+            TempData["NewPurchaseRequestId"] = id;
+
+            return RedirectToAction(nameof(Index));
         }
 
 
