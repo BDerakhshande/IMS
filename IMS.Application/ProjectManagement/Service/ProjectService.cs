@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using IMS.Application.ProjectManagement.DTOs;
 using IMS.Application.ProjectManagement.Helper;
 using IMS.Domain.ProjectManagement.Entities;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Application.ProjectManagement.Service
@@ -36,9 +38,6 @@ namespace IMS.Application.ProjectManagement.Service
                     ProgressPercent = p.ProgressPercent,
                     Priority = p.Priority,
                     Location = p.Location,
-                    Objectives = p.Objectives,
-                    Budget = p.Budget,
-                    Currency = p.Currency,
                     Description = p.Description,
                     EmployerId = p.EmployerId,
                     EmployerName = p.Employer.CompanyName,
@@ -68,9 +67,7 @@ namespace IMS.Application.ProjectManagement.Service
                 ProgressPercent = p.ProgressPercent,
                 Priority = p.Priority,
                 Location = p.Location,
-                Objectives = p.Objectives,
-                Budget = p.Budget,
-                Currency = p.Currency,
+                ProjectManager = p.ProjectManager,
                 Description = p.Description,
                 EmployerId = p.EmployerId,
                 EmployerName = p.Employer.CompanyName,
@@ -91,9 +88,6 @@ namespace IMS.Application.ProjectManagement.Service
                 ProgressPercent = dto.ProgressPercent,
                 Priority = dto.Priority,
                 Location = dto.Location,
-                Objectives = dto.Objectives,
-                Budget = dto.Budget,
-                Currency = dto.Currency,
                 Description = dto.Description,
                 EmployerId = dto.EmployerId
             };
@@ -118,9 +112,6 @@ namespace IMS.Application.ProjectManagement.Service
             project.ProgressPercent = dto.ProgressPercent;
             project.Priority = dto.Priority;
             project.Location = dto.Location;
-            project.Objectives = dto.Objectives;
-            project.Budget = dto.Budget;
-            project.Currency = dto.Currency;
             project.Description = dto.Description;
             project.EmployerId = dto.EmployerId;
 
@@ -149,36 +140,70 @@ namespace IMS.Application.ProjectManagement.Service
                 .Include(p => p.ProjectType)
                 .AsQueryable();
 
+            // 📌 فیلتر تاریخ شروع
             if (filter.StartDateFrom.HasValue)
                 query = query.Where(p => p.StartDate >= filter.StartDateFrom.Value);
 
             if (filter.StartDateTo.HasValue)
                 query = query.Where(p => p.StartDate <= filter.StartDateTo.Value);
 
+            // 📌 فیلتر تاریخ پایان
             if (filter.EndDateFrom.HasValue)
                 query = query.Where(p => p.EndDate >= filter.EndDateFrom.Value);
 
             if (filter.EndDateTo.HasValue)
                 query = query.Where(p => p.EndDate <= filter.EndDateTo.Value);
 
+            // 📌 فیلتر کارفرما
             if (filter.EmployerId.HasValue)
                 query = query.Where(p => p.EmployerId == filter.EmployerId.Value);
 
+            // 📌 فیلتر نوع پروژه
             if (filter.ProjectTypeId.HasValue)
                 query = query.Where(p => p.ProjectTypeId == filter.ProjectTypeId.Value);
 
+            // 📌 فیلتر نام پروژه
+            if (!string.IsNullOrEmpty(filter.ProjectName))
+                query = query.Where(p => p.ProjectName.ToLower().Contains(filter.ProjectName.ToLower()));
+
+            // 📌 فیلتر مدیر پروژه
+            if (!string.IsNullOrEmpty(filter.ProjectManager))
+                query = query.Where(p => p.ProjectManager.ToLower().Contains(filter.ProjectManager.ToLower()));
+
+            // 📌 فیلتر وضعیت پروژه
+            if (filter.Status.HasValue)
+                query = query.Where(p => p.Status == filter.Status.Value);
+
+            // 📌 فیلتر نام کارفرما (متنی)
+            if (!string.IsNullOrEmpty(filter.EmployerName))
+                query = query.Where(p => p.Employer != null &&
+                                         p.Employer.CompanyName.ToLower().Contains(filter.EmployerName.ToLower()));
+
+            // 📌 فیلتر نام نوع پروژه (متنی)
+            if (!string.IsNullOrEmpty(filter.ProjectTypeName))
+                query = query.Where(p => p.ProjectType != null &&
+                                         p.ProjectType.Name.ToLower().Contains(filter.ProjectTypeName.ToLower()));
+
+            // 📌 مرتب‌سازی پیش‌فرض بر اساس تاریخ شروع (نزولی)
+            query = query.OrderByDescending(p => p.StartDate);
+
+            // 📌 انتخاب خروجی
             var result = await query.Select(p => new ProjectReportDto
             {
                 ProjectName = p.ProjectName,
-                EmployerName = p.Employer.CompanyName,
-                ProjectTypeName = p.ProjectType.Name,
+                EmployerName = p.Employer != null ? p.Employer.CompanyName : "",
+                ProjectTypeName = p.ProjectType != null ? p.ProjectType.Name : "",
                 StartDate = p.StartDate,
                 EndDate = p.EndDate,
-                Status = p.Status.GetDisplayName() // با فرض استفاده از اکستنشن قبلی
+                Status = p.Status.GetDisplayName(), // 📌 نمایش فارسی وضعیت
+                ProjectManager = p.ProjectManager
             }).ToListAsync();
 
             return result;
         }
+
+
+
 
     }
 }

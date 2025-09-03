@@ -715,38 +715,36 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
 
-
         [HttpGet]
         public async Task<IActionResult> Print(int id)
         {
             var receipt = await _context.ReceiptOrIssues
-    .Include(r => r.Items)
-        .ThenInclude(i => i.Category)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.Group)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.Status)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.Product)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.SourceWarehouse)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.SourceZone)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.SourceSection)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.DestinationWarehouse)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.DestinationZone)
-    .Include(r => r.Items)
-        .ThenInclude(i => i.DestinationSection)
-    .FirstOrDefaultAsync(r => r.Id == id);
-
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Category)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Group)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Status)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.Product)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceWarehouse)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceZone)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.SourceSection)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationWarehouse)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationZone)
+                .Include(r => r.Items)
+                    .ThenInclude(i => i.DestinationSection)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (receipt == null)
                 return NotFound();
 
-            // فرض می‌کنیم هر آیتم خودش ProjectId دارد:
+            // گرفتن پروژه‌ها
             var projectIds = receipt.Items
                 .Where(i => i.ProjectId != null)
                 .Select(i => i.ProjectId.Value)
@@ -757,11 +755,25 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 .Where(p => projectIds.Contains(p.Id))
                 .ToDictionaryAsync(p => p.Id, p => p.ProjectName);
 
+            // گرفتن درخواست‌های خرید
+            var purchaseRequestIds = receipt.Items
+                .Where(i => i.PurchaseRequestId != null)
+                .Select(i => i.PurchaseRequestId.Value)
+                .Distinct()
+                .ToList();
+
+            var purchaseRequestsDict = await _procurementContext.PurchaseRequests
+                .Where(pr => purchaseRequestIds.Contains(pr.Id))
+                .ToDictionaryAsync(pr => pr.Id, pr => pr.Title);
+
             var itemsWithProject = receipt.Items.Select(i => new ReceiptItemPrintViewModel
             {
                 Item = i,
                 ProjectName = i.ProjectId != null && projectsDict.ContainsKey(i.ProjectId.Value)
                     ? projectsDict[i.ProjectId.Value]
+                    : "—",
+                PurchaseRequestTitle = i.PurchaseRequestId != null && purchaseRequestsDict.ContainsKey(i.PurchaseRequestId.Value)
+                    ? purchaseRequestsDict[i.PurchaseRequestId.Value]
                     : "—"
             }).ToList();
 
@@ -778,6 +790,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 PageOrientation = Orientation.Portrait,
             };
         }
+
 
 
 

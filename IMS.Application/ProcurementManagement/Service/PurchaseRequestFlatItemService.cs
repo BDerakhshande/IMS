@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ClosedXML.Excel;
 using IMS.Application.ProcurementManagement.DTOs;
 using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.Services;
@@ -205,6 +206,64 @@ namespace IMS.Application.ProcurementManagement.Service
             return result;
         }
         #endregion
+
+        public async Task<byte[]> ExportFlatItemsToExcelAsync(
+            string? requestNumber = null,
+            string? requestTitle = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int? requestTypeId = null,
+            int? projectId = null,
+            List<ProductFilterDto>? products = null,
+            CancellationToken cancellationToken = default)
+        {
+            var items = await GetFlatItemsAsync(requestNumber, requestTitle, fromDate, toDate, requestTypeId, projectId, products, cancellationToken);
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Purchase Requests");
+
+            // تنظیم هدر
+            worksheet.Cell(1, 1).Value = "شماره درخواست";
+            worksheet.Cell(1, 2).Value = "عنوان درخواست";
+            worksheet.Cell(1, 3).Value = "نوع درخواست";
+            worksheet.Cell(1, 4).Value = "تاریخ درخواست";
+            worksheet.Cell(1, 5).Value = "پروژه";
+            worksheet.Cell(1, 6).Value = "محصول";
+            worksheet.Cell(1, 7).Value = "نیاز به تامین";
+
+            // استایل هدر
+            var headerRange = worksheet.Range(1, 1, 1, 7);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(26, 74, 90); // #1a4a5a
+            headerRange.Style.Font.FontColor = XLColor.White;
+            headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            // درج داده‌ها
+            int row = 2;
+            foreach (var item in items)
+            {
+                worksheet.Cell(row, 1).Value = item.RequestNumber;
+                worksheet.Cell(row, 2).Value = item.RequestTitle;
+                worksheet.Cell(row, 3).Value = item.RequestTypeName;
+                worksheet.Cell(row, 4).Value = item.RequestDate.ToString("yyyy/MM/dd");
+                worksheet.Cell(row, 5).Value = item.ProjectName;
+                worksheet.Cell(row, 6).Value = $"{item.CategoryName} | {item.GroupName} | {item.StatusName} | {item.ProductName}";
+                worksheet.Cell(row, 7).Value = item.NeedToSupply;
+                row++;
+            }
+
+            // Auto-fit ستون‌ها
+            worksheet.Columns().AdjustToContents();
+
+            // فونت فارسی
+            worksheet.Style.Font.FontName = "B Nazanin";
+            worksheet.Style.Font.FontSize = 12;
+
+            // خروجی به بایت آرایه
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
 
 
     }

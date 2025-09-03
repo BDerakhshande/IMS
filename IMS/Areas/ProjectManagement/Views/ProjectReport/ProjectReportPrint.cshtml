@@ -1,0 +1,235 @@
+﻿@using IMS.Application.ProjectManagement.DTOs
+@using IMS.Areas.ProjectManagement.Helper
+@model List<ProjectReportDto>
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("fa-IR");
+    var printDate = DateTime.Now;
+
+    // دریافت مقادیر فیلتر از ViewData (فرضی)
+    var statusFilter = ViewData["StatusFilter"] as string;
+    var fromDateFilter = ViewData["FromDateFilter"] as string;
+    var toDateFilter = ViewData["ToDateFilter"] as string;
+    var projectTypeFilter = ViewData["ProjectTypeFilter"] as string;
+    var employerFilter = ViewData["EmployerFilter"] as string;
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>گزارش پروژه‌ها</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* Header */
+        .print-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1a4a5a;
+        }
+
+            .print-header h1 {
+                color: #1a4a5a;
+                font-size: 24px;
+                margin-bottom: 5px;
+            }
+
+        .print-info {
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Filters */
+        .filter-info {
+            background-color: #f0f4f8;
+            padding: 14px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-right: 4px solid #1a4a5a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-item {
+            background-color: #e0f0fc;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #1a4a5a;
+            margin-left: 6px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            page-break-inside: auto;
+        }
+
+        th {
+            background-color: #1a4a5a;
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-active {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-delayed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Footer */
+        .print-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 13px;
+            color: #666;
+        }
+
+    
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>گزارش پروژه‌ها</h1>
+        <div class="print-info">
+            <span>تاریخ چاپ: @printDate.ToString("yyyy/MM/dd HH:mm", culture)</span>
+        </div>
+    </div>
+
+    <!-- بخش فیلترها -->
+    <div class="filter-info no-print">
+        @if (!string.IsNullOrEmpty(statusFilter))
+        {
+            <div class="filter-item"><span class="filter-label">وضعیت:</span> @statusFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(fromDateFilter))
+        {
+            <div class="filter-item"><span class="filter-label">از تاریخ:</span> @fromDateFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(toDateFilter))
+        {
+            <div class="filter-item"><span class="filter-label">تا تاریخ:</span> @toDateFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(projectTypeFilter))
+        {
+            <div class="filter-item"><span class="filter-label">نوع پروژه:</span> @projectTypeFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(employerFilter))
+        {
+            <div class="filter-item"><span class="filter-label">کارفرما:</span> @employerFilter</div>
+        }
+
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th width="15%">نام پروژه</th>
+                    <th width="15%">کارفرما</th>
+                    <th width="12%">نوع پروژه</th>
+                    <th width="13%">مدیر پروژه</th>
+                    <th width="10%">تاریخ شروع</th>
+                    <th width="10%">تاریخ پایان</th>
+                    <th width="15%">وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    var statusClass = "status-active";
+                    if (item.Status.Contains("تکمیل")) statusClass = "status-completed";
+                    else if (item.Status.Contains("در انتظار")) statusClass = "status-pending";
+                    else if (item.Status.Contains("تأخیر")) statusClass = "status-delayed";
+
+                    <tr>
+                        <td>@item.ProjectName</td>
+                        <td>@item.EmployerName</td>
+                        <td>@item.ProjectTypeName</td>
+                        <td>@item.ProjectManager</td>
+                        <td>@item.StartDate.ToShamsi()</td>
+                        <td>@item.EndDate.ToShamsi()</td>
+                    
+                        <td>
+                            <span class="status-badge @statusClass">@item.Status</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="print-footer">
+            <p>سیستم مدیریت پروژه - چاپ شده در تاریخ: @printDate.ToString("yyyy/MM/dd HH:mm", culture)</p>
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 30px; color: #666; font-size: 15px;">
+            <p>هیچ پروژه‌ای برای نمایش وجود ندارد.</p>
+        </div>
+    }
+
+</body>
+</html>

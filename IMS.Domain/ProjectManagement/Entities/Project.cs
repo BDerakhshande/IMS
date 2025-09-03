@@ -38,15 +38,6 @@ namespace IMS.Domain.ProjectManagement.Entities
         // محل اجرای پروژه
         public string Location { get; set; } = null!;
 
-        // اهداف پروژه
-        public string Objectives { get; set; } = null!;
-
-        // بودجه پروژه
-        public decimal Budget { get; set; }
-
-        // واحد پول پروژه (Enum)
-        public CurrencyType Currency { get; set; }
-
         // توضیحات تکمیلی پروژه
         public string Description { get; set; } = null!;
 

@@ -6,5 +6,6 @@ namespace IMS.Models.ProMan
     {
         public ReceiptOrIssueItem Item { get; set; }
         public string ProjectName { get; set; }
+        public string? PurchaseRequestTitle { get; set; }
     }
 }

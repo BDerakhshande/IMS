@@ -1,24 +1,85 @@
-﻿@using IMS.Models.ProMan
-@model ReceiptPrintViewModel
-
-@{
-    string GetPersianType(IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType type) => type switch
-    {
-        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt => "رسید",
-        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue => "حواله",
-        IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer => "انتقال",
-        _ => "نامشخص"
-    };
-}
-
-@{
+﻿@{
     Layout = null;
 }
+
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <link href="~/css/PrintCreateIssueAndRecept.css" rel="stylesheet" />
+    <title>پرینت رسید/حواله انبار شماره @Model.Receipt.DocumentNumber</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+        }
+
+        @@page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
+        body {
+            padding: 10px;
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Header Info Section */
+        .header-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-right: 4px solid #1a4a5a;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .info-item {
+            background-color: #e8f4fc;
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            min-width: 30%;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #1a4a5a;
+            margin-left: 5px;
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th {
+            background-color: #1a4a5a;
+            color: white;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+        }
+
+    </style>
 </head>
 <body>
     <div class="header-info">
@@ -33,7 +94,10 @@
         <div class="info-item">
             <span class="info-label">نوع سند:</span>
             <span class="info-value">
-                @(Model.Receipt.Type.HasValue ? GetPersianType(Model.Receipt.Type.Value) : "نوع مشخص نشده")
+                @(Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt ? "رسید" :
+                    Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue ? "حواله" :
+                    Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "انتقال" :
+                    "نامشخص")
             </span>
         </div>
     </div>
@@ -46,6 +110,7 @@
                 <th>مقصد</th>
                 <th>تعداد</th>
                 <th>پروژه</th>
+                <th>عنوان درخواست</th>
             </tr>
         </thead>
         <tbody>
@@ -62,34 +127,37 @@
                     item.Status?.Name ?? "—",
                     item.Product?.Name ?? "—"
                     };
-                            var combined = string.Join(" / ", parts);
+                            var combined = string.Join(" | ", parts.Where(p => p != "—"));
                         }
                         @combined
                     </td>
                     <td>
                         @{
-                            var src = string.Join(" / ", new[]
+                            var srcParts = new[]
                             {
-                    item.SourceWarehouse?.Name ?? "—",
-                    item.SourceZone?.Name ?? "—",
-                    item.SourceSection?.Name ?? "—"
-                    });
+                    item.SourceWarehouse?.Name,
+                    item.SourceZone?.Name,
+                    item.SourceSection?.Name
+                    };
+                            var src = string.Join(" | ", srcParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
                         }
                         @src
                     </td>
                     <td>
                         @{
-                            var dest = string.Join(" / ", new[]
+                            var destParts = new[]
                             {
-                    item.DestinationWarehouse?.Name ?? "—",
-                    item.DestinationZone?.Name ?? "—",
-                    item.DestinationSection?.Name ?? "—"
-                    });
+                    item.DestinationWarehouse?.Name,
+                    item.DestinationZone?.Name,
+                    item.DestinationSection?.Name
+                    };
+                            var dest = string.Join(" | ", destParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
                         }
                         @dest
                     </td>
-                    <td>@item.Quantity</td>
-                    <td>@itemWithProject.ProjectName</td>
+                    <td>@item.Quantity.ToString("0")</td>
+                    <td>@(itemWithProject.ProjectName ?? "—")</td>
+                    <td>@(itemWithProject.PurchaseRequestTitle ?? "—")</td>
                 </tr>
             }
         </tbody>

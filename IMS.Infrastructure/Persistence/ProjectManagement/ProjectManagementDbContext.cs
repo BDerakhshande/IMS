@@ -24,9 +24,7 @@ namespace IMS.Infrastructure.Persistence.ProjectManagement
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Project>()
-                .Property(p => p.Budget)
-                .HasColumnType("decimal(18,2)");
+        
 
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.Employer)

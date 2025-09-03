@@ -653,33 +653,40 @@ else
         }
 
         // چاپ گزارش
-        function printReport() {
-            const printContents = document.getElementById('reportResults').innerHTML;
-            const originalContents = document.body.innerHTML;
-            document.body.innerHTML = printContents;
-            window.print();
-            document.body.innerHTML = originalContents;
-            window.location.reload(); // بازگرداندن صفحه به حالت اولیه
+                function printReport() {
+            const form = document.getElementById("purchaseRequestForm");
+            const params = new URLSearchParams(new FormData(form)).toString();
+
+            // Razor اینجا مسیر درست رو می‌سازه
+            const url = '@Url.Action("ExportPdf", "PurchaseRequestFlatItem")' + '?' + params;
+
+            window.open(url, "_blank");
         }
 
-        // خروجی به اکسل
+
+                // خروجی اکسل
         function exportToExcel() {
-            const table = document.querySelector('#reportResults table');
-            let csv = [];
-            const rows = table.querySelectorAll('tr');
-            for (let row of rows) {
-                const cols = row.querySelectorAll('th, td');
-                let rowData = [];
-                for (let col of cols) {
-                    rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+            const form = document.getElementById("purchaseRequestForm");
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+
+            // تبدیل فرم دیتا به query string
+            formData.forEach((value, key) => {
+                // اگر مقدار آرایه‌ای باشه، باید درست ارسال بشه
+                if (key.endsWith("[]")) {
+                    params.append(key, value);
+                } else {
+                    params.append(key, value);
                 }
-                csv.push(rowData.join(','));
-            }
-            const csvFile = new Blob(["\ufeff" + csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const downloadLink = document.createElement('a');
-            downloadLink.download = 'PurchaseRequests.csv';
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.click();
+            });
+
+            // مسیر اکشن ExportToExcel
+            const url = '@Url.Action("ExportToExcel", "PurchaseRequestFlatItem")' + '?' + params.toString();
+
+            // باز کردن لینک دانلود در تب جدید
+            window.open(url, "_blank");
         }
+
+
     </script>
 }
