@@ -883,7 +883,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = s.Name,
                 SectionCode = s.SectionCode,
                 ZoneId = s.ZoneId,
-                Capacity = s.Capacity,
+                //Capacity = s.Capacity,
                 Dimensions = s.Dimensions,
                 ZoneCode = s.Zone?.ZoneCode,
                 WarehouseCode = s.Zone?.Warehouse?.Code

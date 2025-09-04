@@ -227,15 +227,19 @@
             </div>
         </form>
 
-        <form method="post" asp-action="ExportToPdf" id="pdfExportForm" style="display:none;">
+        <form method="post" asp-action="ExportPdf" asp-controller="ProjectReport" asp-area="ProjectManagement" id="pdfExportForm" style="display:none;">
             @Html.AntiForgeryToken()
-            @Html.HiddenFor(m => m.Filter.StartDateFrom)
-            @Html.HiddenFor(m => m.Filter.StartDateTo)
-            @Html.HiddenFor(m => m.Filter.EndDateFrom)
-            @Html.HiddenFor(m => m.Filter.EndDateTo)
+            @Html.HiddenFor(m => m.Filter.StartDateFromShamsi)
+            @Html.HiddenFor(m => m.Filter.StartDateToShamsi)
+            @Html.HiddenFor(m => m.Filter.EndDateFromShamsi)
+            @Html.HiddenFor(m => m.Filter.EndDateToShamsi)
             @Html.HiddenFor(m => m.Filter.EmployerId)
             @Html.HiddenFor(m => m.Filter.ProjectTypeId)
+            @Html.HiddenFor(m => m.Filter.ProjectName)
+            @Html.HiddenFor(m => m.Filter.ProjectManager)
+            @Html.HiddenFor(m => m.Filter.Status)
         </form>
+
     </div>
 </div>
 @if (Model.ReportItems != null && Model.ReportItems.Any())
@@ -249,6 +253,7 @@
                 <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick="document.getElementById('pdfExportForm').submit();">
                     <i class="fas fa-file-pdf me-2"></i> پرینت
                 </button>
+
                 <button type="button" class="btn btn-xs btn-outline-success rounded-pill" onclick="exportToExcel()">
                     <i class="fas fa-file-excel me-1"></i> اکسل
                 </button>

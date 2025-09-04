@@ -201,8 +201,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
 
                 
 
-                entity.Property(e => e.Capacity)
-                    .HasPrecision(18, 2);
+                
 
                 entity.Property(e => e.Dimensions)
                     .HasMaxLength(300);

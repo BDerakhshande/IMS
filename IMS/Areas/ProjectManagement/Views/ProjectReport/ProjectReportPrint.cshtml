@@ -1,17 +1,12 @@
 ﻿@using IMS.Application.ProjectManagement.DTOs
+@using IMS.Models.ProMan
 @using IMS.Areas.ProjectManagement.Helper
-@model List<ProjectReportDto>
+@model ProjectReportPrintViewModel
+
 @{
     Layout = null;
     var culture = new System.Globalization.CultureInfo("fa-IR");
     var printDate = DateTime.Now;
-
-    // دریافت مقادیر فیلتر از ViewData (فرضی)
-    var statusFilter = ViewData["StatusFilter"] as string;
-    var fromDateFilter = ViewData["FromDateFilter"] as string;
-    var toDateFilter = ViewData["ToDateFilter"] as string;
-    var projectTypeFilter = ViewData["ProjectTypeFilter"] as string;
-    var employerFilter = ViewData["EmployerFilter"] as string;
 }
 
 <!DOCTYPE html>
@@ -145,8 +140,6 @@
             font-size: 13px;
             color: #666;
         }
-
-    
     </style>
 </head>
 <body>
@@ -157,32 +150,7 @@
         </div>
     </div>
 
-    <!-- بخش فیلترها -->
-    <div class="filter-info no-print">
-        @if (!string.IsNullOrEmpty(statusFilter))
-        {
-            <div class="filter-item"><span class="filter-label">وضعیت:</span> @statusFilter</div>
-        }
-        @if (!string.IsNullOrEmpty(fromDateFilter))
-        {
-            <div class="filter-item"><span class="filter-label">از تاریخ:</span> @fromDateFilter</div>
-        }
-        @if (!string.IsNullOrEmpty(toDateFilter))
-        {
-            <div class="filter-item"><span class="filter-label">تا تاریخ:</span> @toDateFilter</div>
-        }
-        @if (!string.IsNullOrEmpty(projectTypeFilter))
-        {
-            <div class="filter-item"><span class="filter-label">نوع پروژه:</span> @projectTypeFilter</div>
-        }
-        @if (!string.IsNullOrEmpty(employerFilter))
-        {
-            <div class="filter-item"><span class="filter-label">کارفرما:</span> @employerFilter</div>
-        }
-
-    </div>
-
-    @if (Model != null && Model.Any())
+    @if (Model.ReportItems != null && Model.ReportItems.Any())
     {
         <table>
             <thead>
@@ -197,7 +165,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model)
+                @foreach (var item in Model.ReportItems)
                 {
                     var statusClass = "status-active";
                     if (item.Status.Contains("تکمیل")) statusClass = "status-completed";
@@ -211,7 +179,6 @@
                         <td>@item.ProjectManager</td>
                         <td>@item.StartDate.ToShamsi()</td>
                         <td>@item.EndDate.ToShamsi()</td>
-                    
                         <td>
                             <span class="status-badge @statusClass">@item.Status</span>
                         </td>
@@ -230,6 +197,5 @@
             <p>هیچ پروژه‌ای برای نمایش وجود ندارد.</p>
         </div>
     }
-
 </body>
 </html>

@@ -89,7 +89,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = dto.Name,
                 SectionCode = dto.SectionCode,
                 ZoneId = dto.ZoneId,
-                Capacity = dto.Capacity,
+                //Capacity = dto.Capacity,
                 Dimensions = dto.Dimensions
             };
 
@@ -150,7 +150,7 @@ namespace IMS.Application.WarehouseManagement.Services
                         Name = s.Name,
                         SectionCode = s.SectionCode,
                         ZoneId = s.ZoneId,
-                        Capacity = s.Capacity,
+                        //Capacity = s.Capacity,
                         Dimensions = s.Dimensions,
                         ZoneCode = z.ZoneCode,           // اضافه شده
                         WarehouseCode = w.Code           // اضافه شده
@@ -181,7 +181,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     Name = s.Name,
                     SectionCode = s.SectionCode,
                     ZoneId = s.ZoneId,
-                    Capacity = s.Capacity,
+                    //Capacity = s.Capacity,
                     Dimensions = s.Dimensions,
                     ZoneCode = z.ZoneCode,            // اضافه شده
                     WarehouseCode = z.Warehouse?.Code // اضافه شده
@@ -300,7 +300,7 @@ namespace IMS.Application.WarehouseManagement.Services
                         Name = s.Name,
                         SectionCode = s.SectionCode,
                         ZoneId = s.ZoneId,
-                        Capacity = s.Capacity,
+                        //Capacity = s.Capacity,
                         Dimensions = s.Dimensions,
                         ZoneCode = z.ZoneCode,            // اضافه شده
                         WarehouseCode = warehouse.Code    // اضافه شده
@@ -325,7 +325,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = s.Name,
                 SectionCode = s.SectionCode,
                 ZoneId = s.ZoneId,
-                Capacity = s.Capacity,
+                //Capacity = s.Capacity,
                 Dimensions = s.Dimensions,
                 ZoneCode = s.Zone?.ZoneCode,
                 WarehouseCode = s.Zone?.Warehouse?.Code
@@ -342,7 +342,7 @@ namespace IMS.Application.WarehouseManagement.Services
             section.Name = dto.Name;
             section.SectionCode = dto.SectionCode;
             section.ZoneId = dto.ZoneId;
-            section.Capacity = dto.Capacity;
+            //section.Capacity = dto.Capacity;
             section.Dimensions = dto.Dimensions;
 
             _context.StorageSections.Update(section);
@@ -376,7 +376,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = section.Name,
                 SectionCode = section.SectionCode,
                 ZoneId = section.ZoneId,
-                Capacity = section.Capacity,
+                //Capacity = section.Capacity,
                 Dimensions = section.Dimensions,
                 ZoneCode = section.Zone?.ZoneCode,
                 WarehouseCode = section.Zone?.Warehouse?.Code
@@ -399,7 +399,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = s.Name,
                 SectionCode = s.SectionCode,
                 ZoneId = s.ZoneId,
-                Capacity = s.Capacity,
+                //Capacity = s.Capacity,
                 Dimensions = s.Dimensions,
                 ZoneCode = s.Zone?.ZoneCode,
                 WarehouseCode = s.Zone?.Warehouse?.Code
@@ -423,7 +423,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = s.Name,
                 SectionCode = s.SectionCode,
                 ZoneId = s.ZoneId,
-                Capacity = s.Capacity,
+                //Capacity = s.Capacity,
                 Dimensions = s.Dimensions,
                 ZoneCode = s.Zone?.ZoneCode,
                 WarehouseCode = s.Zone?.Warehouse?.Code

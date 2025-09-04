@@ -8,6 +8,9 @@ using IMS.Domain.ProjectManagement.Enums;
 using IMS.Application.ProjectManagement.Helper;
 using ClosedXML.Excel;
 using IMS.Areas.ProjectManagement.Helper;
+using IMS.Models.ProMan;
+using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
 
 namespace IMS.Areas.ProjectManagement.Controllers
 {
@@ -167,7 +170,7 @@ namespace IMS.Areas.ProjectManagement.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> ExportToPdf(ProjectReportFilterDto filter)
+        public async Task<IActionResult> ExportPdf(ProjectReportFilterDto filter)
         {
             // تبدیل تاریخ شمسی به میلادی
             filter.StartDateFrom = ParsePersianDate(filter.StartDateFromShamsi);
@@ -178,15 +181,34 @@ namespace IMS.Areas.ProjectManagement.Controllers
             // دریافت داده‌ها
             var reportData = await _projectService.GetProjectReportAsync(filter);
 
-            // ارسال فیلترها به ویو
-            ViewData["StatusFilter"] = filter.Status?.GetDisplayName();
-            ViewData["FromDateFilter"] = filter.StartDateFromShamsi;
-            ViewData["ToDateFilter"] = filter.StartDateToShamsi;
-            ViewData["ProjectTypeFilter"] = filter.ProjectTypeName;
-            ViewData["EmployerFilter"] = filter.EmployerName;
+            // پر کردن ViewModel
+            var vm = new ProjectReportPrintViewModel
+            {
+                ReportItems = reportData,
+                ProjectNameFilter = filter.ProjectName,
+                EmployerFilter = filter.EmployerName,
+                ProjectTypeFilter = filter.ProjectTypeName,
+                ProjectManagerFilter = filter.ProjectManager,
+                StatusFilter = filter.Status?.GetDisplayName(),
+                StartDateFromFilter = filter.StartDateFromShamsi,
+                StartDateToFilter = filter.StartDateToShamsi,
+                EndDateFromFilter = filter.EndDateFromShamsi,
+                EndDateToFilter = filter.EndDateToShamsi
+            };
 
-            return View("ProjectReportPrint", reportData);
+            // استفاده از Rotativa برای تولید PDF
+            return new ViewAsPdf("~/Areas/ProjectManagement/Views/ProjectReport/ProjectReportPrint.cshtml", vm)
+            {
+                FileName = $"ProjectReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
+                CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
+            };
+
         }
+
+
 
 
     }

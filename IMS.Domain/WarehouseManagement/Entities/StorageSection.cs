@@ -14,7 +14,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public string SectionCode { get; set; }   // کد بخش (مثال: "SEC-STL")
         public int ZoneId { get; set; }          // FK به قسمت
         public StorageZone Zone { get; set; }    // Navigation Property
-        public decimal Capacity { get; set; }    // ظرفیت بخش
+            
         public string Dimensions { get; set; }   // ابعاد بخش
 
         public ICollection<Inventory> Inventories { get; set; }
