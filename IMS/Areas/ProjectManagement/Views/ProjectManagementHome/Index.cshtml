@@ -1,14 +1,234 @@
-﻿@{
-    ViewData["Title"] = "صفحه اصلی مدیریت پروژه";
+﻿@using IMS.Application.ProjectManagement.Helper
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@model List<IMS.Domain.ProjectManagement.Entities.Project>
+@{
+    ViewData["Title"] = "داشبورد پروژه‌ها";
     Layout = "~/Areas/ProjectManagement/Views/Shared/_Layout.cshtml";
 }
-
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
-<link rel="stylesheet" href="~/css/MenuStyle.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-<h1 style="direction:rtl">Test menu!!!!</h1>
+<div class="container-fluid py-2" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-project-diagram me-1" style="font-size: 0.85rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 20px; font-size: 0.8rem;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-check-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                <div class="card-body p-1">
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info alert-dismissible fade show mx-2 my-1 py-1 text-center" role="alert" style="font-size: 0.8rem;">
+                            <i class="fas fa-info-circle me-1" style="font-size: 0.85rem;"></i>
+                            پروژه‌ای با وضعیت در حال اجرا وجود ندارد.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row">
+                            @foreach (var project in Model)
+                            {
+                                var progressColor = project.ProgressPercent switch
+                                {
+                                    >= 80 => "bg-success",
+                                    >= 50 => "bg-info",
+                                    >= 30 => "bg-warning",
+                                    _ => "bg-danger"
+                                };
+
+                                <div class="col-md-4 mb-3">
+                                    <div class="card shadow-sm border-0 h-100">
+                                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-1">
+                                            <span class="fw-bold" style="font-size: 0.9rem;">@project.ProjectName</span>
+                                            <span class="badge bg-light text-dark" style="font-size: 0.75rem;">
+                                                @{
+                                                    var statusProp = typeof(IMS.Domain.ProjectManagement.Enums.ProjectStatus)
+                                                    .GetMember(project.Status.ToString())
+                                                    .FirstOrDefault();
+
+                                                    var displayAttr = statusProp?.GetCustomAttribute<DisplayAttribute>();
+                                                    var statusText = displayAttr != null ? displayAttr.Name : project.Status.ToString();
+                                                }
+                                                @statusText
+                                            </span>
+                                        </div>
+                                        <div class="card-body p-2" style="font-size: 0.85rem;">
+                                            <p class="mb-1"><strong>کارفرما:</strong> @project.Employer.CompanyName</p>
+                                            <p class="mb-1"><strong>نوع پروژه:</strong> @project.ProjectType.Name</p>
+                                            <p class="mb-1"><strong>شروع:</strong> @project.StartDate.ToShortDateString()</p>
+                                            <p class="mb-1"><strong>پایان:</strong> @project.EndDate.ToShortDateString()</p>
+                                            <div class="progress mt-2" style="height: 18px;">
+                                                <div class="progress-bar @progressColor progress-bar-striped progress-bar-animated"
+                                                     role="progressbar"
+                                                     style="width: @project.ProgressPercent%; font-size: 0.8rem; line-height: 18px;">
+                                                    @project.ProgressPercent%
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer text-end p-1">
+                                            <a asp-area="ProjectManagement" asp-controller="Project" asp-action="Edit" asp-route-id="@project.Id"
+                                               class="btn btn-sm btn-outline-warning me-1" style="font-size: 0.8rem;">
+                                                <i class="fas fa-edit me-1"></i>ویرایش
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-center mt-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="paginationContainer"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script src="~/js/MenuJs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const globalSearch = document.getElementById('globalSearch');
+            const cardsContainer = document.querySelector('.row');
+            const cards = cardsContainer.querySelectorAll('.col-md-4');
+            const noResultsMessage = document.createElement('div');
+            noResultsMessage.className = 'col-12 text-center py-3 text-muted';
+            noResultsMessage.innerHTML = '<i class="fas fa-search me-1"></i>نتیجه‌ای یافت نشد';
+            noResultsMessage.style.fontSize = '0.9rem';
+            noResultsMessage.style.display = 'none';
+
+            // اضافه کردن پیام عدم یافتن نتیجه به صفحه
+            cardsContainer.appendChild(noResultsMessage);
+
+            globalSearch.addEventListener('input', function() {
+                const term = this.value.trim().toLowerCase();
+                let hasResults = false;
+
+                cards.forEach(card => {
+                    const cardText = card.textContent.toLowerCase();
+                    if (cardText.includes(term)) {
+                        card.style.display = '';
+                        hasResults = true;
+
+                        // هایلایت کردن متن (پیاده‌سازی ساده)
+                        if (term.length > 0) {
+                            const elements = card.querySelectorAll('p, span');
+                            elements.forEach(el => {
+                                const originalText = el.textContent;
+                                const highlighted = originalText.replace(
+                                    new RegExp(term, 'gi'),
+                                    match => `<span class="bg-warning">${match}</span>`
+                                );
+                                el.innerHTML = highlighted;
+                            });
+                        }
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // نمایش یا عدم نمایش پیام عدم یافتن نتیجه
+                if (!hasResults && term.length > 0) {
+                    noResultsMessage.style.display = '';
+                } else {
+                    noResultsMessage.style.display = 'none';
+                }
+            });
+
+            // صفحه‌بندی برای کارت‌ها
+            const rowsPerPage = 6; // 2 ردیف از 3 کارت
+            let currentPage = 1;
+
+            function paginateCards() {
+                const allCards = Array.from(cards);
+                const totalPages = Math.ceil(allCards.length / rowsPerPage);
+
+                // مخفی کردن همه کارت‌ها
+                allCards.forEach(card => card.style.display = 'none');
+
+                // نمایش کارت‌های صفحه فعلی
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                allCards.slice(start, end).forEach(card => card.style.display = '');
+
+                // ایجاد دکمه‌های صفحه‌بندی
+                const paginationContainer = document.getElementById('paginationContainer');
+                paginationContainer.innerHTML = '';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const li = document.createElement('li');
+                    li.classList.add('page-item');
+                    if (i === currentPage) li.classList.add('active');
+
+                    const a = document.createElement('a');
+                    a.classList.add('page-link');
+                    a.href = '#';
+                    a.style.fontSize = '0.75rem';
+                    a.innerText = i;
+
+                    a.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        currentPage = i;
+                        paginateCards();
+                    });
+
+                    li.appendChild(a);
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            // فراخوانی صفحه‌بندی بعد از بارگذاری
+            if (cards.length > 0) {
+                paginateCards();
+            }
+
+            // فعال‌سازی tooltip
+            if (typeof $ !== 'undefined' && $.fn.tooltip) {
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
+        });
+    </script>
 }

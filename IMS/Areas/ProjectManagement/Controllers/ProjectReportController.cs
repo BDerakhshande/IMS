@@ -3,6 +3,11 @@ using IMS.Application.ProjectManagement.Service;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc;
 using IMS.Application.ProjectManagement.ViewModels;
+using System.Globalization;
+using IMS.Domain.ProjectManagement.Enums;
+using IMS.Application.ProjectManagement.Helper;
+using ClosedXML.Excel;
+using IMS.Areas.ProjectManagement.Helper;
 
 namespace IMS.Areas.ProjectManagement.Controllers
 {
@@ -29,6 +34,18 @@ namespace IMS.Areas.ProjectManagement.Controllers
             await LoadSelectListsAsync();
 
             var model = new ProjectReportRequestDto();
+
+            // مقدار پیش‌فرض امروز
+            var now = DateTime.Now;
+            var pc = new PersianCalendar();
+            string todayShamsi = $"{pc.GetYear(now):0000}/{pc.GetMonth(now):00}/{pc.GetDayOfMonth(now):00}";
+
+            // پر کردن مقادیر اولیه فیلتر تاریخ
+            model.Filter.StartDateFromShamsi = todayShamsi;
+            model.Filter.StartDateToShamsi = todayShamsi;
+            model.Filter.EndDateFromShamsi = todayShamsi;
+            model.Filter.EndDateToShamsi = todayShamsi;
+
             return View(model);
         }
 
@@ -37,8 +54,14 @@ namespace IMS.Areas.ProjectManagement.Controllers
         {
             await LoadSelectListsAsync();
 
-            var reportData = await _projectService.GetProjectReportAsync(model.Filter);
-            model.ReportItems = reportData;
+            // 📌 تبدیل تاریخ شمسی به میلادی
+            model.Filter.StartDateFrom = ParsePersianDate(model.Filter.StartDateFromShamsi);
+            model.Filter.StartDateTo = ParsePersianDate(model.Filter.StartDateToShamsi);
+            model.Filter.EndDateFrom = ParsePersianDate(model.Filter.EndDateFromShamsi);
+            model.Filter.EndDateTo = ParsePersianDate(model.Filter.EndDateToShamsi);
+
+            // 📌 گرفتن داده‌های گزارش
+            model.ReportItems = await _projectService.GetProjectReportAsync(model.Filter);
 
             return View(model);
         }
@@ -50,7 +73,121 @@ namespace IMS.Areas.ProjectManagement.Controllers
 
             ViewBag.Employers = new SelectList(employers, "Id", "CompanyName");
             ViewBag.ProjectTypes = new SelectList(projectTypes, "Id", "Name");
-        }
-    }
 
+            // 📌 لیست وضعیت‌ها (برای DropDown)
+            ViewBag.Statuses = Enum.GetValues(typeof(ProjectStatus))
+                                   .Cast<ProjectStatus>()
+                                   .Select(s => new SelectListItem
+                                   {
+                                       Value = ((int)s).ToString(),
+                                       Text = s.GetDisplayName()
+                                   }).ToList();
+        }
+
+        private DateTime? ParsePersianDate(string? persianDate)
+        {
+            if (string.IsNullOrWhiteSpace(persianDate))
+                return null;
+
+            try
+            {
+                var parts = persianDate.Split('/');
+                if (parts.Length != 3) return null;
+
+                int year = int.Parse(parts[0]);
+                int month = int.Parse(parts[1]);
+                int day = int.Parse(parts[2]);
+
+                var pc = new PersianCalendar();
+                return pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ExportProjectsToExcel([FromBody] ProjectReportFilterDto filter)
+        {
+            // دریافت داده‌ها از سرویس
+            var reportData = await _projectService.GetProjectReportAsync(filter);
+
+            using (var workbook = new ClosedXML.Excel.XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("گزارش پروژه‌ها");
+
+                // عنوان ستون‌ها
+                worksheet.Cell(1, 1).Value = "نام پروژه";
+                worksheet.Cell(1, 2).Value = "کارفرما";
+                worksheet.Cell(1, 3).Value = "نوع پروژه";
+                worksheet.Cell(1, 4).Value = "مدیر پروژه";
+                worksheet.Cell(1, 5).Value = "تاریخ شروع";
+                worksheet.Cell(1, 6).Value = "تاریخ پایان";
+                worksheet.Cell(1, 7).Value = "وضعیت";
+
+                // استایل سرستون‌ها
+                var headerRange = worksheet.Range(1, 1, 1, 7);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                // درج داده‌ها
+                int row = 2;
+                foreach (var item in reportData)
+                {
+                    worksheet.Cell(row, 1).Value = item.ProjectName;
+                    worksheet.Cell(row, 2).Value = item.EmployerName;
+                    worksheet.Cell(row, 3).Value = item.ProjectTypeName;
+                    worksheet.Cell(row, 4).Value = item.ProjectManager;
+                    worksheet.Cell(row, 5).Value = item.StartDate.ToShamsi(); // اگر میخوای تاریخ شمسی باشه
+                    worksheet.Cell(row, 6).Value = item.EndDate.ToShamsi();
+                    worksheet.Cell(row, 7).Value = item.Status;
+                    row++;
+                }
+
+                // اندازه ستون‌ها به اندازه محتوا
+                worksheet.Columns().AdjustToContents();
+
+                // تولید فایل در حافظه
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+                    return File(content,
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                $"ProjectReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                }
+            }
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> ExportToPdf(ProjectReportFilterDto filter)
+        {
+            // تبدیل تاریخ شمسی به میلادی
+            filter.StartDateFrom = ParsePersianDate(filter.StartDateFromShamsi);
+            filter.StartDateTo = ParsePersianDate(filter.StartDateToShamsi);
+            filter.EndDateFrom = ParsePersianDate(filter.EndDateFromShamsi);
+            filter.EndDateTo = ParsePersianDate(filter.EndDateToShamsi);
+
+            // دریافت داده‌ها
+            var reportData = await _projectService.GetProjectReportAsync(filter);
+
+            // ارسال فیلترها به ویو
+            ViewData["StatusFilter"] = filter.Status?.GetDisplayName();
+            ViewData["FromDateFilter"] = filter.StartDateFromShamsi;
+            ViewData["ToDateFilter"] = filter.StartDateToShamsi;
+            ViewData["ProjectTypeFilter"] = filter.ProjectTypeName;
+            ViewData["EmployerFilter"] = filter.EmployerName;
+
+            return View("ProjectReportPrint", reportData);
+        }
+
+
+    }
 }

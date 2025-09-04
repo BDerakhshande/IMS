@@ -6,6 +6,8 @@ using IMS.Application.WarehouseManagement.Services;
 using IMS.Models.ProMan;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Rotativa.AspNetCore;
+using Rotativa.AspNetCore.Options;
 
 namespace IMS.Areas.ProcurementManagement.Controllers
 {
@@ -41,7 +43,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
         public async Task<IActionResult> FlatItems(
             List<ProductFilterDto>? products = null,
             string? requestNumber = null,
-            string? requestTitle = null,   // ← اضافه شد
+            string? requestTitle = null,   
             string? fromDateString = null,
             string? toDateString = null,
             int? requestTypeId = null,
@@ -61,7 +63,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
             var flatItems = await _flatItemService.GetFlatItemsAsync(
                 requestNumber,
-                requestTitle, // حالا این متغیر معتبر است
+                requestTitle, 
                 fromDate,
                 toDate,
                 requestTypeId,
@@ -163,5 +165,102 @@ namespace IMS.Areas.ProcurementManagement.Controllers
             }
         }
 
+
+
+     
+
+        [HttpGet]
+        public async Task<IActionResult> ExportPdf(
+            List<ProductFilterDto>? products = null,
+            string? requestNumber = null,
+            string? requestTitle = null,
+            string? fromDateString = null,
+            string? toDateString = null,
+            int? requestTypeId = null,
+            int? projectId = null,
+            CancellationToken cancellationToken = default)
+        {
+            // تبدیل تاریخ‌ها
+            var fromDate = ParsePersianDate(fromDateString);
+            var toDate = ParsePersianDate(toDateString);
+
+            // دریافت داده‌ها
+            var flatItems = await _flatItemService.GetFlatItemsAsync(
+                requestNumber,
+                requestTitle,
+                fromDate,
+                toDate,
+                requestTypeId,
+                projectId,
+                products,
+                cancellationToken);
+
+            // آماده‌سازی مدل برای پرینت
+            var model = new PurchaseRequestPrintViewModel
+            {
+                FlatItems = flatItems,
+                RequestNumber = requestNumber,
+                RequestTitle = requestTitle,
+                FromDate = fromDateString,
+                ToDate = toDateString,
+                PrintDate = DateTime.Now
+            };
+
+            // اگر نوع درخواست مشخص شده، نام آن را بیابید
+            if (requestTypeId.HasValue)
+            {
+                var requestType = await _procurementContext.RequestTypes
+                    .FirstOrDefaultAsync(rt => rt.Id == requestTypeId.Value, cancellationToken);
+                model.RequestTypeName = requestType?.Name;
+            }
+
+            // اگر پروژه مشخص شده، نام آن را بیابید
+            if (projectId.HasValue)
+            {
+                var project = await _projectContext.Projects
+                    .FirstOrDefaultAsync(p => p.Id == projectId.Value, cancellationToken);
+                model.ProjectName = project?.ProjectName;
+            }
+
+            // استفاده از Rotativa برای تولید PDF
+            return new ViewAsPdf("Print", model)
+            {
+                FileName = $"PurchaseRequests_{DateTime.Now:yyyyMMddHHmmss}.pdf",
+                PageSize = Size.A4,
+                PageOrientation = Orientation.Landscape,
+                PageMargins = { Left = 5, Right = 5, Top = 10, Bottom = 10 },
+                CustomSwitches = "--print-media-type --header-center \"گزارش درخواست‌های خرید\""
+            };
+        }
+
+
+
+
+        [HttpGet]
+        public async Task<IActionResult> ExportToExcel(
+       string? requestNumber,
+       string? requestTitle,
+       DateTime? fromDate,
+       DateTime? toDate,
+       int? requestTypeId,
+       int? projectId,
+       [FromQuery] List<ProductFilterDto>? products)
+        {
+            // دریافت بایت‌های Excel از سرویس
+            var fileBytes = await _flatItemService.ExportFlatItemsToExcelAsync(
+                requestNumber,
+                requestTitle,
+                fromDate,
+                toDate,
+                requestTypeId,
+                projectId,
+                products);
+
+            // نام فایل
+            var fileName = $"PurchaseRequests_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+
+            // برگرداندن فایل
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
     }
 }

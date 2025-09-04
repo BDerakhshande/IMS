@@ -37,17 +37,10 @@ namespace IMS.Domain.ProjectManagement.Validator
             RuleFor(p => p.Priority)
                 .IsInEnum().WithMessage("اولویت پروژه معتبر نیست.");
 
-            RuleFor(p => p.Currency)
-                .IsInEnum().WithMessage("واحد پول معتبر نیست.");
-
-            RuleFor(p => p.Budget)
-                .GreaterThanOrEqualTo(0).WithMessage("بودجه پروژه نمی‌تواند منفی باشد.");
-
+          
+          
             RuleFor(p => p.Location)
                 .MaximumLength(200).WithMessage("محل اجرا نباید بیش از ۲۰۰ کاراکتر باشد.");
-
-            RuleFor(p => p.Objectives)
-                .MaximumLength(500).WithMessage("اهداف پروژه نباید بیش از ۵۰۰ کاراکتر باشد.");
 
             RuleFor(p => p.Description)
                 .MaximumLength(1000).WithMessage("توضیحات نباید بیش از ۱۰۰۰ کاراکتر باشد.");

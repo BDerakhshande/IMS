@@ -27,5 +27,14 @@ namespace IMS.Application.ProcurementManagement.Service
         Task<List<SelectListItem>> GetGroupsByCategoryIdAsync(int categoryId);
         Task<List<SelectListItem>> GetStatusesByGroupIdAsync(int groupId);
         Task<List<SelectListItem>> GetProductsByStatusIdAsync(int statusId);
+        Task<byte[]> ExportFlatItemsToExcelAsync(
+            string? requestNumber = null,
+            string? requestTitle = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            int? requestTypeId = null,
+            int? projectId = null,
+            List<ProductFilterDto>? products = null,
+            CancellationToken cancellationToken = default);
     }
 }

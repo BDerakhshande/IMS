@@ -1,4 +1,5 @@
 ﻿@using System.Text.Json
+@using IMS.Areas.ProjectManagement.Helper
 @model IMS.Application.ProjectManagement.DTOs.ProjectReportRequestDto
 
 @{
@@ -146,20 +147,21 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ شروع از</label>
-                            <input asp-for="Filter.StartDateFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.StartDateFromShamsi" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ شروع تا</label>
-                            <input asp-for="Filter.StartDateTo" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.StartDateToShamsi" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ پایان از</label>
-                            <input asp-for="Filter.EndDateFrom" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.EndDateFromShamsi" type="text" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">تاریخ پایان تا</label>
-                            <input asp-for="Filter.EndDateTo" type="date" class="form-control form-control-sm shadow-sm" />
+                            <input asp-for="Filter.EndDateToShamsi" type="text" class="form-control form-control-sm shadow-sm persian-date" />
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -172,6 +174,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
+                    <!-- ردیف اول: کارفرما و نوع پروژه (DropDown) -->
                     <div class="row g-2">
                         <div class="col-md-6">
                             <label class="form-label small">کارفرما</label>
@@ -186,8 +189,31 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- ردیف دوم: نام پروژه و مدیر پروژه -->
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">نام پروژه</label>
+                            <input asp-for="Filter.ProjectName" class="form-control form-control-sm shadow-sm" placeholder="نام پروژه..." />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small">مدیر پروژه</label>
+                            <input asp-for="Filter.ProjectManager" class="form-control form-control-sm shadow-sm" placeholder="نام مدیر پروژه..." />
+                        </div>
+                    </div>
+
+                    <!-- ردیف سوم: نام کارفرما (متنی) و وضعیت پروژه -->
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label small">وضعیت پروژه</label>
+                            <select asp-for="Filter.Status" asp-items="ViewBag.Statuses" class="form-select form-select-sm shadow-sm">
+                                <option value="">همه وضعیت‌ها</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
+
 
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
@@ -212,11 +238,9 @@
         </form>
     </div>
 </div>
-
-@if (Model.ReportItems.Any())
+@if (Model.ReportItems != null && Model.ReportItems.Any())
 {
-    <!-- نمایش جدول گزارشات با چیدمان بهبود یافته -->
-    <div class="action-buttons" dir="rtl">
+    <div class="action-buttons mt-3" dir="rtl">
         <div class="action-buttons-container">
             <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">
                 <i class="fas fa-list-alt ms-1"></i> نتایج گزارش
@@ -248,34 +272,25 @@
                     <table class="table table-sm table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col" width="25%" class="text-start ps-4">نام پروژه</th>
-                                <th scope="col" width="20%" class="text-start">کارفرما</th>
-                                <th scope="col" width="15%" class="text-start">نوع پروژه</th>
-                                <th scope="col" width="15%" class="text-center">تاریخ شروع</th>
-                                <th scope="col" width="15%" class="text-center">تاریخ پایان</th>
-                                <th scope="col" width="10%" class="text-end pe-4">وضعیت</th>
+                                <th class="text-start ps-4">نام پروژه</th>
+                                <th class="text-start">کارفرما</th>
+                                <th class="text-start">نوع پروژه</th>
+                                <th class="text-center">تاریخ شروع</th>
+                                <th class="text-center">تاریخ پایان</th>
+                                <th class="text-end pe-4">وضعیت</th>
+                                <th class="text-end pe-4">مدیر پروژه</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model.ReportItems)
                             {
                                 <tr class="align-middle">
-                                    <td class="text-start ps-4">
-                                        <div class="small">@item.ProjectName</div>
-                                    </td>
-                                    <td class="text-start">
-                                        <div class="small">@item.EmployerName</div>
-                                    </td>
-                                    <td class="text-start">
-                                        <div class="small">@item.ProjectTypeName</div>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="small">@item.StartDate.ToString("yyyy/MM/dd")</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="small">@item.EndDate.ToString("yyyy/MM/dd")</span>
-                                    </td>
-                                    <td class="text-end pe-4">
+                                    <td class="text-start ps-4">@item.ProjectName</td>
+                                    <td class="text-start">@item.EmployerName</td>
+                                    <td class="text-start">@item.ProjectTypeName</td>
+                                    <td class="text-center">@item.StartDate.ToShamsi()</td>
+                                    <td class="text-center">@item.EndDate.ToShamsi()</td>
+                                    <td class="text-center ">
                                         @{
                                             var statusClass = item.Status switch
                                             {
@@ -285,10 +300,9 @@
                                                 _ => "bg-secondary bg-opacity-10 text-secondary"
                                             };
                                         }
-                                        <span class="badge @statusClass" style="font-size: 0.7rem;">
-                                            @item.Status
-                                        </span>
+                                        <span class="badge @statusClass" style="font-size: 0.7rem;">@item.Status</span>
                                     </td>
+                                    <td class="text-end pe-4">@item.ProjectManager</td>
                                 </tr>
                             }
                         </tbody>
@@ -315,6 +329,9 @@ else
     </div>
 }
 
+
+
+
 @section Scripts {
     <script src="~/js/MenuJs.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -337,8 +354,14 @@ else
                 }, 500);
             }
         });
+                 $('.persian-date').persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            initialValue: false
+        });
 
-        function resetForm() {
+
+                function resetForm() {
             const form = document.getElementById('projectReportForm');
             form.reset();
 

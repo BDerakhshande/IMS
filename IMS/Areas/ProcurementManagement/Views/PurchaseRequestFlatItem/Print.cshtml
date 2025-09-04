@@ -1,0 +1,190 @@
+﻿@using IMS.Models.ProMan
+@model PurchaseRequestPrintViewModel
+@{
+    Layout = null;
+    var culture = new System.Globalization.CultureInfo("fa-IR");
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>گزارش درخواست‌های خرید</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* Header */
+        .print-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1a4a5a;
+        }
+
+            .print-header h1 {
+                color: #1a4a5a;
+                font-size: 24px;
+                margin-bottom: 5px;
+            }
+
+        .print-info {
+            text-align: right;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Filters */
+        .filter-info {
+            background-color: #f0f4f8;
+            padding: 14px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-right: 4px solid #1a4a5a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .filter-item {
+            background-color: #e0f0fc;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-label {
+            font-weight: bold;
+            color: #1a4a5a;
+            margin-left: 6px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            page-break-inside: auto;
+        }
+
+        th {
+            background-color: #1a4a5a;
+            color: white;
+            padding: 12px 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* Footer */
+        .print-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 13px;
+            color: #666;
+        }
+
+  
+    </style>
+</head>
+<body>
+    <div class="print-header">
+        <h1>گزارش درخواست‌های خرید</h1>
+        <div class="print-info">
+            <span>تاریخ چاپ: @Model.PrintDate.ToString("yyyy/MM/dd HH:mm", culture)</span>
+        </div>
+    </div>
+
+    <div class="filter-info">
+        @if (!string.IsNullOrEmpty(Model.RequestNumber))
+        {
+            <div class="filter-item"><span class="filter-label">شماره درخواست:</span> @Model.RequestNumber</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.RequestTitle))
+        {
+            <div class="filter-item"><span class="filter-label">عنوان درخواست:</span> @Model.RequestTitle</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.RequestTypeName))
+        {
+            <div class="filter-item"><span class="filter-label">نوع درخواست:</span> @Model.RequestTypeName</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ProjectName))
+        {
+            <div class="filter-item"><span class="filter-label">پروژه:</span> @Model.ProjectName</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.FromDate))
+        {
+            <div class="filter-item"><span class="filter-label">از تاریخ:</span> @Model.FromDate</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ToDate))
+        {
+            <div class="filter-item"><span class="filter-label">تا تاریخ:</span> @Model.ToDate</div>
+        }
+    </div>
+
+    @if (Model.FlatItems != null && Model.FlatItems.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th width="10%">شماره درخواست</th>
+                    <th width="15%">عنوان درخواست</th>
+                    <th width="10%">نوع درخواست</th>
+                    <th width="10%">تاریخ درخواست</th>
+                    <th width="10%">پروژه</th>
+                    <th width="25%">محصول</th>
+                    <th width="10%">نیاز به تامین</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.FlatItems)
+                {
+                    <tr>
+                        <td>@item.RequestNumber</td>
+                        <td>@item.RequestTitle</td>
+                        <td>@item.RequestTypeName</td>
+                        <td>@item.RequestDate.ToString("yyyy/MM/dd", culture)</td>
+                        <td>@item.ProjectName</td>
+                        <td>@item.CategoryName | @item.GroupName | @item.StatusName | @item.ProductName</td>
+                        <td>@item.NeedToSupply.ToString("N0")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="print-footer">
+            <p>سیستم مدیریت تدارکات - چاپ شده در تاریخ: @Model.PrintDate.ToString("yyyy/MM/dd HH:mm", culture)</p>
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 30px; color: #666; font-size: 15px;">
+            <p>هیچ داده‌ای برای نمایش وجود ندارد.</p>
+        </div>
+    }
+</body>
+</html>

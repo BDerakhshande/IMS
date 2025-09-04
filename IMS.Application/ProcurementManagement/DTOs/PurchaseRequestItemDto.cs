@@ -33,20 +33,30 @@ namespace IMS.Application.ProcurementManagement.DTOs
 
         public string? Description { get; set; }
 
+        // 🔹 تعداد اولیه درخواست
         [Required(ErrorMessage = "تعداد کالا الزامی است.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "مقدار باید بزرگ‌تر از صفر باشد.")]
-        public decimal Quantity { get; set; }
+        public decimal InitialQuantity { get; set; }
+
+        // 🔹 تعداد باقی‌مانده برای تأمین
+        public decimal RemainingQuantity { get; set; }
 
         public string? Unit { get; set; }
 
         public int? ProjectId { get; set; }
         public string? ProjectName { get; set; }
 
+        // 🔹 اطلاعات تکمیلی برای گزارش‌گیری
         public decimal TotalStock { get; set; }
         public decimal PendingRequests { get; set; }
         public decimal NeedToSupply { get; set; }
 
+        public string RequestNumber { get; set; } = "";
         public bool IsSupplyStopped { get; set; } = false;
         public bool IsFullySupplied { get; set; } = false;
+        public bool IsAddedToFlatItems { get; set; }
+        // اضافه کردن ستون جدید برای تحویل کامل
+        public bool IsFullyDelivered { get; set; } = false;
+
     }
 }

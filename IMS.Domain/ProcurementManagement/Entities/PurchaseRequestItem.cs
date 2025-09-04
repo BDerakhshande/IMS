@@ -38,9 +38,13 @@ namespace IMS.Domain.ProcurementManagement.Entities
         // توضیحات اختصاصی این سطر
         public string? Description { get; set; }
 
+        // 🔹 تعداد اولیه درخواست (همیشه ثابت می‌مونه)
         [Required(ErrorMessage = "تعداد کالا الزامی است.")]
         [Range(0.01, double.MaxValue, ErrorMessage = "مقدار باید بزرگ‌تر از صفر باشد.")]
-        public decimal Quantity { get; set; }
+        public decimal InitialQuantity { get; set; }
+
+        // 🔹 تعداد باقی‌مانده برای تأمین (Update میشه در طول فرآیندها)
+        public decimal RemainingQuantity { get; set; }
 
         [MaxLength(50, ErrorMessage = "حداکثر طول واحد ۵۰ کاراکتر است.")]
         public string? Unit { get; set; } // مثال: عدد، متر، جعبه
@@ -50,8 +54,19 @@ namespace IMS.Domain.ProcurementManagement.Entities
         public Project? Project { get; set; }
 
         public bool IsSupplyStopped { get; set; } = false;
-   
         public bool IsFullySupplied { get; set; } = false;
+        public bool IsAddedToFlatItems { get; set; }
+        // ستون جدید برای تحویل کامل
+        public bool IsFullyDelivered { get; set; } = false;
 
+        // متدی برای بروزرسانی وضعیت‌ها
+        public void UpdateSupplyStatus()
+        {
+            // اگر RemainingQuantity صفر شد و تامین متوقف نشده است
+            IsFullyDelivered = RemainingQuantity <= 0 && !IsSupplyStopped;
+
+            // همزمان می‌توان IsFullySupplied را بروزرسانی کرد
+            IsFullySupplied = RemainingQuantity <= 0;
+        }
     }
 }

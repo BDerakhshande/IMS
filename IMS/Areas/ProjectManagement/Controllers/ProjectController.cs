@@ -70,8 +70,7 @@ namespace IMS.Areas.ProjectManagement.Controllers
             dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
             dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
 
-            if (!ModelState.IsValid)
-                return View(dto);
+            
 
             var result = await _projectService.CreateProjectAsync(dto);
             if (result)
@@ -116,28 +115,7 @@ namespace IMS.Areas.ProjectManagement.Controllers
             dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
             dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
 
-            if (!ModelState.IsValid)
-            {
-                // Repopulate ViewBag for Employers and ProjectTypes in case of validation errors
-                var employers = await _employerService.GetAllEmployersAsync();
-                var projectTypes = await _projectTypeService.GetAllAsync();
-
-                ViewBag.Employers = employers.Select(e => new SelectListItem
-                {
-                    Value = e.Id.ToString(),
-                    Text = e.CompanyName,
-                    Selected = e.Id == dto.EmployerId
-                }).ToList();
-
-                ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.Name,
-                    Selected = p.Id == dto.ProjectTypeId
-                }).ToList();
-
-                return View(dto);
-            }
+          
 
             var result = await _projectService.UpdateProjectAsync(dto);
             if (result)
