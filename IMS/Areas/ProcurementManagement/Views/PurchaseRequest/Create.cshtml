@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "ایجاد درخواست کالا";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/ProcurementManagement/Views/Shared/_Layout.cshtml";
 }
 
 <style>
@@ -84,7 +84,7 @@
 
 
             <div class="row g-2 mb-3">
-               
+
                 <div class="col-md-3">
                     <label asp-for="RequestNumber" class="form-label fw-bold small text-end w-100">شماره درخواست</label>
                     <div class="input-group input-group-sm">
@@ -101,7 +101,7 @@
                     </div>
                     <span asp-validation-for="RequestDateString" class="text-danger small d-block text-end"></span>
                 </div>
-                
+
 
                 <div class="col-md-3">
                     <label asp-for="RequestTypeId" class="form-label fw-bold small text-end w-100">نوع درخواست</label>
@@ -112,13 +112,13 @@
 
                 </div>
 
-                    <div class="col-md-3">
-                        <label asp-for="Title" class="form-label fw-bold small text-end w-100">عنوان درخواست</label>
-                        <input asp-for="Title" class="form-control form-control-sm" placeholder="عنوان درخواست را وارد کنید" />
-                        <span asp-validation-for="Title" class="text-danger small d-block text-end"></span>
-                    </div>
-
+                <div class="col-md-3">
+                    <label asp-for="Title" class="form-label fw-bold small text-end w-100">عنوان درخواست</label>
+                    <input asp-for="Title" class="form-control form-control-sm" placeholder="عنوان درخواست را وارد کنید" />
+                    <span asp-validation-for="Title" class="text-danger small d-block text-end"></span>
                 </div>
+
+            </div>
 
 
             <hr class="my-3" />
@@ -267,14 +267,14 @@
     <script type="text/html" id="CategoryTemplateOptions">
         @foreach (var category in Model.Items.FirstOrDefault()?.AvailableCategories ?? new List<SelectListItem>())
         {
-                <option value="@category.Value">@category.Text</option>
+                    <option value="@category.Value">@category.Text</option>
         }
     </script>
 
     <script type="text/html" id="ProjectTemplateOptions">
         @foreach (var project in Model.Items.FirstOrDefault()?.AvailableProjects ?? new List<SelectListItem>())
         {
-                <option value="@project.Value">@project.Text</option>
+                    <option value="@project.Value">@project.Text</option>
         }
     </script>
     <script>
@@ -640,6 +640,6 @@
 
 
         });
-         
+
     </script>
 }

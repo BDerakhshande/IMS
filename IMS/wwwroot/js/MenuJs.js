@@ -1,14 +1,8 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.getElementById('toggleBtn');
     const sidebar = document.getElementById('sidebar');
 
     // مطمئن شو کلاس "expanded" در ابتدا وجود ندارد
-    sidebar.classList.remove('expanded');
-
-    // مدیریت باز و بسته کردن سایدبار
-    toggleBtn.addEventListener('click', function () {
-        sidebar.classList.toggle('expanded');
-    });
+    sidebar.classList.add('expanded');
 
     // مدیریت زیرمنوها
     const menuItems = document.querySelectorAll('.has-submenu');
