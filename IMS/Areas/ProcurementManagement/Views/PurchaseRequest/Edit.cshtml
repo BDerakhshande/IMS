@@ -1,1 +1,681 @@
-﻿//PurchaseRequestEdit.cshtml
+﻿@using IMS.Application.ProcurementManagement.DTOs
+@using IMS.Domain.ProcurementManagement.Enums
+@model IMS.Models.ProMan.PurchaseRequestViewModel
+
+@{
+    ViewData["Title"] = "ویرایش درخواست کالا";
+    Layout = "~/Areas/ProcurementManagement/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    select.form-select[dir="rtl"],
+    select.form-select.text-end {
+        direction: rtl;
+        text-align: right;
+        padding-right: 1rem;
+        padding-left: 2rem;
+        background-position: left 0.75rem center !important;
+        background-size: 16px 16px;
+        background-repeat: no-repeat;
+    }
+
+    select.form-select,
+    select.select2-hidden-accessible {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: none !important;
+    }
+
+    .table-sm-custom {
+        font-size: 0.85rem;
+    }
+
+        .table-sm-custom .form-select,
+        .table-sm-custom .form-control {
+            font-size: 0.85rem;
+            padding: 0.25rem 0.5rem;
+            height: auto;
+        }
+
+        .table-sm-custom label,
+        .table-sm-custom .accordion-button {
+            font-size: 0.82rem;
+        }
+
+        .table-sm-custom .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .table-sm-custom .accordion-body {
+            padding: 0.5rem;
+        }
+
+    .btn-icon {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .readonly-form {
+        opacity: 0.8;
+        pointer-events: none;
+    }
+
+        .readonly-form input,
+        .readonly-form select,
+        .readonly-form textarea,
+        .readonly-form button {
+            background-color: #f8f9fa !important;
+            cursor: not-allowed;
+        }
+
+        .readonly-form .table {
+            background-color: #f8f9fa;
+        }
+
+        .readonly-form .accordion-button {
+            background-color: #e9ecef !important;
+        }
+</style>
+
+<!-- Select2 CSS -->
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<div class="card border-0 shadow-sm" dir="rtl">
+    <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+        <div class="d-flex align-items-center">
+            <i class="fas fa-shopping-cart ms-1" style="font-size: 0.85rem;"></i>
+            <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+        </div>
+    </div>
+
+    <div class="card-body p-2 @(Model.Status == Status.Completed ? "readonly-form" : "")">
+        @if (Model.Status == Status.Completed)
+        {
+            <div class="alert alert-info small py-2 px-3 mb-3 text-end">
+                <strong class="d-block mb-1">توجه!</strong>
+                این درخواست تکمیل شده و امکان ویرایش آن وجود ندارد.
+            </div>
+        }
+        
+
+        <form asp-action="Edit" method="post" id="purchaseRequestForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger small py-2 px-3 mb-3 text-end">
+                    <strong class="d-block mb-1">خطا!</strong>
+                    @Html.ValidationSummary(true)
+                </div>
+            }
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                    <label asp-for="RequestNumber" class="form-label fw-bold small text-end w-100">شماره درخواست</label>
+                    <div class="input-group input-group-sm">
+                        <input asp-for="RequestNumber" class="form-control text-end" readonly />
+                        <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
+                    </div>
+                    <span asp-validation-for="RequestNumber" class="text-danger small d-block text-end"></span>
+                </div>
+                
+                <div class="col-md-3">
+                    <label asp-for="RequestDateString" class="form-label fw-bold small text-end w-100">تاریخ درخواست</label>
+                    <div class="input-group input-group-sm">
+                        <input asp-for="RequestDateString" type="text" class="form-control text-end" autocomplete="off" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" />
+                        <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                    </div>
+                    <span asp-validation-for="RequestDateString" class="text-danger small d-block text-end"></span>
+                </div>
+                
+                <div class="col-md-3">
+                    <label asp-for="RequestTypeId" class="form-label fw-bold small text-end w-100">نوع درخواست</label>
+                    <select asp-for="RequestTypeId" asp-items="Model.AvailableRequestName" class="form-select form-select-sm select2-supplier" disabled="@(Model.Status == Status.Completed ? "disabled" : null)">
+                        <option value="">انتخاب‌ نوع درخواست...</option>
+                    </select>
+                    <span asp-validation-for="RequestTypeId" class="text-danger small d-block text-end"></span>
+                </div>
+                
+         
+            </div>
+
+            <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Title" class="form-label fw-bold small text-end w-100">عنوان درخواست</label>
+                    <input asp-for="Title" class="form-control form-control-sm" placeholder="عنوان درخواست را وارد کنید" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" />
+                    <span asp-validation-for="Title" class="text-danger small d-block text-end"></span>
+                </div>
+                
+                <div class="col-md-6">
+                    <label asp-for="Notes" class="form-label fw-bold small text-end w-100">توضیحات</label>
+                    <textarea asp-for="Notes" class="form-control form-control-sm" rows="1" disabled="@(Model.Status == Status.Completed ? "disabled" : null)"></textarea>
+                    <span asp-validation-for="Notes" class="text-danger small d-block text-end"></span>
+                </div>
+            </div>
+
+            <hr class="my-3" />
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">آیتم‌های درخواست</h6>
+                @if (Model.Status != Status.Completed)
+                {
+                    <button type="button" id="addItemBtn" class="btn btn-sm btn-primary hide-on-print">
+                        <i class="bi bi-plus-circle ms-1"></i> افزودن آیتم
+                    </button>
+                }
+            </div>
+
+            <div class="table-responsive border rounded-3 mb-3">
+                <table class="table table-hover table-sm mb-0" id="itemsTable">
+                    <thead class="table-light" style="font-size: 0.8rem;">
+                        <tr class="text-center">
+                            <th class="py-2">کالا</th>
+                            <th class="py-2">تعداد</th>
+                            <th class="py-2">واحد</th>
+                            <th class="py-2">پروژه</th>
+                            <th class="py-2">توضیحات</th>
+                            @if (Model.Status != Status.Completed)
+                            {
+                                <th class="py-2" style="width: 80px;">عملیات</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="table-sm-custom">
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr class="align-middle @(Model.Items[i].Id > 0 ? "table-success" : "")" data-index="@i">
+                                <!-- انتخاب کالا -->
+                                <td>
+                                    <div class="accordion" id="productAccordion_@i">
+                                        <div class="accordion-item border-0">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed @(Model.Items[i].Id > 0 ? "bg-light" : "bg-warning") py-2" type="button" 
+                                                        data-bs-toggle="collapse" data-bs-target="#productCollapse_@i" @(Model.Status == Status.Completed ? "disabled" : "")>
+                                                    @if (Model.Items[i].Id > 0)
+                                                    {
+                                                        <div dir="rtl" class="w-100">
+                                                            <div class="fw-bold">
+                                                                @Model.Items[i].CategoryName / @Model.Items[i].GroupName / @Model.Items[i].Status
+                                                                <br><strong>@Model.Items[i].ProductName</strong>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>انتخاب کالا و مشخصات آن</span>
+                                                    }
+                                                </button>
+                                            </h2>
+                                            <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
+                                                <div class="accordion-body p-2">
+                                                    <select asp-for="Items[i].CategoryId" class="form-select form-select-sm category-select select2 shadow-sm item-select text-end"
+                                                            data-index="@i" disabled="@(Model.Status == Status.Completed ? "disabled" : null)">
+                                                        <option value="">انتخاب دسته‌بندی</option>
+                                                        @foreach (var item in Model.Items[i].AvailableCategories)
+                                                        {
+                                                            <option value="@item.Value" selected="@(item.Value == Model.Items[i].CategoryId.ToString())">@item.Text</option>
+                                                        }
+                                                    </select>
+
+                                                    <select asp-for="Items[i].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select mt-2 text-end"
+                                                            data-index="@i" disabled="@(Model.Status == Status.Completed ? "disabled" : null)">
+                                                        <option value="">انتخاب گروه</option>
+                                                        @foreach (var group in Model.Items[i].AvailableGroups ?? new List<SelectListItem>())
+                                                        {
+                                                            <option value="@group.Value" selected="@(group.Value == Model.Items[i].GroupId.ToString())">@group.Text</option>
+                                                        }
+                                                    </select>
+                                                    <!-- طبقه -->
+                                                    <select asp-for="Items[i].StatusId" class="form-select form-select-sm class-select select2 shadow-sm item-select mt-2 text-end"
+                                                            data-index="@i" disabled="@(Model.Status == Status.Completed ? "disabled" : null)">
+                                                        <option value="">انتخاب طبقه</option>
+                                                        @foreach (var cls in Model.Items[i].AvailableStatuses ?? new List<SelectListItem>())
+                                                        {
+                                                            <option value="@cls.Value" selected="@(cls.Value == Model.Items[i].StatusId.ToString())">@cls.Text</option>
+                                                        }
+                                                    </select>
+                                                    <select asp-for="Items[i].ProductId" class="form-select form-select-sm product-select select2 shadow-sm mt-2 text-end"
+                                                            data-index="@i" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" >
+                                                        <option value="">انتخاب کالا</option>
+                                                        @foreach (var product in Model.Items[i].AvailableProducts ?? new List<SelectListItem>())
+                                                        {
+                                                            <option value="@product.Value" selected="@(product.Value == Model.Items[i].ProductId.ToString())">@product.Text</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <!-- تعداد -->
+                                <td style="width: 120px;">
+                                    <input asp-for="Items[i].Quantity" type="number" min="1" step="0.01"
+                                           class="form-control form-control-sm shadow-sm no-spinner text-end" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" />
+                                    <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1 text-end"></span>
+                                </td>
+
+                                <!-- واحد -->
+                                <td style="width: 100px;">
+                                    <input asp-for="Items[i].Unit" class="form-control form-control-sm shadow-sm text-end" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" />
+                                    <span asp-validation-for="Items[i].Unit" class="text-danger small d-block mt-1 text-end"></span>
+                                </td>
+
+                                <!-- پروژه -->
+                                <td>
+                                    <select asp-for="Items[i].ProjectId" class="form-select form-select-sm select2-project" dir="rtl"
+                                            data-index="@i" disabled="@(Model.Status == Status.Completed ? "disabled" : null)">
+                                        <option value="">انتخاب پروژه...</option>
+                                        @foreach (var project in Model.Items[i].AvailableProjects ?? new List<SelectListItem>())
+                                        {
+                                            <option value="@project.Value" selected="@(project.Value == Model.Items[i].ProjectId?.ToString())">@project.Text</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
+                                </td>
+
+                                <!-- توضیحات -->
+                                <td>
+                                    <input asp-for="Items[i].Description" class="form-control form-control-sm shadow-sm text-end" disabled="@(Model.Status == Status.Completed ? "disabled" : null)" />
+                                    <span asp-validation-for="Items[i].Description" class="text-danger small d-block mt-1 text-end"></span>
+                                </td>
+
+                                <!-- دکمه‌ها -->
+                                @if (Model.Status != Status.Completed)
+                                {
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            @if (Model.Items[i].Id > 0)
+                                            {
+                                                <input type="hidden" asp-for="Items[i].Id" />
+                                                <input type="hidden" asp-for="Items[i].PurchaseRequestId" />
+                                            }
+                                            
+                                            <button type="button" class="btn btn-sm btn-icon @(Model.Items[i].Id > 0 ? "btn-success" : "btn-outline-success") rounded-circle hide-on-print save-item" title="@(Model.Items[i].Id > 0 ? "ویرایش" : "ثبت")">
+                                                <i class="bi bi-check-lg"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-start gap-2 mt-3">
+                <a asp-action="Index" class="btn btn-sm btn-secondary px-3 hide-on-print">
+                    <i class="bi bi-arrow-right-circle ms-1"></i> بازگشت
+                </a>
+                @if (Model.Status == Status.Open)
+                {
+                    <button type="submit" class="btn btn-sm btn-success px-3 hide-on-print">
+                        <i class="bi bi-check-circle ms-1"></i> ذخیره تغییرات
+                    </button>
+                   
+                }
+                else
+                {
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-3 hide-on-print" disabled>
+                        <i class="bi bi-lock ms-1"></i> درخواست تکمیل شده
+                    </button>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/MenuJs.js"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/select2/js/select2.full.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script type="text/html" id="CategoryTemplateOptions">
+        @foreach (var category in Model.Items.FirstOrDefault()?.AvailableCategories ?? new List<SelectListItem>())
+        {
+                <option value="@category.Value">@category.Text</option>
+        }
+    </script>
+
+    <script type="text/html" id="ProjectTemplateOptions">
+        @foreach (var project in Model.Items.FirstOrDefault()?.AvailableProjects ?? new List<SelectListItem>())
+        {
+                <option value="@project.Value">@project.Text</option>
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            // غیرفعال کردن تمامی اینپوت‌ها در حالت تکمیل شده
+            if ('@Model.Status' === 'Completed') {
+                $('#purchaseRequestForm').find('input, select, textarea, button').not('[name="__RequestVerificationToken"]').prop('disabled', true);
+                $('.select2').prop('disabled', true).trigger('change');
+                $('.accordion-button').prop('disabled', true);
+                $('.remove-item, .save-item, #addItemBtn').hide();
+            }
+
+            // تابع فعال‌سازی Select2
+            function initSelect2($el, placeholder) {
+                $el.select2({
+                    theme: 'bootstrap5',
+                    placeholder: placeholder || 'انتخاب کنید',
+                    allowClear: true,
+                    dir: 'rtl',
+                    minimumResultsForSearch: 0
+                });
+            }
+
+            // تخریب Select2 در صورت فعال بودن
+            function destroySelect2($el) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+            }
+
+            // تابع ساخت آپشن‌ها
+            function buildOptions(list, defaultText) {
+                let options = `<option value="">${defaultText}</option>`;
+                list.forEach(item => {
+                    options += `<option value="${item.value}">${item.text}</option>`;
+                });
+                return options;
+            }
+
+            // مدیریت تغییر دسته‌بندی → بارگذاری گروه‌ها
+            $(document).on('change', '.category-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const categoryId = $this.val();
+
+                const $groupSelect = $(`select[name="Items[${index}].GroupId"]`);
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
+
+                // ریست گروه و محصول
+                destroySelect2($groupSelect);
+                destroySelect2($productSelect);
+                $groupSelect.html('<option value="">ابتدا دسته‌بندی را انتخاب کنید</option>').prop('disabled', true);
+                $productSelect.html('<option value="">ابتدا گروه را انتخاب کنید</option>').prop('disabled', true);
+
+                if (!categoryId) return;
+
+                // درخواست AJAX برای دریافت گروه‌ها
+                $.getJSON(`/ProcurementManagement/PurchaseRequest/GetGroups?categoryId=${categoryId}`, function (groups) {
+                    $groupSelect.html(buildOptions(groups, 'انتخاب گروه')).prop('disabled', false);
+                    initSelect2($groupSelect, 'انتخاب گروه');
+                }).fail(function () {
+                    alert('خطا در بارگذاری گروه‌ها. لطفاً دوباره تلاش کنید.');
+                });
+            });
+
+            // مدیریت تغییر گروه → بارگذاری طبقه‌ها
+            $(document).on('change', '.group-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const groupId = $this.val();
+
+                const $classSelect = $(`select[name="Items[${index}].StatusId"]`);
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
+
+                // ریست طبقه و محصول
+                destroySelect2($classSelect);
+                destroySelect2($productSelect);
+                $classSelect.html('<option value="">ابتدا گروه را انتخاب کنید</option>').prop('disabled', true);
+                $productSelect.html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+
+                if (!groupId) return;
+
+                // درخواست AJAX برای دریافت طبقه‌ها
+                $.getJSON(`/ProcurementManagement/PurchaseRequest/GetStatuses?groupId=${groupId}`, function (statuses) {
+                    $classSelect.html(buildOptions(statuses, 'انتخاب طبقه')).prop('disabled', false);
+                    initSelect2($classSelect, 'انتخاب طبقه');
+                }).fail(function () {
+                    alert('خطا در بارگذاری طبقه‌ها. لطفاً دوباره تلاش کنید.');
+                });
+            });
+
+            // مدیریت تغییر طبقه → بارگذاری محصولات
+            $(document).on('change', '.class-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const classId = $this.val();
+
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
+
+                // ریست محصول
+                destroySelect2($productSelect);
+                $productSelect.html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
+
+                if (!classId) return;
+
+                // درخواست AJAX برای دریافت محصولات
+                $.getJSON(`/ProcurementManagement/PurchaseRequest/GetProducts?statusId=${classId}`, function (products) {
+                    $productSelect.html(buildOptions(products, 'انتخاب کالا')).prop('disabled', false);
+                    initSelect2($productSelect, 'انتخاب کالا');
+                }).fail(function () {
+                    alert('خطا در بارگذاری محصولات. لطفاً دوباره تلاش کنید.');
+                });
+            });
+
+            $('#addItemBtn').on('click', function () {
+                const tableBody = $('#itemsTable tbody');
+                const rowCount = tableBody.find('tr.align-middle').length;
+
+                const template = `
+                    <tr class="align-middle" data-index="${rowCount}">
+                        <!-- انتخاب کالا -->
+                        <td>
+                            <div class="accordion" id="productAccordion_${rowCount}">
+                                <div class="accordion-item border-0">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed bg-warning py-2" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
+                                            انتخاب کالا و مشخصات آن
+                                        </button>
+                                    </h2>
+                                    <div id="productCollapse_${rowCount}" class="accordion-collapse collapse"
+                                         data-bs-parent="#productAccordion_${rowCount}">
+                                        <div class="accordion-body p-2">
+                                            <select name="Items[${rowCount}].CategoryId"
+                                                    class="form-select form-select-sm category-select select2 shadow-sm item-select text-end"
+                                                    data-index="${rowCount}" >
+                                                <option value="">انتخاب دسته‌بندی</option>
+                                                ${$('#CategoryTemplateOptions').html() || '<option value="">دسته‌بندی در دسترس نیست</option>'}
+                                            </select>
+                                            <select name="Items[${rowCount}].GroupId"
+                                                    class="form-select form-select-sm group-select select2 shadow-sm mt-2 text-end"
+                                                    data-index="${rowCount}" disabled>
+                                                <option value="">انتخاب گروه</option>
+                                            </select>
+                                            <select name="Items[${rowCount}].StatusId"
+                                                    class="form-select form-select-sm class-select select2 shadow-sm mt-2 text-end"
+                                                    data-index="${rowCount}" disabled>
+                                                <option value="">انتخاب طبقه</option>
+                                            </select>
+                                            <select name="Items[${rowCount}].ProductId"
+                                                    class="form-select form-select-sm product-select select2 shadow-sm mt-2 text-end"
+                                                    data-index="${rowCount}" disabled>
+                                                <option value="">انتخاب کالا</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- تعداد -->
+                        <td style="width: 120px;">
+                            <input name="Items[${rowCount}].Quantity" type="number" min="1" step="0.01"
+                                   class="form-control form-control-sm shadow-sm text-end" />
+                        </td>
+                        <!-- واحد -->
+                        <td style="width: 100px;">
+                            <input name="Items[${rowCount}].Unit" class="form-control form-control-sm shadow-sm text-end" />
+                        </td>
+                        <!-- پروژه -->
+                        <td>
+                            <select name="Items[${rowCount}].ProjectId"
+                                    class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
+                                <option value="">انتخاب پروژه...</option>
+                                ${$('#ProjectTemplateOptions').html() || '<option value="">پروژه در دسترس نیست</option>'}
+                            </select>
+                        </td>
+                        <!-- توضیحات -->
+                        <td>
+                            <input name="Items[${rowCount}].Description"
+                                   class="form-control form-control-sm shadow-sm text-end" />
+                        </td>
+                        <!-- دکمه‌ها -->
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-1">
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle save-item" title="ثبت">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle remove-item" title="حذف">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
+                tableBody.append(template);
+
+                // فعال‌سازی Select2 برای دراپ‌داون‌های جدید
+                initSelect2($(`tr[data-index="${rowCount}"] .select2`), 'انتخاب کنید');
+                initSelect2($(`tr[data-index="${rowCount}"] .select2-project`), 'انتخاب پروژه');
+
+                // فعال‌سازی Accordion برای سطر جدید
+                const collapseElement = document.querySelector(`#productCollapse_${rowCount}`);
+                if (collapseElement) {
+                    new bootstrap.Collapse(collapseElement, {
+                        toggle: false
+                    });
+                }
+            });
+
+            // حذف آیتم
+            $(document).on('click', '.remove-item', function () {
+                const $row = $(this).closest('tr');
+                const itemId = $row.find('input[name$=".Id"]').val();
+                
+                if (itemId) {
+                    if (!confirm('آیا از حذف این آیتم اطمینان دارید؟ این عمل قابل بازگشت نیست.')) {
+                        return;
+                    }
+                    
+                    // اضافه کردن فیلد مخفی برای حذف آیتم
+                    $row.append(`<input type="hidden" name="ItemsToDelete" value="${itemId}" />`);
+                    $row.hide();
+                } else {
+                    $row.find('.select2').each(function () {
+                        destroySelect2($(this));
+                    });
+                    $row.remove();
+                }
+            });
+
+            $(document).on('click', '.save-item', function () {
+                const $row = $(this).closest('tr[data-index]');
+                const index = $row.data('index');
+                const prefix = 'Items';
+
+                // استخراج مقادیر
+                const categoryId = $row.find(`select[name="${prefix}[${index}].CategoryId"]`).val();
+                const groupId = $row.find(`select[name="${prefix}[${index}].GroupId"]`).val();
+                const statusId = $row.find(`select[name="${prefix}[${index}].StatusId"]`).val();
+                const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+                const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+                const unit = $row.find(`input[name="${prefix}[${index}].Unit"]`).val();
+                const projectId = $row.find(`select[name="${prefix}[${index}].ProjectId"]`).val();
+                const description = $row.find(`input[name="${prefix}[${index}].Description"]`).val();
+
+                // اعتبارسنجی فیلدهای الزامی
+                let errorMessages = [];
+
+                if (!categoryId) errorMessages.push("دسته‌بندی انتخاب نشده است.");
+                if (!groupId) errorMessages.push("گروه انتخاب نشده است.");
+                if (!statusId) errorMessages.push("طبقه انتخاب نشده است.");
+                if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+                if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("تعداد باید بزرگ‌تر از صفر باشد.");
+                if (!unit) errorMessages.push("واحد اندازه‌گیری وارد نشده است.");
+
+                // نمایش خطاها در صورت وجود
+                if (errorMessages.length > 0) {
+                    const $errorBox = $row.find('.error-message-list');
+                    if ($errorBox.length === 0) {
+                        // اگر ردیف خطا وجود ندارد، آن را ایجاد کنید
+                        $row.after(`
+                            <tr class="validation-row bg-danger bg-opacity-10" data-index="${index}">
+                                <td colspan="6" class="p-2">
+                                    <div class="alert alert-danger p-2 mb-0 small error-message-list">
+                                        <ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        `);
+                    } else {
+                        $errorBox.html(`<ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
+                    }
+                    return;
+                } else {
+                    // حذف خطاها در صورت معتبر بودن
+                    $row.next(`tr.validation-row[data-index="${index}"]`).remove();
+                }
+
+                // دریافت متن‌های انتخابی برای نمایش خلاصه
+                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+                const projectText = projectId ? $row.find(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text() : "بدون پروژه";
+
+                // ایجاد متن خلاصه برای نمایش
+                const productSummary = `${categoryText} / ${groupText} / ${statusText}<br><strong>${productText}</strong>`;
+
+                // بستن آکاردئون کالا و درج خلاصه متن
+                const $productCollapse = $row.find(`#productCollapse_${index}`);
+                const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
+
+                // تغییر محتوای هدر آکاردئون
+                $productHeader.html(`
+                    <div dir="rtl" class="w-100">
+                        <div class="fw-bold">${productSummary}</div>
+                    </div>
+                `);
+
+                // بستن آکاردئون
+                bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+
+                // تغییر استایل ردیف به حالت تأیید شده
+                $row.removeClass('table-warning').addClass('table-success');
+                $(this).removeClass('btn-outline-success').addClass('btn-success').attr('title', 'ویرایش');
+            });
+
+            // فعال‌سازی اولیه Select2
+            initSelect2($('.select2'));
+            
+            // دکمه تکمیل درخواست
+            $('#completeBtn').on('click', function() {
+                if (confirm('آیا از تکمیل این درخواست اطمینان دارید؟ پس از تکمیل، امکان ویرایش وجود ندارد.')) {
+                    $.post('@Url.Action("SetStatusCompleted", new { id = Model.Id })', function() {
+                        window.location.reload();
+                    }).fail(function() {
+                        alert('خطا در تکمیل درخواست. لطفاً دوباره تلاش کنید.');
+                    });
+                }
+            });
+        });
+    </script>
+}

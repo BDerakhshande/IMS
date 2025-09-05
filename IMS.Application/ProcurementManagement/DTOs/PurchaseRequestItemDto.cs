@@ -38,6 +38,7 @@ namespace IMS.Application.ProcurementManagement.DTOs
         [Range(0.01, double.MaxValue, ErrorMessage = "مقدار باید بزرگ‌تر از صفر باشد.")]
         public decimal InitialQuantity { get; set; }
 
+        public decimal Quantity => RemainingQuantity;
         // 🔹 تعداد باقی‌مانده برای تأمین
         public decimal RemainingQuantity { get; set; }
 

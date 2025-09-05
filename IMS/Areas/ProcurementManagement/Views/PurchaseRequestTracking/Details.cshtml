@@ -1,1 +1,234 @@
-﻿//Details.cshtml
+﻿@using IMS.Domain.ProcurementManagement.Enums
+@using IMS.Models.ProMan
+@using System.Reflection
+@model PurchaseRequestDetailsViewModel
+@{
+    ViewData["Title"] = "جزئیات درخواست کالا";
+    Layout = "~/Areas/ProcurementManagement/Views/Shared/_Layout.cshtml";
+    var isCompleted = Model.Status == Status.Completed;
+}
+
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<style>
+    .form-label {
+        font-size: 0.75rem;
+    }
+
+    .input-group-sm {
+        font-size: 0.75rem;
+    }
+
+    .disabled-content {
+        position: relative;
+    }
+
+        .disabled-content::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.7);
+            z-index: 100;
+        }
+
+    .completion-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 101;
+        background-color: #1a4959;
+        color: white;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    .disabled-row {
+        opacity: 0.5;
+        user-select: none;
+    }
+
+        .disabled-row td:not(:last-child) {
+            pointer-events: none;
+        }
+
+    .add-to-flatitems-btn {
+        background-color: #28a745;
+        color: white;
+    }
+
+        .add-to-flatitems-btn.stopped {
+            opacity: 0.5;
+        }
+
+    .toggle-disable-btn {
+        color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .toggle-disable-btn.active {
+            background-color: #dc3545;
+            color: white;
+        }
+
+</style>
+
+<div class="container-fluid py-3" dir="rtl">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <h5 class="mb-0 text-white"><i class="fas fa-file-invoice me-2"></i> @ViewData["Title"] شماره @Model.RequestNumber</h5>
+                    <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm"><i class="fas fa-arrow-right me-1"></i> بازگشت به لیست</a>
+                </div>
+
+                <div class="card-body p-2 @(isCompleted ? "disabled-content" : "")">
+                    @if (isCompleted)
+                    {
+                        <div class="completion-message text-center text-white">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <h4 style="font-size: 1.2rem; margin-bottom: 0.25rem;">درخواست خرید تکمیل شده است</h4>
+                            <p style="font-size: 0.9rem; margin-bottom: 0;">این درخواست به صورت کامل پردازش شده است.</p>
+                        </div>
+                    }
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.RequestDate.ToString("yyyy/MM/dd")</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-heading me-1 text-muted"></i> عنوان</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.Title</div>
+                        </div>
+                        @{
+                            var statusDescription = Model.Status.GetType()
+                            .GetField(Model.Status.ToString())
+                            .GetCustomAttribute<System.ComponentModel.DescriptionAttribute>()?
+                            .Description ?? Model.Status.ToString();
+                        }
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold mb-1 small"><i class="fas fa-info-circle me-1 text-muted"></i> وضعیت</label>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@statusDescription</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm">
+                            <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
+                                <tr>
+                                    <th class="text-center py-1">کالا</th>
+                                    <th class="text-center py-1">تعداد درخواست</th>
+                                    <th class="text-center py-1">موجودی کل</th>
+                                    <th class="text-center py-1">درخواست‌های قبلی</th>
+                                    <th class="text-center py-1">نیاز به تامین</th>
+                                    <th class="text-center py-1">تأمین کامل</th>
+                                    <th class="text-center py-1">توضیحات</th>
+                                    <th class="text-center py-1">عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody style="font-size: 0.8rem;">
+                                @foreach (var item in Model.Items)
+                                {
+                                    var rowClass = item.IsSupplyStopped ? "disabled-row" : "";
+                                    var isAddDisabled = isCompleted || item.IsSupplyStopped || item.IsFullySupplied;
+                                    var toggleDisabled = isCompleted || item.IsSupplyStopped;
+
+                                    <tr data-item-id="@item.Id" class="@rowClass">
+                                        <td class="text-center py-1 align-middle">@item.CategoryName | @item.GroupName | @item.Status | @item.ProductName</td>
+                                        <td class="text-center py-1 align-middle quantity">@item.Quantity</td>
+                                        <td class="text-center py-1 align-middle total-stock">@item.TotalStock</td>
+                                        <td class="text-center py-1 align-middle pending-requests">@item.PendingRequests</td>
+                                        <td class="text-center py-1 align-middle need-to-supply">@item.NeedToSupply</td>
+                                        <td class="text-center py-1 align-middle">
+                                            @* ستون تأمین کامل با شرط Razor و HTML *@
+                                            @if (item.IsFullySupplied)
+                                            {
+                                                <i class="bi bi-check-lg text-success"></i>
+                                            }
+                                        </td>
+                                        <td class="text-center py-1 align-middle">@item.Description</td>
+                                        <td class="text-center py-1 align-middle">
+                                            <form method="post" action="@Url.Action("AddToFlatItemsAndShow", "PurchaseRequestTracking", new { area = "ProcurementManagement" })" style="display:inline">
+                                                <input type="hidden" name="id" value="@item.Id" />
+                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success add-to-flatitems-btn rounded-circle me-1 @(item.IsSupplyStopped || item.IsFullySupplied ? "stopped" : "")"
+                                                        title="در حال تدارکات" @(isAddDisabled ? "disabled" : "")>
+                                                    <i class="bi bi-cart-check"></i>
+                                                </button>
+                                            </form>
+
+                                            @if (!item.IsFullySupplied)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle toggle-disable-btn"
+                                                        title="توقف تامین" @(toggleDisabled ? "disabled" : "")>
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <div id="flatItemsContainer" class="mt-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="/js/MenuJs.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".toggle-disable-btn").click(function () {
+                var btn = $(this);
+                var row = btn.closest("tr");
+                var itemId = row.data('item-id');
+                var addBtn = row.find(".add-to-flatitems-btn");
+                var isStopping = !row.hasClass("disabled-row");
+
+                $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
+                    { id: itemId, stopSupply: isStopping },
+                    function (response) {
+                        if (response.success) {
+                            if (response.isSupplyStopped) {
+                                row.addClass("disabled-row");
+                                btn.addClass("active").attr("title", "فعال کردن تامین").html('<i class="bi bi-check-circle"></i>');
+                                addBtn.addClass("stopped").prop("disabled", true);
+                            } else {
+                                row.removeClass("disabled-row");
+                                btn.removeClass("active").attr("title", "توقف تامین").html('<i class="bi bi-slash-circle"></i>');
+                                addBtn.removeClass("stopped").prop("disabled", false);
+                            }
+                        } else {
+                            alert("خطا: " + response.message);
+                        }
+                    })
+                    .fail(function () {
+                        alert("خطا در ارتباط با سرور!");
+                    });
+            });
+        });
+    </script>
+}
