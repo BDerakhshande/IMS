@@ -1,0 +1,269 @@
+﻿@using IMS.Application.WarehouseManagement.DTOs
+@model List<UnitDto>
+@{
+    ViewData["Title"] = "لیست واحدها";
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
+}
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+
+<div class="container-fluid py-2" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-balance-scale me-1" style="font-size: 0.85rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 20px; font-size: 0.8rem;">
+                            </div>
+                        </div>
+
+                        <a asp-action="Create"
+                           class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
+                           style="height: 28px; font-size: 0.8rem;">
+                            <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
+                            <span>واحد جدید</span>
+                        </a>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-check-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                <div class="card-body p-1">
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info alert-dismissible fade show mx-2 my-1 py-1 text-center" role="alert" style="font-size: 0.8rem;">
+                            <i class="fas fa-balance-scale me-1" style="font-size: 0.85rem;"></i>
+                            هیچ واحدی ثبت نشده است
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
+                                    <tr>
+                                        <th class="text-center py-1">شناسه</th>
+                                        <th class="text-center py-1">نام واحد</th>
+                                        <th class="text-center py-1">نماد</th>
+                                        <th class="text-center py-1">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 0.8rem;">
+                                    @foreach (var unit in Model)
+                                    {
+                                        <tr style="height: 32px;">
+                                            <td class="text-center fw-bold py-1 align-middle">@unit.Id</td>
+                                            <td class="text-center py-1 align-middle">@unit.Name</td>
+                                            <td class="text-center py-1 align-middle">@unit.Symbol</td>
+                                            <td class="text-center py-1 align-middle">
+                                                <div class="d-flex justify-content-center gap-1">
+                                                    <a asp-action="Edit"
+                                                       asp-route-id="@unit.Id"
+                                                       class="btn btn-sm btn-outline-warning px-1"
+                                                       style="font-size: 0.75rem; min-width: 26px; height: 26px;">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <form asp-action="Delete" method="post" class="d-inline">
+                                                        <input type="hidden" name="id" value="@unit.Id" />
+                                                        <button type="submit"
+                                                                class="btn btn-sm btn-outline-danger px-1"
+                                                                style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                                onclick="return confirm('آیا از حذف این مورد مطمئن هستید؟');">
+                                                            <i class="fas fa-trash-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-center mt-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="paginationContainer">
+                            <li class="page-item" id="prevBtn">
+                                <a class="page-link" href="#" aria-label="قبلی">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <div id="paginationWrapper"></div>
+                            <li class="page-item" id="nextBtn">
+                                <a class="page-link" href="#" aria-label="بعدی">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/MenuJs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // متغیرهای عمومی
+            const rowsPerPage = 10;
+            const table = document.querySelector('table');
+            const allRows = Array.from(table?.querySelectorAll('tbody tr') || []);
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.classList.add('no-results');
+            noResultsRow.innerHTML = '<td colspan="4" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
+            let filteredRows = [...allRows];
+            let currentPage = 1;
+
+            const globalSearch = document.getElementById('globalSearch');
+            if (globalSearch) {
+                globalSearch.addEventListener('input', function () {
+                    const term = this.value.trim().toLowerCase();
+                    filteredRows = [];
+                    currentPage = 1;
+
+                    // پاک‌کردن هایلایت قبلی
+                    allRows.forEach(row => {
+                        const cells = row.querySelectorAll('td:not(:last-child)');
+                        cells.forEach(cell => cell.innerHTML = cell.textContent);
+                    });
+
+                    // فیلتر سطرها
+                    filteredRows = allRows.filter(row => {
+                        const cells = row.querySelectorAll('td:not(:last-child)');
+                        return Array.from(cells).some(cell =>
+                            cell.textContent.toLowerCase().includes(term)
+                        );
+                    });
+
+                    // هایلایت کردن
+                    if (term.length > 0) {
+                        filteredRows.forEach(row => {
+                            const cells = row.querySelectorAll('td:not(:last-child)');
+                            cells.forEach(cell => {
+                                const text = cell.textContent;
+                                const highlighted = text.replace(
+                                    new RegExp(term, 'gi'),
+                                    match => `<span class="bg-warning text-dark">${match}</span>`
+                                );
+                                cell.innerHTML = highlighted;
+                            });
+                        });
+                    }
+
+                    // حذف پیام قبلی
+                    const existingNoResults = table.querySelector('.no-results');
+                    if (existingNoResults) existingNoResults.remove();
+
+                    // نمایش پیام اگر نتیجه‌ای نیست
+                    if (term && filteredRows.length === 0) {
+                        allRows.forEach(row => row.style.display = 'none');
+                        table.querySelector('tbody').appendChild(noResultsRow);
+                    } else {
+                        if (noResultsRow.parentElement) noResultsRow.remove();
+                    }
+
+                    updateTableDisplay();
+                    setupPagination();
+                });
+            }
+
+            function updateTableDisplay() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                allRows.forEach(row => row.style.display = 'none');
+                filteredRows.slice(start, end).forEach(row => row.style.display = '');
+                updatePaginationControls();
+            }
+
+            function updatePaginationControls() {
+                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+                const prevBtn = document.getElementById('prevBtn');
+                const nextBtn = document.getElementById('nextBtn');
+
+                if (prevBtn) prevBtn.classList.toggle('disabled', currentPage === 1);
+                if (nextBtn) nextBtn.classList.toggle('disabled', currentPage === pageCount || pageCount === 0);
+            }
+
+            function setupPagination() {
+                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+                const paginationContainer = document.getElementById('paginationContainer');
+                const paginationWrapper = document.getElementById('paginationWrapper');
+                const nextBtn = document.getElementById('nextBtn');
+
+                if (paginationWrapper && nextBtn) {
+                    document.querySelectorAll('#paginationWrapper .page-number').forEach(el => el.remove());
+
+                    for (let i = 1; i <= pageCount; i++) {
+                        const li = document.createElement('li');
+                        li.className = `page-item page-number ${i === currentPage ? 'active' : ''}`;
+                        li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                        li.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            currentPage = i;
+                            updateTableDisplay();
+                        });
+                        paginationWrapper.insertBefore(li, nextBtn);
+                    }
+                }
+            }
+
+            // رویدادهای صفحه‌بندی
+            document.getElementById('prevBtn')?.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    updateTableDisplay();
+                }
+            });
+
+            document.getElementById('nextBtn')?.addEventListener('click', function (e) {
+                e.preventDefault();
+                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+                if (currentPage < pageCount) {
+                    currentPage++;
+                    updateTableDisplay();
+                }
+            });
+
+            // مقداردهی اولیه
+            setupPagination();
+            updateTableDisplay();
+        });
+    </script>
+}

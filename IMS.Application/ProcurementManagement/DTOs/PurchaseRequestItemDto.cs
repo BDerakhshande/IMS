@@ -57,6 +57,10 @@ namespace IMS.Application.ProcurementManagement.DTOs
         public bool IsAddedToFlatItems { get; set; }
         // اضافه کردن ستون جدید برای تحویل کامل
         public bool IsFullyDelivered { get; set; } = false;
+        [Required(ErrorMessage = "واحد کالا الزامی است.")]
+        public int? UnitId { get; set; }
 
+      
+        public string? UnitName { get; set; }
     }
 }

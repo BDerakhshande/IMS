@@ -53,6 +53,7 @@ builder.Services.AddScoped<IConversionService, ConversionService>();
 builder.Services.AddScoped<IGoodsRequestService, GoodsRequestService>();
 builder.Services.AddScoped<IPurchaseRequestService,PurchaseRequestService>();
 builder.Services.AddScoped<IRequestTypeService, RequestTypeService>();
+builder.Services.AddScoped<IUnitService, UnitService>();
 builder.Services.AddScoped<IPurchaseRequestTrackingService, PurchaseRequestTrackingService>();
 
 builder.Services.AddScoped<IApplicationDbContext,ProjectManagementDbContext>();

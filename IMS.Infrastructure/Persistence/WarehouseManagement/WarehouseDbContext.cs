@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Infrastructure.Persistence.WarehouseManagement
 {
-    public class WarehouseDbContext : DbContext , IWarehouseDbContext
+    public class WarehouseDbContext : DbContext, IWarehouseDbContext
     {
         public WarehouseDbContext(DbContextOptions<WarehouseDbContext> options)
     : base(options)
@@ -22,7 +22,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<StorageZone> StorageZones { get; set; } = null!;
         public DbSet<StorageSection> StorageSections { get; set; } = null!;
-      
+
         public DbSet<Inventory> Inventories { get; set; } = null!;
 
         public DbSet<Category> Categories { get; set; } = null!;
@@ -36,6 +36,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<ConversionConsumedItem> conversionConsumedItems { get; set; }
         public DbSet<ConversionProducedItem> conversionProducedItems { get; set; }
         public DbSet<ConversionDocument> conversionDocuments { get; set; }
+        public DbSet<Unit> Units { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -199,9 +200,9 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .IsRequired()
                     .HasMaxLength(50);
 
-                
 
-                
+
+
 
                 entity.Property(e => e.Dimensions)
                     .HasMaxLength(300);
@@ -267,11 +268,16 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
             });
 
             // --- ReceiptOrIssue ---
-     //       modelBuilder.Entity<ReceiptOrIssue>()
-     //.HasOne(r => r.Project)
-     //.WithMany()
-     //.HasForeignKey(r => r.ProjectId)
-     //.OnDelete(DeleteBehavior.Restrict);
+            //       modelBuilder.Entity<ReceiptOrIssue>()
+            //.HasOne(r => r.Project)
+            //.WithMany()
+            //.HasForeignKey(r => r.ProjectId)
+            //.OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Unit>().HasData(
+           new Unit { Id = 1, Name = "عدد", Symbol = "pcs" },
+           new Unit { Id = 2, Name = "کیلوگرم", Symbol = "kg" },
+           new Unit { Id = 3, Name = "متر", Symbol = "m" }
+       );
 
 
             modelBuilder.Entity<Product>(entity =>
@@ -285,7 +291,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 entity.Property(e => e.Code)
                     .HasMaxLength(50);
 
-                entity.HasIndex(e => new { e.Code, e.StatusId }) 
+                entity.HasIndex(e => new { e.Code, e.StatusId })
                     .IsUnique();
 
                 entity.Property(e => e.Description)
@@ -298,6 +304,15 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                     .WithMany(s => s.Products)
                     .HasForeignKey(p => p.StatusId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+
+
+                entity.HasOne(p => p.Unit)
+      .WithMany(u => u.Products) // <-- اینجا مشخص کنید
+      .HasForeignKey(p => p.UnitId)
+      .OnDelete(DeleteBehavior.Restrict);
+
+
             });
 
         }

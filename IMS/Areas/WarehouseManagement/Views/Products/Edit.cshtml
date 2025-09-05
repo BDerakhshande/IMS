@@ -73,6 +73,18 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- واحد کالا -->
+                        <div class="col-md-6 mb-3">
+                            <div class="form-group">
+                                <label asp-for="Unit.Id" class="form-label fw-bold mb-1 small">
+                                    <i class="fas fa-cube me-1 text-muted"></i> واحد
+                                </label>
+                                <select asp-for="Unit.Id" class="form-select form-select-sm" asp-items="ViewBag.Units">
+                                    <option value="">-- انتخاب واحد --</option>
+                                </select>
+                                <span asp-validation-for="Unit.Id" class="text-danger small mt-1 d-block"></span>
+                            </div>
+                        </div>
 
                         <!-- توضیحات -->
                         <div class="form-group mb-3">

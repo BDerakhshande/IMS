@@ -21,6 +21,8 @@ namespace IMS.Models.ProMan
         public string? Unit { get; set; }
         public int? ProjectId { get; set; }
         public string? ProjectName { get; set; }
+        public int? UnitId { get; set; }      // شناسه واحد
+        public string? UnitName { get; set; } // نام واحد
 
         // لیست‌ها برای dropdownهای هر آیتم
         public List<SelectListItem>? AvailableCategories { get; set; }

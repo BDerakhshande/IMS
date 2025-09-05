@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    [Migration("20250904151026_AddUnitToProducts")]
-    partial class AddUnitToProducts
+    [Migration("20250904165957_FixUnitRelationClean")]
+    partial class FixUnitRelationClean
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -652,7 +652,27 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Unit");
+                    b.ToTable("Units");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "عدد",
+                            Symbol = "pcs"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "کیلوگرم",
+                            Symbol = "kg"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "متر",
+                            Symbol = "m"
+                        });
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.Warehouse", b =>
@@ -926,7 +946,7 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.Unit", "Unit")
                         .WithMany("Products")
                         .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Status");

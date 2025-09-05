@@ -126,7 +126,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     StatusId = dto.StatusId,
                     ProductId = dto.ProductId,
                     RemainingQuantity = dto.RemainingQuantity,
-                    Unit = dto.Unit,
+                    //Unit = dto.Unit,
                     ProjectId = dto.ProjectId,
                     Description = dto.Description
                 };
@@ -253,7 +253,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                             ProductId = item.ProductId,
                             ProductName = productName,
                             Quantity = item.RemainingQuantity,
-                            Unit = item.Unit,
+                            UnitId = item.UnitId ?? 0,
                             TotalStock = totalStock,
                             PendingRequests = totalPending,
                             NeedToSupply = needToSupply,

@@ -28,7 +28,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string ProductsFullCode => $"C{(CategoryCode ?? "").PadLeft(2, '0')}G{(GroupCode ?? "")}S{(StatusCode ?? "")}P{(Code ?? "")}";
 
 
-
+        public UnitDto Unit { get; set; } = new UnitDto();
 
         public string StatusName { get; set; } = "";
         public string GroupName { get; set; } = "";

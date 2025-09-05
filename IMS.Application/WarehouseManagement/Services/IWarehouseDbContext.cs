@@ -20,6 +20,7 @@ namespace IMS.Application.WarehouseManagement.Services
         DbSet<ConversionConsumedItem> conversionConsumedItems  { get; set; }
         DbSet<ConversionProducedItem> conversionProducedItems  { get; set; }
         DbSet<ConversionDocument> conversionDocuments { get; set; }
+        DbSet<Unit> Units { get; set; }
         DbSet<Inventory> Inventories { get; set; }
         public DbSet<StorageZone> StorageZones { get; }
         public DbSet<StorageSection> StorageSections { get;  } 

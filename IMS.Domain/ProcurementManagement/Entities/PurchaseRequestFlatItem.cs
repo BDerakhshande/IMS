@@ -27,6 +27,7 @@ namespace IMS.Domain.ProcurementManagement.Entities
 
         public decimal Quantity { get; set; }
         public string? Unit { get; set; }
+        public int UnitId { get; set; }
 
         public decimal TotalStock { get; set; }
         public decimal PendingRequests { get; set; }

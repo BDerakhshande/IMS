@@ -105,7 +105,7 @@ namespace IMS.Application.ProcurementManagement.Service
                     Description = item.Description,
                     InitialQuantity = item.InitialQuantity,
                     RemainingQuantity = item.RemainingQuantity,
-                    Unit = item.Unit,
+                    UnitId = item.UnitId,
                     TotalStock = totalStock,
                     PendingRequests = totalPending,
                     NeedToSupply = needToSupply,

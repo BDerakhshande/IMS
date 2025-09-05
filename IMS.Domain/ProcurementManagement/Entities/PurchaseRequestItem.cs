@@ -47,7 +47,7 @@ namespace IMS.Domain.ProcurementManagement.Entities
         public decimal RemainingQuantity { get; set; }
 
         [MaxLength(50, ErrorMessage = "حداکثر طول واحد ۵۰ کاراکتر است.")]
-        public string? Unit { get; set; } // مثال: عدد، متر، جعبه
+        public int? UnitId { get; set; }
 
         // پروژه / مرکز هزینه
         public int? ProjectId { get; set; }

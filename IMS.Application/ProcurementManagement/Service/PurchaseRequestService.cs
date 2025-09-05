@@ -87,6 +87,12 @@ namespace IMS.Application.ProcurementManagement.Service
                     item.Group = groups.FirstOrDefault(g => g.Id == item.GroupId);
                     item.Product = products.FirstOrDefault(p => p.Id == item.ProductId);
                     item.Status = statuses.FirstOrDefault(s => s.Id == item.StatusId);
+                  
+                    if (item.Product != null)
+                    {
+                        item.UnitId = item.Product.UnitId;
+                       
+                    }
                 }
             }
 
@@ -133,7 +139,7 @@ namespace IMS.Application.ProcurementManagement.Service
                     Description = i.Description,
                     InitialQuantity = i.InitialQuantity,
                     RemainingQuantity = i.InitialQuantity,
-                    Unit = i.Unit,
+                    UnitId = i.UnitId,
                     ProjectId = i.ProjectId
                 }).ToList()
             };
@@ -206,6 +212,12 @@ namespace IMS.Application.ProcurementManagement.Service
                 item.Group = groups.FirstOrDefault(g => g.Id == item.GroupId);
                 item.Product = products.FirstOrDefault(p => p.Id == item.ProductId);
                 item.Status = statuses.FirstOrDefault(s => s.Id == item.StatusId);
+                if (item.Product != null)
+                {
+                    item.UnitId = item.Product.UnitId; // ست کردن UnitId از محصول
+                                                       
+                }
+
             }
 
             // 5. استخراج شناسه‌های پروژه‌ها از آیتم‌هایی که ProjectId دارند
@@ -275,7 +287,7 @@ namespace IMS.Application.ProcurementManagement.Service
                 existingItem.ProductId = dtoItem.ProductId;
                 existingItem.Description = dtoItem.Description;
                 existingItem.InitialQuantity = dtoItem.InitialQuantity;
-                existingItem.Unit = dtoItem.Unit;
+                existingItem.UnitId = dtoItem.UnitId;
                 existingItem.ProjectId = dtoItem.ProjectId;
             }
 
@@ -292,7 +304,7 @@ namespace IMS.Application.ProcurementManagement.Service
                     Description = i.Description,
                     InitialQuantity = i.InitialQuantity,
                     RemainingQuantity = i.InitialQuantity,
-                    Unit = i.Unit,
+                    UnitId = i.UnitId,
                     ProjectId = i.ProjectId
                 })
                 .ToList();
@@ -345,7 +357,8 @@ namespace IMS.Application.ProcurementManagement.Service
                     ProductName = i.Product?.Name,
                     Description = i.Description,
                     InitialQuantity = i.InitialQuantity,
-                    Unit = i.Unit,
+                    UnitId = i.UnitId,
+                    UnitName = i.Product?.Unit?.Name,
                     ProjectId = i.ProjectId,
                     ProjectName = i.Project?.ProjectName
                 }).ToList()
@@ -389,15 +402,19 @@ namespace IMS.Application.ProcurementManagement.Service
 
         public async Task<List<SelectListItem>> GetProductsByStatus(int statusId)
         {
-            return await _warehouseContext.Products
+            var products = await _warehouseContext.Products
+                .Include(p => p.Unit) // این خط اضافه شود
                 .Where(p => p.StatusId == statusId)
                 .Select(p => new SelectListItem
                 {
                     Value = p.Id.ToString(),
                     Text = p.Name
                 }).ToListAsync();
+
+            return products;
         }
 
-     
+
+
     }
 }

@@ -182,7 +182,7 @@ namespace IMS.Areas.ProcurementManagement.Controllers
 
         private PurchaseRequestDto MapToDto(PurchaseRequestViewModel vm)
         {
-            return new PurchaseRequestDto
+            var dto = new PurchaseRequestDto
             {
                 Id = vm.Id,
                 RequestNumber = vm.RequestNumber,
@@ -198,14 +198,26 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     CategoryId = i.CategoryId,
                     GroupId = i.GroupId,
                     StatusId = i.StatusId,
-                    
                     ProductId = i.ProductId,
                     Description = i.Description,
                     InitialQuantity = i.Quantity,
-                    Unit = i.Unit,
+                    UnitId = i.UnitId,
+                    Unit = i.Unit, // This could be validated or fetched from UnitId if needed
                     ProjectId = i.ProjectId
                 }).ToList()
             };
+
+            // Validate or fetch unit name based on UnitId
+            foreach (var item in dto.Items)
+            {
+                if (item.UnitId.HasValue)
+                {
+                    var unit = _warehouseContext.Units.FirstOrDefault(u => u.Id == item.UnitId);
+                    item.Unit = unit?.Name ?? item.Unit; // Fallback to provided Unit if not found
+                }
+            }
+
+            return dto;
         }
 
         private async Task PopulateCategorySelectList()
@@ -255,7 +267,8 @@ namespace IMS.Areas.ProcurementManagement.Controllers
                     ProductName = i.ProductName,
                     Description = i.Description,
                     Quantity = i.InitialQuantity,
-                    Unit = i.Unit,
+                    UnitId = i.UnitId,       
+                    UnitName = i.UnitName,   
                     ProjectId = i.ProjectId,
                     ProjectName = i.ProjectName
                 }).ToList()
@@ -376,10 +389,33 @@ namespace IMS.Areas.ProcurementManagement.Controllers
         public async Task<IActionResult> GetProducts(int statusId)
         {
             var products = await _purchaseRequestService.GetProductsByStatus(statusId);
-            return Json(products);
+
+            // برگرداندن JSON مناسب برای select
+            var result = products.Select(p => new {
+                value = p.Value, // اگر SelectListItem دارید
+                text = p.Text
+            }).ToList();
+
+            return Json(result);
         }
 
-       
+        [HttpGet]
+        public async Task<IActionResult> GetProductUnit(int productId)
+        {
+            var product = await _warehouseContext.Products
+                .Include(p => p.Unit)
+                .FirstOrDefaultAsync(p => p.Id == productId);
+
+            if (product == null || product.UnitId == null || product.Unit == null)
+            {
+                return Json(new { success = false, message = "محصول یا واحد مرتبط یافت نشد." });
+            }
+
+            return Json(new { success = true, unitName = product.Unit.Name, unitId = product.UnitId });
+        }
+
+
+
         private DateTime ParsePersianDate(string persianDate)
         {
             if (string.IsNullOrWhiteSpace(persianDate))
