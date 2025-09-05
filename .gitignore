@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/IMS/Areas/AccountManagement/Views/Shared/_Menu2.cshtml
