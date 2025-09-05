@@ -2,12 +2,15 @@
 <html lang="fa">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - IMS</title>
 
-    <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+
+
+    <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/WarhouseLayouStyle.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/IMS.styles.css" asp-append-version="true" />
 
     @await RenderSectionAsync("Styles", required: false)
@@ -15,48 +18,21 @@
 <body>
     <div class="system-access-container d-flex flex-column min-vh-100">
 
-        <!-- 🔹 هدر سیستم -->
-        <header class="system-header">
-            <div class="header-content">
-                <div class="user-menu">
-                    <span class="username">کاربر: مدیر سیستم</span>
-                    <img src="~/icon/icons8-user-24.png" alt="User" />
-                </div>
-                <h1>نرم افزار یکپارچه صدرا تجهیز مهرگان</h1>
-                <img src="~/image/logo.png" alt="لوگو" class="system-logo" />
-            </div>
-        </header>
+        <partial name="_CustomHeader" />
 
-        <!-- 🔸 محتوای اصلی صفحه -->
-        <main role="main" class="flex-fill container pb-3">
-            @RenderBody()
-        </main>
-
-        <!-- 🔹 فوتر سیستم -->
-        <footer class="system-footer">
-            <div class="footer-links">
-                <a><i class="fas fa-question-circle"></i> ارتباط با ما </a>
-                <a><i class="fas fa-envelope"></i> مدیریت کاربران </a>
-                <a><i class="fas fa-cog"></i> ارسال تیکت </a>
+        <div class="d-flex" flex-grow-1>
+            <div class="sidebar" id="sidebar">
+                <partial name="_Menu" />
             </div>
-            <div class="footer-info">
-                <span>نسخه ۱.۱.۰</span>
-                <span>© ۱۴۰۴ کلیه حقوق محفوظ است</span>
-            </div>
-        </footer>
-
-        <!-- 🌗 دکمه تغییر تم -->
-        <div class="theme-toggle" id="mode-toggle">
-            <img src="~/icon/icons8-moon-20.png" />
-            <img src="~/icon/icons8-sun-20.png" />
-            <div class="toggle-thumb"></div>
+            <main id="mainContent" class="main-content flex-fill p-3">
+                @RenderBody()
+            </main>
         </div>
 
-    </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+        <partial name="_CustomFooter" />
+
+    </div>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
