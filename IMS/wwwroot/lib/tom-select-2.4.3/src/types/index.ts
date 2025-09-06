@@ -1,3 +1,3 @@
 
-export * from './core.ts';
-export * from './settings.ts';
+export * from './core.js';
+export * from './settings.js';

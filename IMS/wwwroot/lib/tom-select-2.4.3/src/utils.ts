@@ -1,6 +1,6 @@
 
-import type TomSelect from './tom-select.ts';
-import { TomLoadCallback } from './types/index.ts';
+import type TomSelect from './tom-select.js';
+import { TomLoadCallback } from './types/index.js';
 
 
 /**

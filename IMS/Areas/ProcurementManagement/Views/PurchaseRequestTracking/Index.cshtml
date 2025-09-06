@@ -1,5 +1,6 @@
 ﻿@using System.Reflection
 @using System.ComponentModel
+@using IMS.Areas.ProjectManagement.Helper
 @model List<IMS.Application.ProcurementManagement.DTOs.PurchaseRequestDto>
 @{
     ViewData["Title"] = "لیست درخواست‌های کالا";
@@ -61,7 +62,7 @@
                                     {
                                         <tr data-id="@pr.Id">
                                             <td class="text-center fw-bold py-1 align-middle">@pr.RequestNumber</td>
-                                            <td class="text-center py-1 align-middle">@pr.RequestDate.ToString("yyyy/MM/dd")</td>
+                                            <td class="text-center py-1 align-middle">@pr.RequestDate.ToShamsi()</td>
                                             <td class="text-center py-1 align-middle">@pr.Title</td>
                                             <td class="text-center py-1 align-middle">
                                                 @{

@@ -39,7 +39,7 @@ namespace IMS.Domain.ProjectManagement.Entities
         public string Location { get; set; } = null!;
 
         // توضیحات تکمیلی پروژه
-        public string Description { get; set; } = null!;
+        public string? Description { get; set; } = null!;
 
 
         public ProjectType ProjectType { get; set; } = null!;

@@ -12,8 +12,8 @@
  *
  */
 
-import type TomSelect from '../../tom-select.ts';
-import { addEvent } from '../../utils.ts';
+import type TomSelect from '../../tom-select.js';
+import { addEvent } from '../../utils.js';
 
 export default function(this:TomSelect) {
 	var self					= this;

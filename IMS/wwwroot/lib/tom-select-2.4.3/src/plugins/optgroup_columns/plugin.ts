@@ -13,9 +13,9 @@
  *
  */
 
-import type TomSelect from '../../tom-select.ts';
-import * as constants from '../../constants.ts';
-import { parentMatch, nodeIndex } from '../../vanilla.ts';
+import type TomSelect from '../../tom-select.js';
+import * as constants from '../../constants.js';
+import { parentMatch, nodeIndex } from '../../vanilla.js';
 
 export default function(this:TomSelect) {
 	var self = this;

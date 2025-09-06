@@ -14,7 +14,7 @@
  */
 
 import type TomSelect from '../../tom-select.ts';
-import { nodeIndex, removeClasses } from '../../vanilla.ts';
+import { nodeIndex, removeClasses } from '../../vanilla.js';
 
 
 export default function(this:TomSelect) {

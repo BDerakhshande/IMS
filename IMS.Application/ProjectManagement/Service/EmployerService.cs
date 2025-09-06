@@ -24,10 +24,10 @@ namespace IMS.Application.ProjectManagement.Service
                 .Select(e => new EmployerDto
                 {
                     Id = e.Id,
-                    CompanyName = e.CompanyName,
-                    NationalId = e.NationalId,
-                    RegistrationNumber = e.RegistrationNumber,
-                    LegalPersonType = e.LegalPersonType,
+                    CompanyName = e.CompanyName,           // nullable, no default
+                    NationalId = e.NationalId,             // nullable, no default
+                    RegistrationNumber = e.RegistrationNumber, // non-nullable
+                    LegalPersonType = e.LegalPersonType,       // non-nullable
                     Address = e.Address,
                     PhoneNumber = e.PhoneNumber,
                     Website = e.Website,
@@ -44,28 +44,29 @@ namespace IMS.Application.ProjectManagement.Service
 
         public async Task<EmployerDto?> GetEmployerByIdAsync(int id)
         {
-            var employer = await _context.Employers.FindAsync(id);
-            if (employer == null) return null;
+            var e = await _context.Employers.FindAsync(id);
+            if (e == null) return null;
 
             return new EmployerDto
             {
-                Id = employer.Id,
-                CompanyName = employer.CompanyName,
-                NationalId = employer.NationalId,
-                RegistrationNumber = employer.RegistrationNumber,
-                LegalPersonType = employer.LegalPersonType,
-                Address = employer.Address,
-                PhoneNumber = employer.PhoneNumber,
-                Website = employer.Website,
-                RepresentativeName = employer.RepresentativeName,
-                RepresentativePosition = employer.RepresentativePosition,
-                RepresentativeMobile = employer.RepresentativeMobile,
-                RepresentativeEmail = employer.RepresentativeEmail,
-                CooperationType = employer.CooperationType,
-                CooperationStartDate = employer.CooperationStartDate,
-                AdditionalDescription = employer.AdditionalDescription
+                Id = e.Id,
+                CompanyName = e.CompanyName,
+                NationalId = e.NationalId,
+                RegistrationNumber = e.RegistrationNumber,
+                LegalPersonType = e.LegalPersonType,
+                Address = e.Address,
+                PhoneNumber = e.PhoneNumber,
+                Website = e.Website,
+                RepresentativeName = e.RepresentativeName,
+                RepresentativePosition = e.RepresentativePosition,
+                RepresentativeMobile = e.RepresentativeMobile,
+                RepresentativeEmail = e.RepresentativeEmail,
+                CooperationType = e.CooperationType,
+                CooperationStartDate = e.CooperationStartDate,
+                AdditionalDescription = e.AdditionalDescription
             };
         }
+
 
         public async Task<int> CreateEmployerAsync(EmployerDto dto)
         {

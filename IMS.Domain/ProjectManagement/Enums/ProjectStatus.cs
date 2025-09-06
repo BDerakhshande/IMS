@@ -9,7 +9,7 @@ namespace IMS.Domain.ProjectManagement.Enums
 {
     public enum ProjectStatus
     {
-        [Display(Name = "برنامه‌ریزی شده")]
+        [Display(Name = "درحال برنامه ریزی")]
         Planned,
 
         [Display(Name = "در حال اجرا")]

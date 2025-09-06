@@ -1,12 +1,12 @@
 
-import MicroEvent from './contrib/microevent.ts';
-import MicroPlugin from './contrib/microplugin.ts';
+import MicroEvent from './contrib/microevent.js';
+import MicroPlugin from './contrib/microplugin.js';
 import { Sifter } from '@orchidjs/sifter';
 import { escape_regex } from '@orchidjs/unicode-variants';
-import { TomInput, TomArgObject, TomOption, TomOptions, TomCreateFilter, TomCreateCallback, TomItem, TomSettings, TomTemplateNames, TomClearFilter, RecursivePartial } from './types/index.ts';
-import {highlight, removeHighlight} from './contrib/highlight.ts';
-import * as constants from './constants.ts';
-import getSettings from './getSettings.ts';
+import { TomInput, TomArgObject, TomOption, TomOptions, TomCreateFilter, TomCreateCallback, TomItem, TomSettings, TomTemplateNames, TomClearFilter, RecursivePartial } from './types/index.js';
+import { highlight, removeHighlight } from './contrib/highlight.js';
+import * as constants from './constants.js';
+import getSettings from './getSettings.js';
 import {
 	hash_key,
 	get_hash,
@@ -22,7 +22,7 @@ import {
 	addSlashes,
 	append,
 	iterate
-} from './utils.ts';
+} from './utils.js';
 
 import {
 	getDom,
@@ -38,7 +38,7 @@ import {
 	nodeIndex,
 	setAttr,
 	replaceNode
-} from './vanilla.ts';
+} from './vanilla.js';
 
 var instance_i = 0;
 
@@ -1371,7 +1371,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 				return !(hashed && self.items.indexOf(hashed) !== -1 );
 			});
 		}
-
+	
 		return result;
 	}
 

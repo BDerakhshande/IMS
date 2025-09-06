@@ -1,5 +1,5 @@
 
-import { iterate } from './utils.ts';
+import { iterate } from './utils.js';
 
 /**
  * Return a dom element from either a dom query string, jQuery object, a dom element or html string

@@ -13,10 +13,10 @@
  *
  */
 
-import type TomSelect from '../../tom-select.ts';
-import { getDom } from '../../vanilla.ts';
-import { preventDefault } from '../../utils.ts';
-import { DHOptions } from './types.ts';
+import type TomSelect from '../../tom-select.js';
+import { getDom } from '../../vanilla.js';
+import { preventDefault } from '../../utils.js';
+import { DHOptions } from './types.js';
 
 export default function(this:TomSelect, userOptions:DHOptions) {
 	const self = this;

@@ -67,17 +67,74 @@ namespace IMS.Areas.ProjectManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProjectDto dto, string StartDate, string EndDate)
         {
-            dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
-            dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
+            try
+            {
+                
 
-            
+                // Parse Persian dates
+                dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
+                dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
 
-            var result = await _projectService.CreateProjectAsync(dto);
-            if (result)
-                return RedirectToAction(nameof(Index));
+                // Attempt to create the project
+                var result = await _projectService.CreateProjectAsync(dto);
+                if (result)
+                    return RedirectToAction(nameof(Index));
+                else
+                {
+                    ModelState.AddModelError("", "خطا در ثبت پروژه");
+                    await PopulateViewBag();
+                    return View(dto);
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                // Extract the inner SqlException message
+                var errorMessage = ex.InnerException?.Message ?? ex.Message;
+                if (errorMessage.Contains("Cannot insert the value NULL into column 'Location'"))
+                {
+                    ModelState.AddModelError("", "لطفاً فیلد مکان را پر کنید.");
+                }
+                else
+                {
+                    ModelState.AddModelError("", $"خطا در ثبت پروژه: {errorMessage}");
+                }
 
-            ModelState.AddModelError("", "خطا در ثبت پروژه");
-            return View(dto);
+                // Repopulate ViewBag data for the view
+                await PopulateViewBag();
+                return View(dto);
+            }
+            catch (Exception ex)
+            {
+                // Handle unexpected errors
+                ModelState.AddModelError("", $"خطای غیرمنتظره: {ex.Message}");
+                await PopulateViewBag();
+                return View(dto);
+            }
+        }
+
+        // Helper method to populate ViewBag data
+        private async Task PopulateViewBag()
+        {
+            var employers = await _employerService.GetAllEmployersAsync();
+            var projectTypes = await _projectTypeService.GetAllAsync();
+
+            ViewBag.Employers = employers.Select(e => new SelectListItem
+            {
+                Value = e.Id.ToString(),
+                Text = e.CompanyName
+            }).ToList();
+
+            ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
+            {
+                Value = p.Id.ToString(),
+                Text = p.Name
+            }).ToList();
+
+            // Set default Persian calendar date
+            var pc = new PersianCalendar();
+            var now = DateTime.Now;
+            var todayShamsi = $"{pc.GetYear(now):0000}/{pc.GetMonth(now):00}/{pc.GetDayOfMonth(now):00}";
+            ViewBag.TodayShamsi = todayShamsi;
         }
 
 

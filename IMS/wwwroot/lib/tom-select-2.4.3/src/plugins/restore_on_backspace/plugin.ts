@@ -12,8 +12,8 @@
  * governing permissions and limitations under the License.
  *
  */
-import type TomSelect from '../../tom-select.ts';
-import { TomOption } from '../../types/index.ts';
+import type TomSelect from '../../tom-select.js';
+import { TomOption } from '../../types/index.js';
 
 type TPluginOptions = {
 	text?:(option:TomOption)=>string,

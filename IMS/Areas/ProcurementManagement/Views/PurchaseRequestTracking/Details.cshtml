@@ -1,10 +1,11 @@
-﻿@using IMS.Domain.ProcurementManagement.Enums
+﻿@using IMS.Areas.ProjectManagement.Helper
+@using IMS.Domain.ProcurementManagement.Enums
 @using IMS.Models.ProMan
 @using System.Reflection
 @model PurchaseRequestDetailsViewModel
 @{
     ViewData["Title"] = "جزئیات درخواست کالا";
-    Layout = "~/Areas/ProcurementManagement/Views/Shared/_Layout.cshtml";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var isCompleted = Model.Status == Status.Completed;
 }
 
@@ -59,14 +60,31 @@
             pointer-events: none;
         }
 
+    /* دکمه درخواست خرید */
     .add-to-flatitems-btn {
-        background-color: #28a745;
-        color: white;
+        border: 1px solid #28a745; /* رنگ سبز حاشیه */
+        color: #28a745;
+        background-color: transparent;
+        transition: all 0.3s ease;
     }
 
-        .add-to-flatitems-btn.stopped {
-            opacity: 0.5;
+        .add-to-flatitems-btn:hover:not(:disabled) {
+            background-color: #28a745;
+            color: white;
         }
+
+        .add-to-flatitems-btn.stopped {
+            background-color: #6c757d; /* خاکستری */
+            border-color: #6c757d;
+            color: white;
+            opacity: 0.7;
+        }
+
+        .add-to-flatitems-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
 
     .toggle-disable-btn {
         color: #dc3545;
@@ -96,23 +114,32 @@
             <div class="card border-0 shadow">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
                     <h5 class="mb-0 text-white"><i class="fas fa-file-invoice me-2"></i> @ViewData["Title"] شماره @Model.RequestNumber</h5>
-                    <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm"><i class="fas fa-arrow-right me-1"></i> بازگشت به لیست</a>
+                    <div>
+                        <a href="@Url.Action("PrintDetails", "PurchaseRequestTracking", new { area = "ProcurementManagement", purchaseRequestId = Model.PurchaseRequestId })"
+                           class="btn btn-primary btn-sm me-1" target="_blank">
+                            <i class="fas fa-print me-1"></i> پرینت
+                        </a>
+                        <a href="@Url.Action("Index", "PurchaseRequestTracking")" class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i> بازگشت به لیست
+                        </a>
+                    </div>
                 </div>
 
-                <div class="card-body p-2 @(isCompleted ? "disabled-content" : "")">
-                    @if (isCompleted)
-                    {
-                        <div class="completion-message text-center text-white">
-                            <i class="fas fa-check-circle fa-2x mb-2"></i>
-                            <h4 style="font-size: 1.2rem; margin-bottom: 0.25rem;">درخواست خرید تکمیل شده است</h4>
-                            <p style="font-size: 0.9rem; margin-bottom: 0;">این درخواست به صورت کامل پردازش شده است.</p>
-                        </div>
-                    }
 
+                <div class="card-body p-2 @* @(isCompleted ? " disabled-content" : "" ) *@">
+                    @*   @if (isCompleted)
+                    {
+                    <div class="completion-message text-center text-white">
+                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                    <h4 style="font-size: 1.2rem; margin-bottom: 0.25rem;">درخواست خرید تکمیل شده است</h4>
+                    <p style="font-size: 0.9rem; margin-bottom: 0;">این درخواست به صورت کامل پردازش شده است.</p>
+                    </div>
+                    }
+                    *@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold mb-1 small"><i class="fas fa-calendar-alt me-1 text-muted"></i> تاریخ درخواست</label>
-                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.RequestDate.ToString("yyyy/MM/dd")</div>
+                            <div class="input-group input-group-sm bg-light rounded p-2">@Model.RequestDate.ToShamsi()</div>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold mb-1 small"><i class="fas fa-heading me-1 text-muted"></i> عنوان</label>
@@ -135,11 +162,13 @@
                             <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                 <tr>
                                     <th class="text-center py-1">کالا</th>
-                                    <th class="text-center py-1">تعداد درخواست</th>
-                                    <th class="text-center py-1">موجودی کل</th>
-                                    <th class="text-center py-1">درخواست‌های قبلی</th>
+                                    <th class="text-center py-1">درخواست اولیه</th>
+                                    <th class="text-center py-1">درخواست باقی مانده</th>
+                                    <th class="text-center py-1">موجودی انبار </th>
+                                    @*  <th class="text-center py-1">درخواست‌های قبلی</th> *@
                                     <th class="text-center py-1">نیاز به تامین</th>
                                     <th class="text-center py-1">تأمین کامل</th>
+                                    <th class="text-center py-1">تحویل کامل</th>
                                     <th class="text-center py-1">توضیحات</th>
                                     <th class="text-center py-1">عملیات</th>
                                 </tr>
@@ -153,13 +182,21 @@
 
                                     <tr data-item-id="@item.Id" class="@rowClass">
                                         <td class="text-center py-1 align-middle">@item.CategoryName | @item.GroupName | @item.Status | @item.ProductName</td>
-                                        <td class="text-center py-1 align-middle quantity">@item.Quantity</td>
-                                        <td class="text-center py-1 align-middle total-stock">@item.TotalStock</td>
-                                        <td class="text-center py-1 align-middle pending-requests">@item.PendingRequests</td>
-                                        <td class="text-center py-1 align-middle need-to-supply">@item.NeedToSupply</td>
+                                        <td class="text-center py-1 align-middle quantity">@item.InitialQuantity.ToString("0")</td>
+                                        <td class="text-center py-1 align-middle quantity">@item.RemainingQuantity.ToString("0")</td>
+                                        <td class="text-center py-1 align-middle total-stock">@item.TotalStock.ToString("0")</td>
+                                        @* <td class="text-center py-1 align-middle pending-requests">@item.PendingRequests.ToString("0")</td> *@
+                                        <td class="text-center py-1 align-middle need-to-supply">@item.NeedToSupply.ToString("0")</td>
+
                                         <td class="text-center py-1 align-middle">
                                             @* ستون تأمین کامل با شرط Razor و HTML *@
                                             @if (item.IsFullySupplied)
+                                            {
+                                                <i class="bi bi-check-lg text-success"></i>
+                                            }
+                                        </td>
+                                        <td class="text-center py-1 align-middle">
+                                            @if (item.IsFullyDelivered)
                                             {
                                                 <i class="bi bi-check-lg text-success"></i>
                                             }
@@ -168,10 +205,17 @@
                                         <td class="text-center py-1 align-middle">
                                             <form method="post" action="@Url.Action("AddToFlatItemsAndShow", "PurchaseRequestTracking", new { area = "ProcurementManagement" })" style="display:inline">
                                                 <input type="hidden" name="id" value="@item.Id" />
-                                                <button type="submit" class="btn btn-sm btn-icon btn-outline-success add-to-flatitems-btn rounded-circle me-1 @(item.IsSupplyStopped || item.IsFullySupplied ? "stopped" : "")"
-                                                        title="در حال تدارکات" @(isAddDisabled ? "disabled" : "")>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-icon add-to-flatitems-btn rounded-circle me-1
+               @(item.IsSupplyStopped || item.IsFullySupplied ? "stopped" : "")
+               @(item.IsAddedToFlatItems ? "btn-success" : "btn-outline-success")"
+                                                        data-id="@item.Id"
+                                                        title="درخواست خرید"
+                                                @(isAddDisabled || item.IsAddedToFlatItems ? "disabled" : "")>
                                                     <i class="bi bi-cart-check"></i>
                                                 </button>
+
+
                                             </form>
 
                                             @if (!item.IsFullySupplied)
@@ -197,38 +241,102 @@
 </div>
 
 @section Scripts {
-    <script src="/js/MenuJs.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
+
+            // هندل کردن کلیک دکمه "اضافه به لیست تخت"
+            $(".add-to-flatitems-btn").click(function () {
+                var btn = $(this);
+                var itemId = btn.data("id");
+
+                $.post('@Url.Action("AddToFlatItemsAndShow", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
+                    { id: itemId },
+                    function (response) {
+                        if (response.success) {
+                            showMessage(response.message, "success");
+                            // فقط غیرفعال کن، رنگ سبز بمونه
+                            btn.prop("disabled", true)
+                                .removeClass("stopped btn-outline-success")
+                                .addClass("btn-success");
+
+                        } else {
+                            showMessage(response.message, "danger");
+                        }
+                    })
+                    .fail(function () {
+                        showMessage("❌ خطا در ارتباط با سرور", "danger");
+                    });
+            });
+
+            // توقف / فعال کردن تامین
             $(".toggle-disable-btn").click(function () {
                 var btn = $(this);
                 var row = btn.closest("tr");
                 var itemId = row.data('item-id');
                 var addBtn = row.find(".add-to-flatitems-btn");
-                var isStopping = !row.hasClass("disabled-row");
+
+                console.log("Clicked button for itemId:", itemId);
+
+                // آیا الان متوقف شده؟
+                var isCurrentlyStopped = row.hasClass("disabled-row");
+                console.log("Currently stopped?", isCurrentlyStopped);
+
+                // برعکس وضعیت فعلی رو می‌فرستیم
+                var stopSupply = !isCurrentlyStopped;
+                console.log("Sending stopSupply =", stopSupply);
 
                 $.post('@Url.Action("ToggleSupplyStop", "PurchaseRequestTracking", new { area = "ProcurementManagement" })',
-                    { id: itemId, stopSupply: isStopping },
+                    { id: itemId, stopSupply: stopSupply },
                     function (response) {
-                        if (response.success) {
-                            if (response.isSupplyStopped) {
-                                row.addClass("disabled-row");
-                                btn.addClass("active").attr("title", "فعال کردن تامین").html('<i class="bi bi-check-circle"></i>');
-                                addBtn.addClass("stopped").prop("disabled", true);
-                            } else {
-                                row.removeClass("disabled-row");
-                                btn.removeClass("active").attr("title", "توقف تامین").html('<i class="bi bi-slash-circle"></i>');
-                                addBtn.removeClass("stopped").prop("disabled", false);
-                            }
+                        console.log("Response from server:", response);
+
+                        if (!response.success) {
+                            showMessage("خطا: " + response.message, "danger");
+                            return;
+                        }
+
+                        if (response.isSupplyStopped) {
+                            
+                            console.log("Item stopped supply");
+                            row.addClass("disabled-row");
+                            btn.addClass("active")
+                                .attr("title", "فعال کردن تامین")
+                                .html('<i class="bi bi-check-circle"></i>');
+                            addBtn.addClass("stopped")
+                                .prop("disabled", true)
+                                .removeClass("btn-success");
                         } else {
-                            alert("خطا: " + response.message);
+                            
+                            console.log("Item resumed supply");
+                            row.removeClass("disabled-row");
+                            btn.removeClass("active")
+                                .attr("title", "توقف تامین")
+                                .html('<i class="bi bi-slash-circle"></i>');
+                            addBtn.prop("disabled", false)
+                                .removeClass("stopped")
+                                .addClass("btn-success");
                         }
                     })
-                    .fail(function () {
-                        alert("خطا در ارتباط با سرور!");
+                    .fail(function (xhr, status, error) {
+                        console.error("AJAX failed:", status, error);
+                        showMessage("خطا در ارتباط با سرور!", "danger");
                     });
             });
+
+
+
+            // تابع نمایش پیام
+            function showMessage(message, type) {
+                var alertBox = $('<div class="alert alert-' + type + ' mt-2" role="alert">' + message + '</div>');
+                $("#flatItemsContainer").html(alertBox);
+                setTimeout(function () { alertBox.fadeOut(500, function () { $(this).remove(); }); }, 4000);
+            }
+
         });
+
+
+
+
     </script>
 }

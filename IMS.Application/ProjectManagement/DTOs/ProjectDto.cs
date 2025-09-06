@@ -55,8 +55,8 @@ namespace IMS.Application.ProjectManagement.DTOs
         public CurrencyType Currency { get; set; }
 
         [StringLength(1000, ErrorMessage = "توضیحات نمی‌تواند بیشتر از ۱۰۰۰ کاراکتر باشد")]
-        [Required(ErrorMessage = " توضیحات الزامی است")]
-        public string Description { get; set; } = null!;
+        
+        public string? Description { get; set; } = null!;
 
         [Required(ErrorMessage = "کارفرما الزامی است")]
         public int EmployerId { get; set; }

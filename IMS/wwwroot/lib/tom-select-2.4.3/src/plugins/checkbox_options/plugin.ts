@@ -13,11 +13,11 @@
  *
  */
 
-import type TomSelect from '../../tom-select.ts';
-import { TomTemplate } from '../../types/index.ts';
-import { preventDefault, hash_key } from '../../utils.ts';
-import { getDom } from '../../vanilla.ts';
-import { CBOptions } from './types.ts';
+import type TomSelect from '../../tom-select.js';
+import { TomTemplate } from '../../types/index.js';
+import { preventDefault, hash_key } from '../../utils.js';
+import { getDom } from '../../vanilla.js';
+import { CBOptions } from './types.js';
 
 
 export default function(this:TomSelect, userOptions:CBOptions) {

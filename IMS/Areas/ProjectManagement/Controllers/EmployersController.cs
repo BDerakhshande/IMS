@@ -65,13 +65,13 @@ namespace IMS.Areas.ProjectManagement.Controllers
         public async Task<IActionResult> Create(EmployerDto dto, string CooperationStartDatePersian, string? CooperationEndDatePersian)
         {
             dto.CooperationStartDate = ParsePersianDate(CooperationStartDatePersian) ?? DateTime.Now;
-
-            if (!ModelState.IsValid)
-            {
-                ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
-                ViewBag.CooperationType = GetSelectListItems<CooperationType>();
-                return View(dto);
-            }
+            
+            //if (!ModelState.IsValid)
+            //{
+            //    ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
+            //    ViewBag.CooperationType = GetSelectListItems<CooperationType>();
+            //    return View(dto);
+            //}
 
             await _employerService.CreateEmployerAsync(dto);
             return RedirectToAction(nameof(Index));
@@ -86,8 +86,11 @@ namespace IMS.Areas.ProjectManagement.Controllers
             ViewBag.CooperationType = GetSelectListItems<CooperationType>();
 
             var pc = new PersianCalendar();
-            ViewBag.CooperationStartDatePersian = $"{pc.GetYear(dto.CooperationStartDate):0000}/{pc.GetMonth(dto.CooperationStartDate):00}/{pc.GetDayOfMonth(dto.CooperationStartDate):00}";
-          
+            var date = dto.CooperationStartDate;
+            ViewBag.CooperationStartDatePersian = date.HasValue
+                ? $"{pc.GetYear(date.Value):0000}/{pc.GetMonth(date.Value):00}/{pc.GetDayOfMonth(date.Value):00}"
+                : string.Empty;
+
 
             return View(dto);
         }

@@ -10,51 +10,48 @@ namespace IMS.Domain.ProjectManagement.Entities
 {
     public class Employer
     {
-        public int Id { get; set; }
+        public int Id { get; set; } // non-nullable
 
-        // نام شرکت
-        public string CompanyName { get; set; } = null!;
+        // نام شرکت (nullable)
+        public string? CompanyName { get; set; }
 
-        // شناسه ملی شرکت
-        public string NationalId { get; set; }
+        // شناسه ملی شرکت (nullable)
+        public string? NationalId { get; set; }
 
-        // شماره ثبت شرکت
+        // شماره ثبت شرکت (non-nullable)
         public long RegistrationNumber { get; set; }
 
-        // نوع شخصیت حقوقی شرکت (حقیقی یا حقوقی)
+        // نوع شخصیت حقوقی شرکت (non-nullable)
         public LegalPersonType LegalPersonType { get; set; }
 
+        // آدرس شرکت (nullable)
+        public string? Address { get; set; }
 
-        // آدرس شرکت
-        public string Address { get; set; } = null!;
+        // شماره تلفن شرکت (nullable)
+        public string? PhoneNumber { get; set; }
 
-        // شماره تلفن شرکت (قابل اضافه کردن ماسک تلفن بعدا)
-        public string PhoneNumber { get; set; } = null!;
+        // وب‌سایت شرکت (nullable)
+        public string? Website { get; set; }
 
-        // وب‌سایت شرکت
-        public string Website { get; set; } = null!;
+        // نام نماینده شرکت (nullable)
+        public string? RepresentativeName { get; set; }
 
-        // نام نماینده شرکت
-        public string RepresentativeName { get; set; } = null!;
+        // سمت نماینده شرکت (nullable)
+        public string? RepresentativePosition { get; set; }
 
-        // سمت نماینده شرکت
-        public string RepresentativePosition { get; set; } = null!;
+        // موبایل نماینده شرکت (nullable)
+        public string? RepresentativeMobile { get; set; }
 
-        // موبایل نماینده شرکت (قابل اضافه کردن ماسک موبایل)
-        public string RepresentativeMobile { get; set; } = null!;
+        // ایمیل نماینده شرکت (nullable)
+        public string? RepresentativeEmail { get; set; }
 
-        // ایمیل نماینده شرکت
-        public string RepresentativeEmail { get; set; } = null!;
+        // نوع همکاری شرکت با ما (nullable)
+        public CooperationType? CooperationType { get; set; }
 
-        // نوع همکاری شرکت با ما (قرارداد، مشارکت و غیره)
-        public CooperationType CooperationType { get; set; }
+        // تاریخ شروع همکاری (nullable)
+        public DateTime? CooperationStartDate { get; set; }
 
-        [Required]
-        public DateTime CooperationStartDate { get; set; }
-
-  
-
-        // توضیحات تکمیلی
-        public string AdditionalDescription { get; set; } = null!;
+        // توضیحات تکمیلی (nullable)
+        public string? AdditionalDescription { get; set; }
     }
 }

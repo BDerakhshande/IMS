@@ -14,9 +14,9 @@
  */
 
 import type TomSelect from '../../tom-select.ts';
-import { TomOption, TomItem } from '../../types/index.ts';
-import { escape_html, preventDefault, addEvent } from '../../utils.ts';
-import { getDom, setAttr } from '../../vanilla.ts';
+import { TomOption, TomItem } from '../../types/index.js';
+import { escape_html, preventDefault, addEvent } from '../../utils.js';
+import { getDom, setAttr } from '../../vanilla.js';
 
 
 const insertAfter = (referenceNode:Element, newNode:Element) => {

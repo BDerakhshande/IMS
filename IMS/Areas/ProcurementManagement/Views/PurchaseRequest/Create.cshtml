@@ -64,10 +64,11 @@
 
 <!-- Select2 CSS -->
 <!-- CSS ها -->
-    
-    <link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" />
+    <link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap-5-theme-1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
     <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
-  @*   <link href="~/lib/select2-bootstrap-5-theme-1.3.0/select2-bootstrap-5-theme.min.css" /> *@
+ 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
 <div class="card border-0 shadow-sm" dir="rtl">
@@ -260,9 +261,13 @@
 @section Scripts {
     
     <!-- JS ها -->
-
+    <!-- jQuery باید قبل از select2.min.js باشد -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
 
+
+    <script src="/js/MenuJs.js"></script> 
 
     <script type="text/html" id="CategoryTemplateOptions">
         @foreach (var category in Model.Items.FirstOrDefault()?.AvailableCategories ?? new List<SelectListItem>())
