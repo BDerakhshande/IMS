@@ -1,4 +1,5 @@
 ﻿@using IMS.Application.ProjectManagement.Helper
+@using IMS.Areas.ProjectManagement.Helper
 @model List<IMS.Application.ProjectManagement.DTOs.ProjectDto>
 @{
     ViewData["Title"] = "مدیریت پروژه‌ها";
@@ -101,8 +102,8 @@
                                             <td class="text-center py-1 align-middle">@item.ProjectName</td>
                                             <td class="text-center py-1 align-middle">@item.EmployerName</td>
                                             <td class="text-center py-1 align-middle">@item.ProjectTypeName</td>
-                                            <td class="text-center py-1 align-middle">@item.StartDate.ToShortDateString()</td>
-                                            <td class="text-center py-1 align-middle">@item.EndDate.ToShortDateString()</td>
+                                            <td class="text-center py-1 align-middle">@item.StartDate.ToShamsi()</td>
+                                            <td class="text-center py-1 align-middle">@item.EndDate.ToShamsi()</td>
                                             <td class="text-center py-1 align-middle">
                                                 <div class="progress" style="height: 18px;">
                                                     <div class="progress-bar @progressColor progress-bar-striped progress-bar-animated"

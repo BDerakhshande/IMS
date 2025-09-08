@@ -14,7 +14,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string ZoneCode { get; set; }
         public int WarehouseId { get; set; }
         public string? WarehouseCode { get; set; }
-
+        public string WarehouseName { get; set; }
         public List<StorageSectionDto>? Sections { get; set; }
 
         // فقط تا سطح Zone کد بده

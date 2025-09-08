@@ -100,10 +100,10 @@
                                 <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                     <tr>
                                         <th class="text-center py-1">کد محصول</th>
-                                        <th class="text-center py-1">نام محصول</th>
                                         <th class="text-center py-1">دسته‌بندی</th>
                                         <th class="text-center py-1">گروه</th>
                                         <th class="text-center py-1">طبقه</th>
+                                        <th class="text-center py-1">نام محصول</th>
                                         <th class="text-center py-1">توضیحات</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
@@ -113,10 +113,10 @@
                                     {
                                         <tr data-url="@Url.Action("Details", "Products", new { id = item.Id })" style="cursor: pointer; height: 32px;">
                                             <td class="text-center fw-bold py-1 align-middle">@item.ProductsFullCode</td>
-                                            <td class="text-center py-1 align-middle">@item.Name</td>
                                             <td class="text-center py-1 align-middle">@item.CategoryName</td>
                                             <td class="text-center py-1 align-middle">@item.GroupName</td>
                                             <td class="text-center py-1 align-middle">@item.StatusName</td>
+                                            <td class="text-center py-1 align-middle">@item.Name</td>
                                             <td class="text-truncate text-center py-1 align-middle" style="max-width: 200px;" title="@item.Description">
                                                 @item.Description
                                             </td>

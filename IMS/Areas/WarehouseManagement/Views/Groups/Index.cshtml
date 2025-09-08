@@ -82,6 +82,7 @@
                                 <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                     <tr>
                                         <th class="text-center py-1">کد گروه</th>
+                                        <th class="text-center py-1">نام دسته‌بندی</th>
                                         <th class="text-center py-1">نام گروه</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
@@ -91,6 +92,7 @@
                                     {
                                         <tr data-url="@Url.Action("Index", "Statuses", new { groupId = group.Id })" style="cursor: pointer; height: 32px;">
                                             <td class="text-center fw-bold py-1 align-middle">@group.GroupCode</td>
+                                            <td class="text-center py-1 align-middle">@group.CategoryName</td>
                                             <td class="text-center py-1 align-middle">@group.Name</td>
                                             <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">

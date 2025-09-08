@@ -52,7 +52,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<int> CreateZoneAsync(StorageZoneDto dto)
         {
-            // بررسی تکراری بودن ZoneCode برای انبار مشخص
+            
             bool isDuplicate = await _context.StorageZones
                 .AnyAsync(z => z.ZoneCode == dto.ZoneCode && z.WarehouseId == dto.WarehouseId);
 
@@ -152,8 +152,8 @@ namespace IMS.Application.WarehouseManagement.Services
                         ZoneId = s.ZoneId,
                         //Capacity = s.Capacity,
                         Dimensions = s.Dimensions,
-                        ZoneCode = z.ZoneCode,           // اضافه شده
-                        WarehouseCode = w.Code           // اضافه شده
+                        ZoneCode = z.ZoneCode,           
+                        WarehouseCode = w.Code           
                     }).ToList()
                 }).ToList()
             }).ToList();
@@ -183,8 +183,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     ZoneId = s.ZoneId,
                     //Capacity = s.Capacity,
                     Dimensions = s.Dimensions,
-                    ZoneCode = z.ZoneCode,            // اضافه شده
-                    WarehouseCode = z.Warehouse?.Code // اضافه شده
+                    ZoneCode = z.ZoneCode,         
+                    WarehouseCode = z.Warehouse?.Code 
                 }).ToList()
             }).ToList();
         }
@@ -302,8 +302,8 @@ namespace IMS.Application.WarehouseManagement.Services
                         ZoneId = s.ZoneId,
                         //Capacity = s.Capacity,
                         Dimensions = s.Dimensions,
-                        ZoneCode = z.ZoneCode,            // اضافه شده
-                        WarehouseCode = warehouse.Code    // اضافه شده
+                        ZoneCode = z.ZoneCode,           
+                        WarehouseCode = warehouse.Code    
                     }).ToList()
                 }).ToList()
             };

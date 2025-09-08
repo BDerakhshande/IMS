@@ -28,7 +28,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(p => p.Status)
                     .ThenInclude(s => s.Group)
                         .ThenInclude(g => g.Category)
-                .Include(p => p.Unit) // اضافه شده
+                .Include(p => p.Unit) 
                 .Select(p => new ProductDto
                 {
                     Id = p.Id,

@@ -71,6 +71,8 @@
                                 <thead class="table-light" style="font-size: 0.82rem;">
                                     <tr>
                                         <th class="text-center py-1">کد طبقه</th>
+                                        <th class="text-center py-1">نام دسته‌بندی</th>
+                                        <th class="text-center py-1">نام گروه</th>
                                         <th class="text-center py-1">نام طبقه</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
@@ -80,6 +82,8 @@
                                     {
                                         <tr data-url="@Url.Action("Index", "Products", new { statusId = status.Id })" style="cursor: pointer;">
                                             <td class="text-center fw-bold py-1 align-middle">@status.FullCode</td>
+                                            <td class="text-center fw-bold py-1 align-middle">@status.CategoryName</td>
+                                            <td class="text-center fw-bold py-1 align-middle">@status.GroupName</td>
                                             <td class="text-center py-1 align-middle">@status.Name</td>
                                             <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">

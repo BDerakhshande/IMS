@@ -172,15 +172,38 @@ namespace IMS.Areas.ProjectManagement.Controllers
             dto.StartDate = ParsePersianDate(StartDate) ?? DateTime.Now;
             dto.EndDate = ParsePersianDate(EndDate) ?? DateTime.Now;
 
-          
+            // 🔹 اول اعتبارسنجی
+            if (!ModelState.IsValid)
+            {
+                // دوباره لیست‌ها رو پر کن چون توی ویو نیاز داری
+                var employers = await _employerService.GetAllEmployersAsync();
+                var projectTypes = await _projectTypeService.GetAllAsync();
 
+                ViewBag.Employers = employers.Select(e => new SelectListItem
+                {
+                    Value = e.Id.ToString(),
+                    Text = e.CompanyName,
+                    Selected = e.Id == dto.EmployerId
+                }).ToList();
+
+                ViewBag.ProjectTypes = projectTypes.Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.Name,
+                    Selected = p.Id == dto.ProjectTypeId
+                }).ToList();
+
+                return View(dto); // ✅ همین ویو رو با خطاها برمی‌گردونه
+            }
+
+            // 🔹 اگه معتبر بود، برو سراغ آپدیت
             var result = await _projectService.UpdateProjectAsync(dto);
             if (result)
                 return RedirectToAction(nameof(Index));
 
             ModelState.AddModelError("", "خطا در به‌روزرسانی پروژه");
 
-            // Repopulate ViewBag again if update fails
+            // دوباره ViewBag پر کن چون اینجا هم نیاز داری
             var employersFail = await _employerService.GetAllEmployersAsync();
             var projectTypesFail = await _projectTypeService.GetAllAsync();
 
@@ -200,6 +223,7 @@ namespace IMS.Areas.ProjectManagement.Controllers
 
             return View(dto);
         }
+
 
         // نمایش تایید حذف
         public async Task<IActionResult> Delete(int id)

@@ -12,6 +12,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string Name { get; set; } = null!;
         public int CategoryId { get; set; }
         public string CategoryCode { get; set; } = null!;
+
+        public string CategoryName { get; set; } = "";
         public string Code { get; set; } = null!; // ← از Entity خوانده شود
 
         public List<StatusDto>? Statuses { get; set; }

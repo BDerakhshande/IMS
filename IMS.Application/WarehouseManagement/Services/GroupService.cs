@@ -30,11 +30,10 @@ namespace IMS.Application.WarehouseManagement.Services
                     g.Name,
                     g.Code,
                     g.CategoryId,
-                    CategoryCodeRaw = g.Category != null ? g.Category.Code : null
+                    CategoryCodeRaw = g.Category != null ? g.Category.Code : null,
+                    CategoryName = g.Category != null ? g.Category.Name : ""
                 })
                 .ToListAsync();
-
-            Console.WriteLine($"GetAllAsync called with CategoryId: {categoryId}, RawData Count: {rawData?.Count ?? 0}");
 
             if (rawData == null)
             {
@@ -58,16 +57,14 @@ namespace IMS.Application.WarehouseManagement.Services
                     Name = g.Name,
                     Code = g.Code,
                     CategoryId = g.CategoryId,
-                    CategoryCode = formattedCategoryCode
+                    CategoryCode = formattedCategoryCode,
+                    CategoryName = g.CategoryName
                 };
             }).ToList();
 
             Console.WriteLine($"Returning {result.Count} groups for CategoryId: {categoryId}");
             return result;
         }
-
-
-
 
 
         public async Task<GroupDto?> GetByIdAsync(int id)

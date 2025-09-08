@@ -19,7 +19,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         public async Task<IActionResult> Index(int categoryId)
         {
             var groups = await _groupService.GetAllAsync(categoryId);
-            ViewData["CategoryId"] = categoryId;  // ارسال دسته‌بندی به ویو
+            ViewData["CategoryId"] = categoryId;
             return View(groups);
         }
 

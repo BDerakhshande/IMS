@@ -82,14 +82,14 @@ namespace IMS.Application.ProjectManagement.Service
                 ProjectName = dto.ProjectName,
                 StartDate = dto.StartDate,
                 EndDate = dto.EndDate,
-                ProjectTypeId = dto.ProjectTypeId,
+                ProjectTypeId = dto.ProjectTypeId.Value,
                 Status = dto.Status,
                 ProjectManager = dto.ProjectManager,
                 ProgressPercent = dto.ProgressPercent,
                 Priority = dto.Priority,
                 Location = dto.Location,
                 Description = dto.Description,
-                EmployerId = dto.EmployerId
+                EmployerId = dto.EmployerId.Value
             };
 
             _context.Projects.Add(project);
@@ -106,14 +106,14 @@ namespace IMS.Application.ProjectManagement.Service
             project.ProjectName = dto.ProjectName;
             project.StartDate = dto.StartDate;
             project.EndDate = dto.EndDate;
-            project.ProjectTypeId = dto.ProjectTypeId;
+            project.ProjectTypeId = dto.ProjectTypeId.Value;
             project.Status = dto.Status;
             project.ProjectManager = dto.ProjectManager;
             project.ProgressPercent = dto.ProgressPercent;
             project.Priority = dto.Priority;
             project.Location = dto.Location;
             project.Description = dto.Description;
-            project.EmployerId = dto.EmployerId;
+            project.EmployerId = dto.EmployerId.Value;
 
             _context.Projects.Update(project);
             var saved = await _context.SaveChangesAsync();
