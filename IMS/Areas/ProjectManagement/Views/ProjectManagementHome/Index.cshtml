@@ -1,11 +1,15 @@
 ﻿@using IMS.Application.ProjectManagement.Helper
 @using System.Reflection
+@using IMS.Areas.ProjectManagement.Helper
 @using System.ComponentModel.DataAnnotations
 @model List<IMS.Domain.ProjectManagement.Entities.Project>
 @{
     ViewData["Title"] = "داشبورد پروژه‌ها";
     Layout = "~/Areas/ProjectManagement/Views/Shared/_Layout.cshtml";
+  
 }
+
+
 <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
 <link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
 
@@ -94,8 +98,9 @@
                                         <div class="card-body p-2" style="font-size: 0.85rem;">
                                             <p class="mb-1"><strong>کارفرما:</strong> @project.Employer.CompanyName</p>
                                             <p class="mb-1"><strong>نوع پروژه:</strong> @project.ProjectType.Name</p>
-                                            <p class="mb-1"><strong>شروع:</strong> @project.StartDate.ToShortDateString()</p>
-                                            <p class="mb-1"><strong>پایان:</strong> @project.EndDate.ToShortDateString()</p>
+                                            <p class="mb-1"><strong>شروع:</strong> @project.StartDate.ToShamsi()</p>
+                                            <p class="mb-1"><strong>پایان:</strong> @project.EndDate.ToShamsi()</p>
+
                                             <div class="progress mt-2" style="height: 18px;">
                                                 <div class="progress-bar @progressColor progress-bar-striped progress-bar-animated"
                                                      role="progressbar"
