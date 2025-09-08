@@ -149,6 +149,42 @@
             <span>تاریخ چاپ: @printDate.ToString("yyyy/MM/dd HH:mm", culture)</span>
         </div>
     </div>
+    <div class="filter-info">
+        @if (!string.IsNullOrEmpty(Model.ProjectNameFilter))
+        {
+            <div class="filter-item"><span class="filter-label">نام پروژه:</span> @Model.ProjectNameFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.EmployerFilter))
+        {
+            <div class="filter-item"><span class="filter-label">کارفرما:</span> @Model.EmployerFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ProjectTypeFilter))
+        {
+            <div class="filter-item"><span class="filter-label">نوع پروژه:</span> @Model.ProjectTypeFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ProjectManagerFilter))
+        {
+            <div class="filter-item"><span class="filter-label">مدیر پروژه:</span> @Model.ProjectManagerFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.StatusFilter))
+        {
+            <div class="filter-item"><span class="filter-label">وضعیت:</span> @Model.StatusFilter</div>
+        }
+        @if (!string.IsNullOrEmpty(Model.StartDateFromFilter) || !string.IsNullOrEmpty(Model.StartDateToFilter))
+        {
+            <div class="filter-item">
+                <span class="filter-label">تاریخ شروع:</span>
+                @Model.StartDateFromFilter - @Model.StartDateToFilter
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.EndDateFromFilter) || !string.IsNullOrEmpty(Model.EndDateToFilter))
+        {
+            <div class="filter-item">
+                <span class="filter-label">تاریخ پایان:</span>
+                @Model.EndDateFromFilter - @Model.EndDateToFilter
+            </div>
+        }
+    </div>
 
     @if (Model.ReportItems != null && Model.ReportItems.Any())
     {

@@ -181,13 +181,28 @@ namespace IMS.Areas.ProjectManagement.Controllers
             // دریافت داده‌ها
             var reportData = await _projectService.GetProjectReportAsync(filter);
 
-            // پر کردن ViewModel
+            // تبدیل ID به نام کارفرما و نوع پروژه در صورت نیاز
+            string employerName = filter.EmployerName;
+            if (string.IsNullOrEmpty(employerName) && filter.EmployerId.HasValue)
+            {
+                var employer = await _employerService.GetEmployerByIdAsync(filter.EmployerId.Value);
+                employerName = employer?.CompanyName ?? "";
+            }
+
+            string projectTypeName = filter.ProjectTypeName;
+            if (string.IsNullOrEmpty(projectTypeName) && filter.ProjectTypeId.HasValue)
+            {
+                var projectType = await _projectTypeService.GetByIdAsync(filter.ProjectTypeId.Value);
+                projectTypeName = projectType?.Name ?? "";
+            }
+
+            // پر کردن ViewModel برای چاپ
             var vm = new ProjectReportPrintViewModel
             {
                 ReportItems = reportData,
                 ProjectNameFilter = filter.ProjectName,
-                EmployerFilter = filter.EmployerName,
-                ProjectTypeFilter = filter.ProjectTypeName,
+                EmployerFilter = employerName,
+                ProjectTypeFilter = projectTypeName,
                 ProjectManagerFilter = filter.ProjectManager,
                 StatusFilter = filter.Status?.GetDisplayName(),
                 StartDateFromFilter = filter.StartDateFromShamsi,
@@ -196,7 +211,7 @@ namespace IMS.Areas.ProjectManagement.Controllers
                 EndDateToFilter = filter.EndDateToShamsi
             };
 
-            // استفاده از Rotativa برای تولید PDF
+            // تولید PDF با Rotativa
             return new ViewAsPdf("~/Areas/ProjectManagement/Views/ProjectReport/ProjectReportPrint.cshtml", vm)
             {
                 FileName = $"ProjectReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
@@ -205,7 +220,6 @@ namespace IMS.Areas.ProjectManagement.Controllers
                 PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
                 CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
             };
-
         }
 
 
