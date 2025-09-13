@@ -12,16 +12,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     {
         private readonly IProductService _productsService;
         private readonly IStatusService _statusService;
-        private readonly IUnitService _unitService; // اضافه شد
+        private readonly IUnitService _unitService;
+        private readonly ICategoryService _categoryService;
 
         public ProductsController(
             IProductService productsService,
             IStatusService statusService,
-            IUnitService unitService) // اضافه شد
+            IUnitService unitService,
+            ICategoryService categoryService) 
         {
             _productsService = productsService;
             _statusService = statusService;
             _unitService = unitService;
+            _categoryService = categoryService;
         }
 
         public async Task<IActionResult> Index(int statusId)
@@ -41,13 +44,19 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(int statusId)
         {
+            var nextCode = await _categoryService.GenerateNextCodeAsync<Product>(
+                x => x.Code,
+                x => x.Id
+            );
+
             var dto = new ProductDto
             {
-                StatusId = statusId
+                StatusId = statusId,
+                Code = nextCode,
+                UnitId = 1 // مقدار پیش‌فرض برای UnitId
             };
 
-            // لیست واحدها برای انتخاب در ویو
-            ViewBag.Units = new SelectList(await _unitService.GetAllAsync(), "Id", "Name");
+            ViewBag.Units = new SelectList(await _unitService.GetAllAsync(), "Id", "Name", dto.UnitId);
 
             return View(dto);
         }
@@ -56,6 +65,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProductDto dto)
         {
+            // بررسی اعتبار UnitId قبل از بررسی ModelState
+            var units = await _unitService.GetAllAsync();
+            var unitExists = units.Any(u => u.Id == dto.UnitId);
+
+            if (!unitExists)
+            {
+                ModelState.AddModelError("UnitId", "واحد انتخاب شده معتبر نیست");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Units = new SelectList(units, "Id", "Name", dto.UnitId);
+                return View(dto);
+            }
+
             try
             {
                 await _productsService.CreateAsync(dto);
@@ -63,14 +87,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError(nameof(dto.Code), ex.Message);
-
-                // دوباره لیست واحدها را برای ویو بارگذاری کن
-                ViewBag.Units = new SelectList(await _unitService.GetAllAsync(), "Id", "Name", dto.Unit?.Id);
-
+                ModelState.AddModelError("", ex.Message);
+                ViewBag.Units = new SelectList(units, "Id", "Name", dto.UnitId);
                 return View(dto);
             }
         }
+
+
+
 
         [HttpGet]
         public async Task<IActionResult> Edit(int id)

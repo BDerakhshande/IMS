@@ -12,11 +12,13 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     {
         private readonly IStatusService _statusService;
         private readonly IGroupService _groupService;
+        private readonly ICategoryService _categoryService;
 
-        public StatusesController(IStatusService statusService , IGroupService groupService)
+        public StatusesController(IStatusService statusService , IGroupService groupService , ICategoryService categoryService)
         {
             _statusService = statusService;
             _groupService = groupService;
+            _categoryService = categoryService;
         }
 
 
@@ -30,14 +32,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult Create(int groupId)
+        public async Task<IActionResult> Create(int groupId)
         {
             if (groupId == 0)
                 return BadRequest("شناسه گروه نامعتبر است.");
 
+            // گرفتن کد بعدی
+            var nextCode = await _categoryService.GenerateNextCodeAsync<Status>(
+                s => s.Code,
+                s => s.Id
+            );
+
             var dto = new StatusDto
             {
-                GroupId = groupId
+                GroupId = groupId,
+                Code = nextCode // 👈 پر کردن مقدار پیش‌فرض کد
             };
 
             return View(dto);

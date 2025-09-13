@@ -1,5 +1,6 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
@@ -21,13 +22,23 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return View(categories);
         }
 
-       
+
 
         // GET: WarehouseManagement/Categories/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var dto = new CategoryDto
+            {
+                // تولید خودکار کد جدید
+                Code = await _categoryService.GenerateNextCodeAsync<Category>(
+                    c => c.Code,  // فیلد کد
+                    c => c.Id     // فیلد ترتیب (مثلاً Id)
+                )
+            };
+
+            return View(dto);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]

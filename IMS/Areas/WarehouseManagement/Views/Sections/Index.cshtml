@@ -76,6 +76,8 @@
                                 <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                     <tr>
                                         <th class="text-center py-1">کد بخش</th>
+                                        <th class="text-center py-1">نام انبار</th>
+                                        <th class="text-center py-1">نام قسمت</th>
                                         <th class="text-center py-1">نام بخش</th>
                                         <th class="text-center py-1">ابعاد</th>
                                         <th class="text-center py-1">عملیات</th>
@@ -86,6 +88,8 @@
                                     {
                                         <tr  style="cursor: pointer; height: 32px;">
                                             <td class="text-center fw-bold py-1 align-middle">@sec.FullCode</td>
+                                            <td class="text-center py-1 align-middle">@sec.WarehouseName</td>
+                                            <td class="text-center py-1 align-middle">@sec.ZoneName</td>
                                             <td class="text-center py-1 align-middle">@sec.Name</td>
                                           
                                             <td class="text-center py-1 align-middle">@sec.Dimensions</td>

@@ -1,8 +1,8 @@
 
 import MicroEvent from './contrib/microevent.js';
 import MicroPlugin from './contrib/microplugin.js';
-import { Sifter } from '@orchidjs/sifter';
-import { escape_regex } from '@orchidjs/unicode-variants';
+//import { Sifter } from '@orchidjs/sifter';
+//import { escape_regex } from '@orchidjs/unicode-variants';
 import { TomInput, TomArgObject, TomOption, TomOptions, TomCreateFilter, TomCreateCallback, TomItem, TomSettings, TomTemplateNames, TomClearFilter, RecursivePartial } from './types/index.js';
 import { highlight, removeHighlight } from './contrib/highlight.js';
 import * as constants from './constants.js';
@@ -60,7 +60,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	private inputId					: string;
 
 	private _destroy				!: () => void;
-	public sifter					: Sifter;
+/*	public sifter					: Sifter;*/
 
 
 	public isOpen					: boolean = false;
@@ -76,7 +76,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	public ignoreFocus				: boolean = false;
 	public ignoreHover				: boolean = false;
 	public hasOptions				: boolean = false;
-	public currentResults			?: ReturnType<Sifter['search']>;
+/*	public currentResults			?: ReturnType<Sifter['search']>;*/
 	public lastValue				: string = '';
 	public caretPos					: number = 0;
 	public loading					: number = 0;
@@ -125,7 +125,7 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 
 
 		// search system
-		this.sifter = new Sifter(this.options, {diacritics: settings.diacritics});
+		//this.sifter = new Sifter(this.options, {diacritics: settings.diacritics});
 
 		// option-dependent defaults
 		settings.mode = settings.mode || (settings.maxItems === 1 ? 'single' : 'multi');
@@ -283,10 +283,10 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 			setAttr(control_input,{placeholder:settings.placeholder});
 		}
 
-		// if splitOn was not passed in, construct it from the delimiter to allow pasting universally
-		if (!settings.splitOn && settings.delimiter) {
-			settings.splitOn = new RegExp('\\s*' + escape_regex(settings.delimiter) + '+\\s*');
-		}
+		//// if splitOn was not passed in, construct it from the delimiter to allow pasting universally
+		//if (!settings.splitOn && settings.delimiter) {
+		//	settings.splitOn = new RegExp('\\s*' + escape_regex(settings.delimiter) + '+\\s*');
+		//}
 
 		// debounce user defined load() if loadThrottle > 0
 		// after initializePlugins() so plugins can create/modify user defined loaders
@@ -1322,58 +1322,58 @@ export default class TomSelect extends MicroPlugin(MicroEvent){
 	 * @see https://github.com/orchidjs/sifter.js
 	 * @return {object}
 	 */
-	getSearchOptions() {
-		var settings = this.settings;
-		var sort = settings.sortField;
-		if (typeof settings.sortField === 'string') {
-			sort = [{field: settings.sortField}];
-		}
+	//getSearchOptions() {
+	//	var settings = this.settings;
+	//	var sort = settings.sortField;
+	//	if (typeof settings.sortField === 'string') {
+	//		sort = [{field: settings.sortField}];
+	//	}
 
-		return {
-			fields      : settings.searchField,
-			conjunction : settings.searchConjunction,
-			sort        : sort,
-			nesting     : settings.nesting
-		};
-	}
+	//	return {
+	//		fields      : settings.searchField,
+	//		conjunction : settings.searchConjunction,
+	//		sort        : sort,
+	//		nesting     : settings.nesting
+	//	};
+	//}
 
 	/**
 	 * Searches through available options and returns
 	 * a sorted array of matches.
 	 *
 	 */
-	search(query:string) : ReturnType<Sifter['search']>{
-		var result, calculateScore;
-		var self     = this;
-		var options  = this.getSearchOptions();
+	//search(query:string) : ReturnType<Sifter['search']>{
+	//	var result, calculateScore;
+	//	var self     = this;
+	//	var options  = this.getSearchOptions();
 
-		// validate user-provided result scoring function
-		if ( self.settings.score ){
-			calculateScore = self.settings.score.call(self,query);
-			if (typeof calculateScore !== 'function') {
-				throw new Error('Tom Select "score" setting must be a function that returns a function');
-			}
-		}
+	//	// validate user-provided result scoring function
+	//	if ( self.settings.score ){
+	//		calculateScore = self.settings.score.call(self,query);
+	//		if (typeof calculateScore !== 'function') {
+	//			throw new Error('Tom Select "score" setting must be a function that returns a function');
+	//		}
+	//	}
 
-		// perform search
-		if (query !== self.lastQuery) {
-			self.lastQuery			= query;
-			result					= self.sifter.search(query, Object.assign(options, {score: calculateScore}));
-			self.currentResults		= result;
-		} else {
-			result					= Object.assign( {}, self.currentResults);
-		}
+	//	// perform search
+	//	if (query !== self.lastQuery) {
+	//		self.lastQuery			= query;
+	//		result					= self.sifter.search(query, Object.assign(options, {score: calculateScore}));
+	//		self.currentResults		= result;
+	//	} else {
+	//		result					= Object.assign( {}, self.currentResults);
+	//	}
 
-		// filter out selected items
-		if( self.settings.hideSelected ){
-			result.items = result.items.filter((item) => {
-				let hashed = hash_key(item.id);
-				return !(hashed && self.items.indexOf(hashed) !== -1 );
-			});
-		}
+	//	// filter out selected items
+	//	if( self.settings.hideSelected ){
+	//		result.items = result.items.filter((item) => {
+	//			let hashed = hash_key(item.id);
+	//			return !(hashed && self.items.indexOf(hashed) !== -1 );
+	//		});
+	//	}
 	
-		return result;
-	}
+	//	return result;
+	//}
 
 	/**
 	 * Refreshes the list of available options shown

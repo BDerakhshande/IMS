@@ -10,6 +10,7 @@ namespace IMS.Application.WarehouseManagement.Services
 {
     public interface IWarehouseDbContext
     {
+        public DbSet<TEntity> Set<TEntity>() where TEntity : class;
         DbSet<Warehouse> Warehouses { get; set; }
         DbSet<Product> Products { get; set; }
         DbSet<Category> Categories { get; set; }
