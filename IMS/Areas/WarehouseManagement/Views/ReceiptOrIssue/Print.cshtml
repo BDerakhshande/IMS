@@ -1,7 +1,8 @@
-﻿@{
+﻿@using System.Linq
+@using IMS.Models.ProMan
+@{
     Layout = null;
 }
-
 
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -23,37 +24,55 @@
         }
 
         body {
-            padding: 10px;
+            padding: 20px;
             color: #333;
             line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* Header */
+        .print-header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #1a4a5a;
+        }
+
+            .print-header h1 {
+                color: #1a4a5a;
+                font-size: 24px;
+                margin-bottom: 5px;
+            }
+
+        .print-info {
+            text-align: right;
             font-size: 14px;
+            color: #666;
         }
 
         /* Header Info Section */
         .header-info {
-            background-color: #f8f9fa;
-            padding: 15px;
+            background-color: #f0f4f8;
+            padding: 14px;
             border-radius: 5px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border-right: 4px solid #1a4a5a;
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
+            gap: 12px;
         }
 
         .info-item {
-            background-color: #e8f4fc;
-            padding: 8px 12px;
-            border-radius: 3px;
-            font-size: 13px;
-            margin-bottom: 8px;
-            min-width: 30%;
+            background-color: #e0f0fc;
+            padding: 7px 12px;
+            border-radius: 4px;
+            font-size: 14px;
         }
 
         .info-label {
             font-weight: bold;
             color: #1a4a5a;
-            margin-left: 5px;
+            margin-left: 6px;
         }
 
         /* Table Styles */
@@ -61,27 +80,52 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            page-break-inside: auto;
         }
 
         th {
             background-color: #1a4a5a;
             color: white;
-            padding: 10px 6px;
+            padding: 12px 10px;
             text-align: center;
-            font-weight: bold;
-            font-size: 12px;
+            font-size: 14px;
         }
 
         td {
-            padding: 8px 6px;
+            padding: 10px 8px;
             border-bottom: 1px solid #ddd;
             text-align: center;
-            font-size: 12px;
+            font-size: 14px;
         }
 
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        /* Footer */
+        .print-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 12px;
+            border-top: 1px solid #ddd;
+            font-size: 13px;
+            color: #666;
+        }
     </style>
 </head>
 <body>
+    <div class="print-header">
+        <h1>
+            @(Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt ? "رسید انبار" :
+                Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue ? "حواله انبار" :
+                Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "انتقال انبار" :
+                "سند انبار")
+        </h1>
+        <div class="print-info">
+            <span>تاریخ چاپ: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</span>
+        </div>
+    </div>
+
     <div class="header-info">
         <div class="info-item">
             <span class="info-label">شماره سند:</span>
@@ -100,67 +144,92 @@
                     "نامشخص")
             </span>
         </div>
+        @if (!string.IsNullOrEmpty(Model.Receipt.Description))
+        {
+            <div class="info-item" style="width: 100%;">
+                <span class="info-label">توضیحات:</span>
+                <span class="info-value">@Model.Receipt.Description</span>
+            </div>
+        }
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>کالا</th>
-                <th>مبدأ</th>
-                <th>مقصد</th>
-                <th>تعداد</th>
-                <th>پروژه</th>
-                <th>عنوان درخواست</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var itemWithProject in Model.ItemsWithProject)
-            {
-                var item = itemWithProject.Item;
+    @{
+        // استفاده از Count به جای Any برای جلوگیری از خطا
+        bool hasItems = Model.ItemsWithProject != null && Model.ItemsWithProject.Count > 0;
+    }
+
+    @if (hasItems)
+    {
+        <table>
+            <thead>
                 <tr>
-                    <td>
-                        @{
-                            var parts = new[]
-                            {
+                    <th width="20%">کالا</th>
+                    <th width="20%">مبدأ</th>
+                    <th width="20%">مقصد</th>
+                    <th width="10%">تعداد</th>
+                    <th width="15%">پروژه</th>
+                    <th width="15%">عنوان درخواست</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var itemWithProject in Model.ItemsWithProject)
+                {
+                    var item = itemWithProject.Item;
+                    <tr>
+                        <td>
+                            @{
+                                var parts = new[]
+                                {
                     item.Category?.Name ?? "—",
                     item.Group?.Name ?? "—",
                     item.Status?.Name ?? "—",
                     item.Product?.Name ?? "—"
                     };
-                            var combined = string.Join(" | ", parts.Where(p => p != "—"));
-                        }
-                        @combined
-                    </td>
-                    <td>
-                        @{
-                            var srcParts = new[]
-                            {
+                                var combined = string.Join(" | ", parts.Where(p => p != "—"));
+                            }
+                            @combined
+                        </td>
+                        <td>
+                            @{
+                                var srcParts = new[]
+                                {
                     item.SourceWarehouse?.Name,
                     item.SourceZone?.Name,
                     item.SourceSection?.Name
                     };
-                            var src = string.Join(" | ", srcParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
-                        }
-                        @src
-                    </td>
-                    <td>
-                        @{
-                            var destParts = new[]
-                            {
+                                var src = string.Join(" | ", srcParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
+                            }
+                            @src
+                        </td>
+                        <td>
+                            @{
+                                var destParts = new[]
+                                {
                     item.DestinationWarehouse?.Name,
                     item.DestinationZone?.Name,
                     item.DestinationSection?.Name
                     };
-                            var dest = string.Join(" | ", destParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
-                        }
-                        @dest
-                    </td>
-                    <td>@item.Quantity.ToString("0")</td>
-                    <td>@(itemWithProject.ProjectName ?? "—")</td>
-                    <td>@(itemWithProject.PurchaseRequestTitle ?? "—")</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+                                var dest = string.Join(" | ", destParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
+                            }
+                            @dest
+                        </td>
+                        <td>@item.Quantity.ToString("0")</td>
+                        <td>@(itemWithProject.ProjectName ?? "—")</td>
+                        <td>@(itemWithProject.PurchaseRequestTitle ?? "—")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 30px; color: #666; font-size: 15px;">
+            <p>هیچ آیتمی برای نمایش وجود ندارد.</p>
+        </div>
+    }
+
+    <div class="print-footer">
+        <p>سیستم مدیریت انبار - چاپ شده در تاریخ: @DateTime.Now.ToString("yyyy/MM/dd HH:mm")</p>
+    </div>
 </body>
 </html>

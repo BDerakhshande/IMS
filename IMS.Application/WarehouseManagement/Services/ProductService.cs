@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.ProjectManagement.Service;
@@ -160,27 +161,6 @@ namespace IMS.Application.WarehouseManagement.Services
             };
         }
 
-        public async Task UpdateAsync(ProductDto dto)
-        {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == dto.Id);
-            if (product == null)
-                throw new Exception("کالای مورد نظر یافت نشد.");
-
-            var duplicateProduct = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id != dto.Id && p.Code == dto.Code && p.StatusId == dto.StatusId);
-
-            if (duplicateProduct != null)
-                throw new Exception("کدی که وارد کرده‌اید در این وضعیت قبلاً ثبت شده است.");
-
-            product.Name = dto.Name;
-            product.Code = dto.Code;
-            product.Description = dto.Description;
-            product.StatusId = dto.StatusId;
-            product.Price = dto.Price;
-            product.UnitId = dto.Unit?.Id ?? product.UnitId;
-
-            await _context.SaveChangesAsync(CancellationToken.None);
-        }
 
         public async Task<ProductDto?> GetByIdAsync(int id)
         {
@@ -223,6 +203,29 @@ namespace IMS.Application.WarehouseManagement.Services
                 }
             };
         }
+        public async Task UpdateAsync(ProductDto dto)
+        {
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == dto.Id);
+            if (product == null)
+                throw new Exception("کالای مورد نظر یافت نشد.");
+
+            var duplicateProduct = await _context.Products
+                .FirstOrDefaultAsync(p => p.Id != dto.Id && p.Code == dto.Code && p.StatusId == dto.StatusId);
+
+            if (duplicateProduct != null)
+                throw new Exception("کدی که وارد کرده‌اید در این وضعیت قبلاً ثبت شده است.");
+
+            product.Name = dto.Name;
+            product.Code = dto.Code;
+            product.Description = dto.Description;
+            product.StatusId = dto.StatusId;
+            product.Price = dto.Price;
+            product.UnitId = dto.Unit?.Id ?? product.UnitId;
+
+            await _context.SaveChangesAsync(CancellationToken.None);
+        }
+ 
+
 
         public async Task DeleteAsync(int id)
         {
@@ -305,5 +308,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Select(s => new StatusDto { Id = s.Id, Name = s.Name })
                 .ToListAsync();
         }
+
+      
     }
 }

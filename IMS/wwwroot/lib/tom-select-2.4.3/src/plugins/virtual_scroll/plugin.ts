@@ -59,7 +59,7 @@ export default function(this:TomSelect) {
 
 	// in order for virtual scrolling to work,
 	// options need to be ordered the same way they're returned from the remote data source
-	self.settings.sortField			= [{field:'$order'},{field:'$score'}];
+/*	self.settings.sortField			= [{field:'$order'},{field:'$score'}];*/
 
 
 	// can we load more results for given query?

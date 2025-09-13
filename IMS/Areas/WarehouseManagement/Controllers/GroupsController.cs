@@ -2,6 +2,7 @@
 using IMS.Application.WarehouseManagement.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using IMS.Domain.WarehouseManagement.Entities;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -9,10 +10,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     public class GroupsController : Controller
     {
         private readonly IGroupService _groupService;
+        private readonly ICategoryService _categoryService;
 
-        public GroupsController(IGroupService groupService)
+        public GroupsController(IGroupService groupService , ICategoryService categoryService)
         {
             _groupService = groupService;
+            _categoryService = categoryService;
         }
 
         // GET: WarehouseManagement/Groups?categoryId=5
@@ -30,6 +33,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var dto = new GroupDto
             {
                 CategoryId = categoryId,
+                // تولید خودکار کد جدید
+                Code = await _categoryService.GenerateNextCodeAsync<Group>(
+                    g => g.Code, 
+                    g => g.Id          
+                )
             };
 
             return View(dto);
@@ -37,10 +45,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
 
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(GroupDto dto)
         {
+            if (ModelState.IsValid)
+            {
+               
+         
             var createdGroup = await _groupService.CreateAsync(dto);
 
             if (createdGroup == null)
@@ -50,6 +63,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
 
             return RedirectToAction(nameof(Index), new { categoryId = createdGroup.CategoryId });
+            }
+
+            return View(dto);
         }
 
 

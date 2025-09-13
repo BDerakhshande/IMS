@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.WarehouseManagement.DTOs;
@@ -42,5 +43,12 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
         Task<List<StorageSectionDto>> GetSectionsByWarehouseIdAsync(int warehouseId);
+
+
+        Task<string> GenerateNextCodeAsync<TEntity>(
+    Expression<Func<TEntity, string>> codeSelector,
+    Expression<Func<TEntity, int>> orderSelector
+) where TEntity : class;
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,28 +24,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-       
 
 
-        // اکشن GET برای نمایش فرم ایجاد منطقه جدید
+
         [HttpGet]
-        public IActionResult Create(int warehouseId)
+        public async Task<IActionResult> Create(int warehouseId)
         {
             var dto = new StorageZoneDto
             {
-                WarehouseId = warehouseId
+                WarehouseId = warehouseId,
+                // تولید خودکار کد جدید
+                ZoneCode = await _warehouseService.GenerateNextCodeAsync<StorageZone>(
+                    z => z.ZoneCode,
+                    z => z.Id
+                )
             };
+
             return View(dto);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(StorageZoneDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(dto);
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return View(dto);
+            //}
 
             try
             {

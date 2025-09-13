@@ -15,7 +15,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int ZoneId { get; set; }          // FK به قسمت
         public StorageZone Zone { get; set; }    // Navigation Property
             
-        public string Dimensions { get; set; }   // ابعاد بخش
+        public string? Dimensions { get; set; }   // ابعاد بخش
 
         public ICollection<Inventory> Inventories { get; set; }
     }

@@ -17,8 +17,6 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         {
         }
 
-
-        // DbSet ها
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<StorageZone> StorageZones { get; set; } = null!;
         public DbSet<StorageSection> StorageSections { get; set; } = null!;

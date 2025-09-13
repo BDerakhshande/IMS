@@ -38,14 +38,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult Create(int zoneId)
+        public async Task<IActionResult> Create(int zoneId)
         {
             var dto = new StorageSectionDto
             {
-                ZoneId = zoneId // Set ZoneId from the query parameter
+                ZoneId = zoneId,
+                // تولید خودکار کد جدید
+                SectionCode = await _warehouseService.GenerateNextCodeAsync<StorageSection>(
+                    s => s.SectionCode,  // فیلد کد
+                    s => s.Id             // فیلد ترتیب (مثلاً Id)
+                )
             };
+
             return View(dto);
         }
+
 
 
         [HttpPost]

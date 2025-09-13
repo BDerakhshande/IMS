@@ -1,5 +1,6 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
+using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -22,10 +23,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            var dto = new WarehouseDto
+            {
+                Code = await _warehouseService.GenerateNextCodeAsync<Warehouse>(
+                    w => w.Code,
+                    w => w.Id
+                )
+            };
+            return View(dto);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Create(WarehouseDto dto)

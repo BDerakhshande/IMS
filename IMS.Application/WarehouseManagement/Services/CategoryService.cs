@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.ProjectManagement.Service;
@@ -148,7 +149,27 @@ namespace IMS.Application.WarehouseManagement.Services
                 })
                 .ToListAsync();
         }
+        public async Task<string> GenerateNextCodeAsync<TEntity>(
+ Expression<Func<TEntity, string>> codeSelector,
+ Expression<Func<TEntity, int>> orderSelector
+) where TEntity : class
+        {
 
+            var lastCode = await _context.Set<TEntity>()
+                .OrderByDescending(orderSelector)
+                .Select(codeSelector)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(lastCode))
+                return "1001";
+
+            if (int.TryParse(lastCode, out int lastNumber))
+            {
+                return (lastNumber + 1).ToString();
+            }
+
+            return "1001";
+        }
 
     }
 }

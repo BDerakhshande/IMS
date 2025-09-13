@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using IMS.Application.WarehouseManagement.DTOs;
@@ -25,9 +26,18 @@ namespace IMS.Application.WarehouseManagement.Services
                 .AnyAsync(w => w.Code == code && (!excludeId.HasValue || w.Id != excludeId.Value));
         }
 
-
         public async Task<int?> CreateWarehouseAsync(WarehouseDto dto)
         {
+            // اگر کد دستی نیومده، کد جدید تولید کن
+            if (string.IsNullOrWhiteSpace(dto.Code))
+            {
+                dto.Code = await GenerateNextCodeAsync<Warehouse>(
+                    w => w.Code,
+                    w => w.Id
+                );
+            }
+
+            // چک کردن یکتایی کد
             var existing = await _context.Warehouses
                 .AnyAsync(w => w.Code == dto.Code);
 
@@ -42,17 +52,27 @@ namespace IMS.Application.WarehouseManagement.Services
                 Description = dto.Description,
                 Manager = dto.Manager,
                 StorageConditions = dto.StorageConditions,
-                IsActive = true
+                IsActive = dto.IsActive // به جای true، از dto هم میشه گرفت
             };
 
             _context.Warehouses.Add(warehouse);
             await _context.SaveChangesAsync(CancellationToken.None);
+
             return warehouse.Id;
         }
 
         public async Task<int> CreateZoneAsync(StorageZoneDto dto)
         {
-            
+            // اگر کد دستی نیامده، کد جدید تولید کن
+            if (string.IsNullOrWhiteSpace(dto.ZoneCode))
+            {
+                dto.ZoneCode = await GenerateNextCodeAsync<StorageZone>(
+                    z => z.ZoneCode,
+                    z => z.Id
+                );
+            }
+
+            // بررسی تکراری بودن کد
             bool isDuplicate = await _context.StorageZones
                 .AnyAsync(z => z.ZoneCode == dto.ZoneCode && z.WarehouseId == dto.WarehouseId);
 
@@ -74,8 +94,19 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
+
         public async Task<int> CreateSectionAsync(StorageSectionDto dto)
         {
+            // اگر کد دستی نیامده، کد جدید تولید کن
+            if (string.IsNullOrWhiteSpace(dto.SectionCode))
+            {
+                dto.SectionCode = await GenerateNextCodeAsync<StorageSection>(
+                    s => s.SectionCode,
+                    s => s.Id
+                );
+            }
+
+            // بررسی تکراری بودن کد
             bool isDuplicate = await _context.StorageSections
                 .AnyAsync(s => s.ZoneId == dto.ZoneId && s.SectionCode == dto.SectionCode);
 
@@ -89,7 +120,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = dto.Name,
                 SectionCode = dto.SectionCode,
                 ZoneId = dto.ZoneId,
-                //Capacity = dto.Capacity,
                 Dimensions = dto.Dimensions
             };
 
@@ -97,6 +127,7 @@ namespace IMS.Application.WarehouseManagement.Services
             await _context.SaveChangesAsync(CancellationToken.None);
             return section.Id;
         }
+
 
 
 
@@ -175,6 +206,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 ZoneCode = z.ZoneCode,
                 WarehouseId = z.WarehouseId,
                 WarehouseCode = z.Warehouse?.Code,
+                WarehouseName = z.Warehouse?.Name,
                 Sections = z.Sections.Select(s => new StorageSectionDto
                 {
                     Id = s.Id,
@@ -184,7 +216,8 @@ namespace IMS.Application.WarehouseManagement.Services
                     //Capacity = s.Capacity,
                     Dimensions = s.Dimensions,
                     ZoneCode = z.ZoneCode,         
-                    WarehouseCode = z.Warehouse?.Code 
+                    WarehouseCode = z.Warehouse?.Code ,
+                    
                 }).ToList()
             }).ToList();
         }
@@ -399,10 +432,12 @@ namespace IMS.Application.WarehouseManagement.Services
                 Name = s.Name,
                 SectionCode = s.SectionCode,
                 ZoneId = s.ZoneId,
-                //Capacity = s.Capacity,
+                // Capacity = s.Capacity,
                 Dimensions = s.Dimensions,
                 ZoneCode = s.Zone?.ZoneCode,
-                WarehouseCode = s.Zone?.Warehouse?.Code
+                ZoneName = s.Zone?.Name,                  // اضافه شد
+                WarehouseCode = s.Zone?.Warehouse?.Code,
+                WarehouseName = s.Zone?.Warehouse?.Name   // اضافه شد
             }).ToList();
         }
 
@@ -461,6 +496,27 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
+        public async Task<string> GenerateNextCodeAsync<TEntity>(
+    Expression<Func<TEntity, string>> codeSelector,
+    Expression<Func<TEntity, int>> orderSelector
+) where TEntity : class
+        {
+            // گرفتن آخرین کد بر اساس فیلد orderSelector
+            var lastCode = await _context.Set<TEntity>()
+                .OrderByDescending(orderSelector)
+                .Select(codeSelector)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(lastCode))
+                return "1001"; // اولین کد پیش‌فرض
+
+            if (int.TryParse(lastCode, out int lastNumber))
+            {
+                return (lastNumber + 1).ToString();
+            }
+
+            return "1001";
+        }
 
 
 

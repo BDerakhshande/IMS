@@ -14,8 +14,8 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public string? StorageConditions { get; set; }
         public string Name { get; set; }         // نام انبار (مثال: "انبار مرکزی تهران")
         public string Code { get; set; }         // کد انبار (مثال: "WH-001")
-        public string Location { get; set; }     // موقعیت فیزیکی
-        public string Description { get; set; }
+        public string? Location { get; set; }     // موقعیت فیزیکی
+        public string? Description { get; set; }
         public bool IsActive { get; set; } = true;
         public ICollection<StorageZone> Zones { get; set; } = new List<StorageZone>();
      

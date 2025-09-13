@@ -85,6 +85,7 @@
                                 <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
                                     <tr>
                                         <th class="text-center py-1">کد قسمت</th>
+                                        <th class="text-center py-1">نام انبار</th>
                                         <th class="text-center py-1">نام قسمت</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
@@ -94,6 +95,7 @@
                                     {
                                         <tr class="clickable-row" style="cursor:pointer; height: 32px;" data-url="@Url.Action("Index", "Sections", new { area = "WarehouseManagement", id = zone.Id })">
                                             <td class="text-center fw-bold py-1 align-middle">@zone.FullCode</td>
+                                            <td class="text-center py-1 align-middle">@zone.WarehouseName</td>
                                             <td class="text-center py-1 align-middle">@zone.Name</td>
                                             <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">

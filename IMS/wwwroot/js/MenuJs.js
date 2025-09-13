@@ -12,19 +12,29 @@
     function toggleSubmenu(item) {
         const submenu = item.nextElementSibling;
         if (submenu && submenu.classList.contains('submenu')) {
-            submenu.classList.toggle('open'); // toggle طبیعی
+            submenu.classList.toggle('open');
             const toggleIcon = item.querySelector('.submenu-toggle');
             if (toggleIcon) toggleIcon.classList.toggle('active');
         }
     }
 
+    // ✅ اضافه کردن رویداد کلیک
+    allMenuItems.forEach(item => {
+        if (item.classList.contains('has-submenu')) {
+            item.addEventListener('click', function (e) {
+                e.preventDefault(); // اگه آیتم <a href="#"> باشه
+                toggleSubmenu(item);
+            });
+        }
+    });
+
+    // ✅ پشتیبانی از کیبورد
     sidebar.addEventListener('keydown', function (e) {
         const active = document.activeElement;
         if (!allMenuItems.includes(active)) return;
 
         let index = allMenuItems.indexOf(active);
 
-        // حرکت بالا/پایین
         if (e.key === 'ArrowDown') {
             e.preventDefault();
             let nextIndex = (index + 1) % allMenuItems.length;
@@ -35,21 +45,16 @@
             let prevIndex = (index - 1 + allMenuItems.length) % allMenuItems.length;
             allMenuItems[prevIndex].focus();
         }
-
-        // باز/بسته کردن زیرمنو با Enter / Space / ArrowRight
-        else if ((e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') && active.classList.contains('has-submenu')) {
+        else if ((e.key === 'Enter' || e.key === ' ' || e.code === 'Space' || e.key === 'ArrowRight') && active.classList.contains('has-submenu')) {
             e.preventDefault();
             toggleSubmenu(active);
 
-            // اگر باز شد، فوکوس روی اولین آیتم زیرمنو
             const submenu = active.nextElementSibling;
             if (submenu && submenu.classList.contains('open')) {
                 const subItems = submenu.querySelectorAll('.submenu-item');
                 if (subItems.length > 0) subItems[0].focus();
             }
         }
-
-        // برگشت از زیرمنو به آیتم والد
         else if ((e.key === 'ArrowLeft' || e.key === 'Escape') && active.classList.contains('submenu-item')) {
             e.preventDefault();
             const parent = active.closest('.submenu').previousElementSibling;

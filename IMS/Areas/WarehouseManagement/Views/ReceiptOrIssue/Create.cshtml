@@ -6,18 +6,94 @@
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 <style>
+    /* =========================
+               هماهنگی Select2 با Bootstrap
+            ========================= */
+    .select2-container {
+        width: 100% !important;
+        max-width: 100%;
+        font-size: 0.85rem; /* هم‌تراز با جدول sm */
+    }
 
+        /* برداشتن فلش فقط برای دسته‌بندی، انبار، پروژه و درخواست خرید */
+        .select2-container.category-select .select2-selection__arrow,
+        .select2-container.warehouse-select .select2-selection__arrow,
+        .select2-container.project-select .select2-selection__arrow,
+        .select2-container.purchase-request-select .select2-selection__arrow {
+            display: none !important;
+        }
+
+    /* موقعیت ضربدر × در سمت چپ برای RTL */
+    .select2-container--bootstrap-5.select2-container--default .select2-selection__clear {
+        left: 30px; /* تغییر از right به left */
+        right: auto; /* غیرفعال کردن right */
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+
+    /* فاصله برای متن زمانی که ضربدر نمایش داده می‌شود */
+    .select2-container--bootstrap-5.select2-container--default .select2-selection--single .select2-selection__rendered {
+        padding-left: 30px; /* فضای کافی برای ضربدر در سمت چپ */
+        padding-right: 10px;
+    }
+
+    /* فلش دراپ‌داون برای بقیه فیلدها همیشه سمت راست */
+    .select2-container--bootstrap-5 .select2-selection__arrow {
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* حالت انتخاب تکی */
+    .select2-container .select2-selection--single {
+        height: 32px; /* کمی کوچیک‌تر برای جدول‌های فشرده */
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+    }
+
+    /* متن انتخاب شده */
+    .select2-container .select2-selection__rendered {
+        color: #212529;
+        line-height: 1.5;
+        font-size: 0.82rem;
+    }
+
+    /* حالت چند انتخابی */
+    .select2-container .select2-selection--multiple {
+        min-height: 32px;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding: 0.15rem;
+    }
+
+    /* آیتم‌های انتخاب شده */
+    .select2-container .select2-selection__choice {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 2px 6px;
+        margin: 2px 4px;
+        font-size: 0.75rem;
+    }
+
+    /* راست‌چین برای RTL */
     select.form-select[dir="rtl"],
-    select.form-select.text-end {
+    select.form-select.text-end,
+    .select2-container[dir="rtl"] .select2-selection--single {
         direction: rtl;
         text-align: right;
         padding-right: 1rem;
         padding-left: 2rem;
-        background-position: left 0.75rem center !important;
-        background-size: 16px 16px;
-        background-repeat: no-repeat;
     }
 
+    /* حذف استایل پیش‌فرض مرورگر */
     select.form-select,
     select.select2-hidden-accessible {
         -webkit-appearance: none;
@@ -26,13 +102,16 @@
         background-image: none !important;
     }
 
-
+    /* =========================
+               جدول فشرده
+            ========================= */
     .table-sm-custom {
         font-size: 0.85rem;
     }
 
         .table-sm-custom .form-select,
-        .table-sm-custom .form-control {
+        .table-sm-custom .form-control,
+        .table-sm-custom .select2-container .select2-selection--single {
             font-size: 0.85rem;
             padding: 0.25rem 0.5rem;
             height: auto;
@@ -52,6 +131,9 @@
             padding: 0.5rem;
         }
 
+    /* =========================
+               دکمه‌های آیکون
+            ========================= */
     .btn-icon {
         width: 32px;
         height: 32px;
@@ -61,13 +143,15 @@
         justify-content: center;
         font-size: 16px;
     }
-
 </style>
 
 <!-- Select2 CSS -->
-<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
-<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap-5-theme-1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
+ 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
 
 <div class="card border-0 shadow-sm" dir="rtl">
@@ -108,9 +192,10 @@
                     <span asp-validation-for="DocumentNumber" class="text-danger small d-block text-end"></span>
                 </div>
 
+                <!-- نوع -->
                 <div class="col-md-3">
                     <label asp-for="Type" class="form-label fw-bold small text-end w-100">نوع</label>
-                    <select asp-for="Type" class="form-select form-select-sm text-end">
+                    <select asp-for="Type" class="form-select form-select-sm select2 text-end">
                         <option value="">انتخاب کنید...</option>
                         <option value="1">رسید</option>
                         <option value="2">حواله</option>
@@ -224,7 +309,8 @@
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="source">
+                                                        <!-- انبار مبدا -->
+                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm select2 warehouse-select shadow-sm text-end" data-index="@i" data-type="source">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in ViewBag.Warehouses as SelectList)
                                                             {
@@ -276,7 +362,8 @@
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="destination">
+                                                        <!-- انبار مقصد -->
+                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm select2 warehouse-select shadow-sm text-end" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in ViewBag.Warehouses as SelectList)
                                                             {
@@ -369,15 +456,11 @@
 
 
 @section Scripts {
-    <!-- در انتهای body یا بخش Scripts -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/select2/js/select2.full.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/MenuJs.js"></script>
     <script>
-
-                      
         // ارسال داده‌های ViewBag به JS به صورت JSON
         const categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories));
         const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
@@ -389,162 +472,207 @@
         const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
         const purchaseRequests = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests));
 
+        $(document).ready(function () {
+            // تابع بهبودیافته برای مقداردهی Select2
+           
+        
 
+            // اعمال Select2 به تمام دراپ‌داون‌های موجود هنگام لود صفحه
+            $('select.select2').each(function () {
+                initSelect2($(this));
+            });
 
-                       $(document).ready(function () {
-            $('.select2').select2({
-                theme: 'bootstrap5',
-                placeholder: 'انتخاب کنید',
-                allowClear: true,
-                dir: 'rtl', // اطمینان از پشتیبانی RTL
-                minimumResultsForSearch: 0
+            // اعمال Select2 به فیلدهای پروژه
+            $('select.select2-project').each(function () {
+                initSelect2($(this), 'انتخاب پروژه');
+            });
+
+            // اعمال Select2 به فیلدهای درخواست خرید
+            $('select.select2-purchase-request').each(function () {
+                initSelect2($(this), 'انتخاب درخواست خرید');
+            });
+
+            // اعمال Select2 به فیلدهای دسته‌بندی و انبار
+            $('select.category-select, select.warehouse-select').each(function () {
+                initSelect2($(this), 'جستجو و انتخاب');
             });
         });
-
 
         // ساخت گزینه‌ها
         function buildOptions(items) {
             return items.map(item => `<option value="${item.Value}">${item.Text}</option>`).join('');
         }
 
-                  document.getElementById('addItemBtn').addEventListener('click', function () {
+        // تابع کمکی برای بزرگ کردن حرف اول
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function initSelect2($element, placeholder) {
+            // اگر قبلاً Select2 روی المنت اعمال شده، آن را تخریب کن
+            if ($element.hasClass('select2-hidden-accessible')) {
+                $element.select2('destroy');
+            }
+
+            $element.select2({
+                theme: 'bootstrap-5',
+                placeholder: placeholder || 'انتخاب کنید',
+                allowClear: true, // همیشه اجازه پاک کردن را بده
+                dir: 'rtl',
+                language: 'fa',
+                width: '100%',
+                dropdownParent: $element.closest('.modal').length ? $element.closest('.modal') : document.body
+            });
+
+            // اضافه کردن کلاس به container برای اعمال CSS خاص
+            const select2Container = $element.next('.select2-container');
+
+            if ($element.hasClass('category-select')) select2Container.addClass('category-select');
+            if ($element.hasClass('warehouse-select')) select2Container.addClass('warehouse-select');
+            if ($element.hasClass('select2-project')) select2Container.addClass('project-select');
+            if ($element.hasClass('select2-purchase-request')) select2Container.addClass('purchase-request-select');
+        }
+        document.getElementById('addItemBtn').addEventListener('click', function () {
             const tableBody = document.querySelector('#itemsTable tbody');
             const rowCount = tableBody.querySelectorAll('tr.align-middle').length;
 
             const errorRow = `
-                <tr class="validation-row" data-index="${rowCount}" style="display: none;">
-                    <td colspan="5">
-                        <div class="alert alert-danger error-message-list mb-0"></div>
-                    </td>
-                </tr>`;
+                        <tr class="validation-row" data-index="${rowCount}" style="display: none;">
+                            <td colspan="7">
+                                <div class="alert alert-danger error-message-list mb-0"></div>
+                            </td>
+                        </tr>`;
 
             const template = `
-                <tr class="align-middle" data-index="${rowCount}">
-                    <td>
-                        <div class="accordion" id="productAccordion_${rowCount}">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
-                                        انتخاب کالا و مشخصات آن
-                                    </button>
-                                </h2>
-                                <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
-                                    <div class="accordion-body p-2">
-                                        <label class="form-label small text-muted mb-1">دسته بندی</label>
-                                        <select name="Items[${rowCount}].CategoryId" class="form-select product-select select2 shadow-sm item-select" data-index="${rowCount}">
-                                            <option value="">انتخاب دسته‌بندی</option>
-                                            ${buildOptions(categories)}
-                                        </select>
-                                        <label class="form-label small text-muted mb-1">گروه</label>
-                                        <select name="Items[${rowCount}].GroupId" class="form-select product-select select2 shadow-sm item-select" data-index="${rowCount}">
-                                            <option value="">انتخاب گروه</option>
-                                        </select>
-                                        <label class="form-label small text-muted mb-1">طبقه</label>
-                                        <select name="Items[${rowCount}].StatusId" class="form-select status-select mb-2" data-index="${rowCount}">
-                                            <option value="">انتخاب طبقه</option>
-                                        </select>
-                                        <label class="form-label small text-muted mb-1">کالا</label>
-                                        <select name="Items[${rowCount}].ProductId" class="form-select product-select select2 shadow-sm" data-index="${rowCount}">
-                                            <option value="">انتخاب کالا</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td style="width: 120px;">
-                            <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control shadow-sm no-spinner" />
-                            <span class="text-danger small d-block mt-1"></span>
-                        </td>
-                        <td>
-                            <div class="accordion" id="sourceAccordion_${rowCount}">
-                                <div class="accordion-item border-0">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
-                                            مشخصات مبدا
-                                        </button>
-                                    </h2>
-                                    <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
-                                        <div class="accordion-body p-2">
-                                            <div class="mb-2">
-                                                <label class="form-label small text-muted mb-1">انبار</label>
-                                                <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${rowCount}" data-type="source">
-                                                    <option value="">انتخاب انبار</option>
-                                                    ${buildOptions(warehouses)}
+                        <tr class="align-middle" data-index="${rowCount}">
+                            <td>
+                                <div class="accordion" id="productAccordion_${rowCount}">
+                                    <div class="accordion-item border-0">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
+                                                انتخاب کالا و مشخصات آن
+                                            </button>
+                                        </h2>
+                                        <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
+                                            <div class="accordion-body p-2">
+                                                <label class="form-label small text-muted mb-1">دسته بندی</label>
+                                                <select name="Items[${rowCount}].CategoryId" class="form-select form-select-sm category-select select2 shadow-sm item-select mt-2 text-end" data-index="${rowCount}">
+                                                    <option value="">انتخاب دسته‌بندی</option>
+                                                    ${buildOptions(categories)}
                                                 </select>
-                                                <span class="text-danger small d-block mt-1"></span>
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label small text-muted mb-1">قسمت</label>
-                                                <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm" data-type="source">
-                                                    <option value="">انتخاب قسمت</option>
-                                                    ${buildOptions(zones)}
+                                                <label class="form-label small text-muted mb-1">گروه</label>
+                                                <select name="Items[${rowCount}].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select mt-2 text-end" data-index="${rowCount}">
+                                                    <option value="">انتخاب گروه</option>
                                                 </select>
-                                                <span class="text-danger small d-block mt-1"></span>
-                                            </div>
-                                            <div>
-                                                <label class="form-label small text-muted mb-1">بخش</label>
-                                                <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select shadow-sm" data-type="source">
-                                                    <option value="">انتخاب بخش</option>
-                                                    ${buildOptions(sections)}
+                                                <label class="form-label small text-muted mb-1">طبقه</label>
+                                                <select name="Items[${rowCount}].StatusId" class="form-select form-select-sm status-select shadow-sm mt-2 text-end" data-index="${rowCount}">
+                                                    <option value="">انتخاب طبقه</option>
                                                 </select>
-                                                <span class="text-danger small d-block mt-1"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="accordion" id="destAccordion_${rowCount}">
-                                <div class="accordion-item border-0">
-                                    <h2 class="accordion-header">
-                                        <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
-                                            مشخصات مقصد
-                                        </button>
-                                    </h2>
-                                    <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
-                                        <div class="accordion-body p-2">
-                                            <div class="mb-2">
-                                                <label class="form-label small text-muted mb-1">انبار</label>
-                                                <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${rowCount}" data-type="destination">
-                                                    <option value="">انتخاب انبار</option>
-                                                    ${buildOptions(warehouses)}
+                                                <label class="form-label small text-muted mb-1">کالا</label>
+                                                <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 shadow-sm mt-2 text-end" data-index="${rowCount}">
+                                                    <option value="">انتخاب کالا</option>
                                                 </select>
-                                                <span class="text-danger small d-block mt-1"></span>
-                                            </div>
-                                            <div class="mb-2">
-                                                <label class="form-label small text-muted mb-1">قسمت</label>
-                                                <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${rowCount}" data-type="destination">
-                                                    <option value="">انتخاب قسمت</option>
-                                                    ${buildOptions(zones)}
-                                                </select>
-                                                <span class="text-danger small d-block mt-1"></span>
-                                            </div>
-                                            <div>
-                                                <label class="form-label small text-muted mb-1">بخش</label>
-                                                <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm" data-type="destination">
-                                                    <option value="">انتخاب بخش</option>
-                                                    ${buildOptions(sections)}
-                                                </select>
-                                                <span class="text-danger small d-block mt-1"></span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                                   <td>
-                    <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
-                        ${buildOptions(projects)}
-                    </select>
-                    <span class="text-danger small d-block text-end"></span>
-                </td>
-                <td>
-                            <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="${rowCount}">
-            ${buildOptions(purchaseRequests)}
-        </select>
-        <span class="text-danger small d-block text-end"></span>
-
-                    </td>
+                            <td style="width: 120px;">
+                                <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control form-control-sm shadow-sm no-spinner text-end" />
+                                <span class="text-danger small d-block mt-1"></span>
+                            </td>
+                            <td>
+                                <div class="accordion" id="sourceAccordion_${rowCount}">
+                                    <div class="accordion-item border-0">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
+                                                مشخصات مبدا
+                                            </button>
+                                        </h2>
+                                        <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
+                                            <div class="accordion-body p-2">
+                                                <div class="mb-2">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                    <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm select2 warehouse-select shadow-sm text-end" data-index="${rowCount}" data-type="source">
+                                                        <option value="">انتخاب انبار</option>
+                                                        ${buildOptions(warehouses)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                    <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="${rowCount}" data-type="source">
+                                                        <option value="">انتخاب قسمت</option>
+                                                        ${buildOptions(zones)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                                <div>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                    <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="source">
+                                                        <option value="">انتخاب بخش</option>
+                                                        ${buildOptions(sections)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="accordion" id="destAccordion_${rowCount}">
+                                    <div class="accordion-item border-0">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
+                                                مشخصات مقصد
+                                            </button>
+                                        </h2>
+                                        <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
+                                            <div class="accordion-body p-2">
+                                                <div class="mb-2">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                    <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm select2 warehouse-select shadow-sm text-end" data-index="${rowCount}" data-type="destination">
+                                                        <option value="">انتخاب انبار</option>
+                                                        ${buildOptions(warehouses)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                    <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="${rowCount}" data-type="destination">
+                                                        <option value="">انتخاب قسمت</option>
+                                                        ${buildOptions(zones)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                                <div>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                    <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="destination">
+                                                        <option value="">انتخاب بخش</option>
+                                                        ${buildOptions(sections)}
+                                                    </select>
+                                                    <span class="text-danger small d-block mt-1"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
+                                    <option value="">انتخاب پروژه...</option>
+                                    ${buildOptions(projects)}
+                                </select>
+                                <span class="text-danger small d-block text-end"></span>
+                            </td>
+                            <td>
+                                <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="${rowCount}">
+                                    <option value="">انتخاب درخواست خرید...</option>
+                                    ${buildOptions(purchaseRequests)}
+                                </select>
+                                <span class="text-danger small d-block text-end"></span>
+                            </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
                                     <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
@@ -560,17 +688,36 @@
             tableBody.insertAdjacentHTML('beforeend', errorRow);
             tableBody.insertAdjacentHTML('beforeend', template);
 
-            const newRow = tableBody.querySelector(`tr.align-middle[data-index="${rowCount}"]`);
-            const newErrorRow = tableBody.querySelector(`tr.validation-row[data-index="${rowCount}"]`);
+            setTimeout(function () {
+                const newRow = tableBody.querySelector(`tr.align-middle[data-index="${rowCount}"]`);
 
-            $(newRow).find('.select2').select2({
-                theme: 'bootstrap5',
-                placeholder: 'انتخاب کنید',
-                allowClear: true,
-                dir: 'rtl',
-                minimumResultsForSearch: 0
-            });
+                // راه‌اندازی Select2 برای تمام فیلدهای select در ردیف جدید
+                $(newRow).find('select.select2').each(function () {
+                    initSelect2($(this));
+                });
+
+                // راه‌اندازی Select2 برای فیلدهای خاص با پلاسی‌هولدر مشخص
+                $(newRow).find('select.select2-project').each(function () {
+                    initSelect2($(this), 'انتخاب پروژه');
+                });
+
+                $(newRow).find('select.select2-purchase-request').each(function () {
+                    initSelect2($(this), 'انتخاب درخواست خرید');
+                });
+
+                $(newRow).find('select.category-select, select.warehouse-select').each(function () {
+                    const $el = $(this);
+                    initSelect2($el, 'جستجو و انتخاب');
+
+                    // اضافه کردن کلاس به container تا CSS اعمال شود
+                    const select2Container = $el.next('.select2-container');
+                    if ($el.hasClass('category-select')) select2Container.addClass('category-select');
+                    if ($el.hasClass('warehouse-select')) select2Container.addClass('warehouse-select');
+                });
+
+            }, 100);
         });
+
 
         // مدیریت کلیک روی دکمه "ثبت"
         document.querySelector('#itemsTable').addEventListener('click', function (event) {
@@ -636,11 +783,11 @@
                     if (zoneSelect.hasClass("select2-hidden-accessible")) {
                         zoneSelect.select2('destroy');
                     }
-                     console.log("داده‌های zones:", zones);
+                    console.log("داده‌های zones:", zones);
                     zoneSelect.empty().append($('<option>', { value: '', text: 'انتخاب قسمت' }));
-                            zones.forEach(zone => {
-            zoneSelect.append($('<option>', { value: zone.value, text: zone.text }));
-        });
+                    zones.forEach(zone => {
+                        zoneSelect.append($('<option>', { value: zone.value, text: zone.text }));
+                    });
 
 
 
@@ -720,13 +867,13 @@
             });
         });
 
-                       // تابع کمکی برای بزرگ کردن حرف اول
+        // تابع کمکی برای بزرگ کردن حرف اول
         function capitalize(str) {
             return str.charAt(0).toUpperCase() + str.slice(1);
         }
 
 
-                $(document).on('change', '.item-select[name$="CategoryId"]', function () {
+        $(document).on('change', '.item-select[name$="CategoryId"]', function () {
             let $this = $(this);
             let index = $this.data('index');
             let categoryId = $this.val();
@@ -820,7 +967,7 @@
         });
 
 
-              $(document).on('change', '.item-select[name$="GroupId"]', function () {
+        $(document).on('change', '.item-select[name$="GroupId"]', function () {
             let $this = $(this);
             let index = $this.data('index');
             let groupId = $this.val();
@@ -893,7 +1040,7 @@
 
 
 
-                $(document).on('change', '.status-select', function () {
+        $(document).on('change', '.status-select', function () {
             let $this = $(this);
             let index = $this.data('index');
             let statusId = $this.val();
@@ -950,7 +1097,7 @@
 
 
 
-                   $(document).on('click', '.remove-item', function () {
+        $(document).on('click', '.remove-item', function () {
             const $row = $(this).closest('tr.align-middle');
             const index = $row.data('index');
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
@@ -967,7 +1114,7 @@
             $errorRow.remove();
         });
 
-                       $(document).on('click', '.save-item', function () {
+        $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr[data-index]');
             const index = $row.data('index');
             const prefix = 'Items';
@@ -1034,9 +1181,9 @@
 
             // بررسی وجود کالا در درخواست خرید
             console.log("ارسال درخواست به سرور برای بررسی وجود کالا در درخواست خرید...");
-           $.get('/WarehouseManagement/ReceiptOrIssue/CheckProductInPurchaseRequest',
+            $.get('/WarehouseManagement/ReceiptOrIssue/CheckProductInPurchaseRequest',
                 { productId: productId, purchaseRequestId: purchaseRequestId },
-                function(response) {
+                function (response) {
                     console.log("پاسخ سرور:", response);
 
                     if (!response.exists) {
@@ -1049,7 +1196,7 @@
                     console.log("✅ کالا در درخواست خرید موجود است → ادامه ذخیره");
                     finalizeRow($row, index, prefix);
                 })
-                .fail(function(xhr) {
+                .fail(function (xhr) {
                     console.error("خطا در ارتباط با سرور:", xhr.responseText);
                 });
         });
@@ -1093,7 +1240,7 @@
 
 
 
-                     $('#receiptIssueForm').submit(function (e) {
+        $('#receiptIssueForm').submit(function (e) {
             e.preventDefault();
             const form = this;
             const formData = new FormData(form);
@@ -1108,7 +1255,7 @@
                     if (response.success) {
                         if (confirm("سند با موفقیت ذخیره شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
                             // فرض: سرور response.documentId را برمی‌گرداند
-                           window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
+                            window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
 
                         } else {
                             window.location.href = '/WarehouseManagement/ReceiptOrIssue/Index';
