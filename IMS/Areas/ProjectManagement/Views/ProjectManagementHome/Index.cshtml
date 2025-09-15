@@ -148,6 +148,11 @@
             // اضافه کردن پیام عدم یافتن نتیجه به صفحه
             cardsContainer.appendChild(noResultsMessage);
 
+            // ⭐ کارت‌ها رو قابل فوکوس با Tab کنیم
+            cards.forEach(card => {
+                card.setAttribute('tabindex', '0');
+            });
+
             globalSearch.addEventListener('input', function() {
                 const term = this.value.trim().toLowerCase();
                 let hasResults = false;
@@ -156,6 +161,7 @@
                     const cardText = card.textContent.toLowerCase();
                     if (cardText.includes(term)) {
                         card.style.display = '';
+                        card.setAttribute('tabindex', '0'); // وقتی کارت نمایش داده میشه با Tab انتخاب‌پذیر باشه
                         hasResults = true;
 
                         // هایلایت کردن متن (پیاده‌سازی ساده)
@@ -172,6 +178,7 @@
                         }
                     } else {
                         card.style.display = 'none';
+                        card.setAttribute('tabindex', '-1'); // کارت مخفی از Tab خارج بشه
                     }
                 });
 
@@ -192,12 +199,18 @@
                 const totalPages = Math.ceil(allCards.length / rowsPerPage);
 
                 // مخفی کردن همه کارت‌ها
-                allCards.forEach(card => card.style.display = 'none');
+                allCards.forEach(card => {
+                    card.style.display = 'none';
+                    card.setAttribute('tabindex', '-1');
+                });
 
                 // نمایش کارت‌های صفحه فعلی
                 const start = (currentPage - 1) * rowsPerPage;
                 const end = start + rowsPerPage;
-                allCards.slice(start, end).forEach(card => card.style.display = '');
+                allCards.slice(start, end).forEach(card => {
+                    card.style.display = '';
+                    card.setAttribute('tabindex', '0'); // کارت‌های صفحه فعلی قابل فوکوس
+                });
 
                 // ایجاد دکمه‌های صفحه‌بندی
                 const paginationContainer = document.getElementById('paginationContainer');
@@ -213,6 +226,8 @@
                     a.href = '#';
                     a.style.fontSize = '0.75rem';
                     a.innerText = i;
+
+                    a.setAttribute('tabindex', '0'); // دکمه‌های صفحه‌بندی هم با Tab قابل انتخاب باشن
 
                     a.addEventListener('click', function (e) {
                         e.preventDefault();
