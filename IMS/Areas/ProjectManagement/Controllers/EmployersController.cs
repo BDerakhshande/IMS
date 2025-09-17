@@ -100,12 +100,12 @@ namespace IMS.Areas.ProjectManagement.Controllers
         {
             dto.CooperationStartDate = ParsePersianDate(CooperationStartDatePersian) ?? DateTime.Now;
            
-            if (!ModelState.IsValid)
-            {
-                ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
-                ViewBag.CooperationType = GetSelectListItems<CooperationType>();
-                return View(dto);
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    ViewBag.LegalPersonTypes = GetSelectListItems<LegalPersonType>();
+            //    ViewBag.CooperationType = GetSelectListItems<CooperationType>();
+            //    return View(dto);
+            //}
 
             var result = await _employerService.UpdateEmployerAsync(dto);
             if (!result) return NotFound();

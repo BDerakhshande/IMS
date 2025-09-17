@@ -1,4 +1,5 @@
-﻿@model IMS.Models.ProMan.WarehouseTransactionDetailViewModel
+﻿@using IMS.Areas.ProjectManagement.Helper
+@model IMS.Models.ProMan.WarehouseTransactionDetailViewModel
 
 @{
     ViewData["Title"] = "گزارش پروژه";
@@ -15,12 +16,11 @@
     { "Transfer", "انتقال" }
 };
 
-    var transactionTypes = Model.Transactions
-        .Select(t => t.TransactionType)
-        .Distinct()
+    
+    var transactionTypes = Model.TransactionTypes
         .ToDictionary(
-            t => t,        // کلید همان مقدار اصلی
-            t => transactionTypeNames[t] // مقدار فارسی
+    t => t,
+    t => transactionTypeNames.ContainsKey(t) ? transactionTypeNames[t] : t
         );
 
 
@@ -166,31 +166,35 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3 align-items-end">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-md-4 col-lg-3">
-                                <label class="form-label small">نام پروژه</label>
-                                <select name="projectName" class="form-select form-select-sm shadow-sm select-left-arrow">
-                                    <option value="">همه پروژه‌ها</option>
-                                    @foreach (var project in Model.Projects)
-                                    {
-                                        <option value="@project.ProjectName" selected="@(project.ProjectName == selectedProjectName ? "selected" : null)">@project.ProjectName</option>
-                                    }
-                                </select>
-                            </div>
+                        <div class="col-md-4 col-lg-3">
+                            <label class="form-label small">نام پروژه</label>
+                            <select name="projectName" class="form-select form-select-sm shadow-sm select-left-arrow">
+                                <option value="">همه پروژه‌ها</option>
+                                @foreach (var project in Model.Projects)
+                                {
+                                    <option value="@project.ProjectName" selected="@(project.ProjectName == selectedProjectName ? "selected" : null)">
+                                        @project.ProjectName
+                                    </option>
+                                }
+                            </select>
+                        </div>
 
-                            <div class="col-md-4 col-lg-3">
-                                <label class="form-label small">نوع تراکنش</label>
-                                <select name="transactionType" class="form-select form-select-sm shadow-sm transaction-type select-left-arrow">
-                                    <option value="">همه انواع</option>
-                                    @foreach (var type in transactionTypes)
-                                    {
-                                        <option value="@type.Key" selected="@(type.Key == selectedTransactionType ? "selected" : null)">
-                                            @type.Value
-                                        </option>
-                                    }
+                        <div class="col-md-4 col-lg-3">
+                            <label class="form-label small">نوع تراکنش</label>
+                            <select name="transactionType" class="form-select form-select-sm shadow-sm transaction-type select-left-arrow">
+                                <option value="">همه انواع</option>
+                                @foreach (var type in transactionTypes)
+                                {
+                                    <option value="@type.Key" selected="@(type.Key == selectedTransactionType ? "selected" : null)">
+                                        @type.Value
+                                    </option>
+                                }
+                            </select>
 
-                                </select>
-                            </div>
+                        </div>
+
+                  
+                        <input type="hidden" name="isSearchClicked" value="true" />
 
                         <div class="col-md-4 col-lg-3">
                             <button type="submit" class="btn btn-sm btn-primary w-100 rounded-pill">
@@ -206,6 +210,7 @@
                 </div>
             </div>
         </form>
+
 
         @if (Model.Transactions == null || !Model.Transactions.Any())
         {
@@ -264,6 +269,7 @@
                                     <th scope="col" width="15%">نام پروژه</th>
                                     <th scope="col" width="15%">مبدا</th>
                                     <th scope="col" width="25%">مقصد</th>
+                                    <th scope="col" width="5%">تعداد</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -273,7 +279,7 @@
                                     <tr>
                                         <td>@(i + 1)</td>
                                         <td>@item.DocumentNumber</td>
-                                        <td>@item.Date.ToString("yyyy/MM/dd")</td>
+                                        <td>@item.Date.ToShamsi()</td>
                                         <td>
                                             @(transactionTypeNames.ContainsKey(item.TransactionType)
                                                 ? transactionTypeNames[item.TransactionType]
@@ -297,7 +303,7 @@
                                             }
                                             @(string.IsNullOrEmpty(destination) ? "-" : destination)
                                         </td>
-                                      
+                                        <td>@item.Quantity.ToString("N0")</td>
                                     </tr>
                                 }
                             </tbody>

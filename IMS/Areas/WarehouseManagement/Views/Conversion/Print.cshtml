@@ -1,7 +1,18 @@
 ﻿@model IMS.Models.ProMan.ConversionPrintViewModel
 
-@{
-    Layout = null;
+@functions {
+    public string CleanString(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return input;
+        return input.Replace(";#", ", ").Replace("#", "").Replace("&", "").Trim().TrimEnd(',');
+    }
+
+    public string ToPersianDate(DateTime date)
+    {
+        var pc = new System.Globalization.PersianCalendar();
+        return $"{pc.GetYear(date)}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
+    }
 
     string FormatItem(string category, string group, string status, string product)
     {
@@ -14,27 +25,154 @@
     }
 }
 
+@{
+    Layout = null;
+}
+
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" style="height: 100%">
 <head>
     <meta charset="utf-8" />
     <title>چاپ سند تبدیل</title>
-    <link href="~/css/PrintCreateIssueAndRecept.css" rel="stylesheet" />
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
+        }
+        @@page{
+            size: A4 portrait;
+            margin: 10mm;
+        }
+
+        body {
+            padding: 20px;
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #1a4a5a;
+        }
+
+            .header h1 {
+                color: #1a4a5a;
+                font-size: 24px;
+                margin-bottom: 10px;
+            }
+
+        .report-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+
+        /* Document Info Styles */
+        .document-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-right: 4px solid #1a4a5a;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #1a4a5a;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .info-value {
+            font-size: 15px;
+        }
+
+        /* Section Title Styles */
+        .section-title {
+            color: #1a4a5a;
+            margin: 20px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 18px;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+
+            .data-table th {
+                background-color: #1a4a5a;
+                color: white;
+                padding: 12px 8px;
+                text-align: center;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .data-table td {
+                padding: 10px 8px;
+                border-bottom: 1px solid #ddd;
+                text-align: center;
+                font-size: 13px;
+            }
+
+            .data-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+
+        .summary-row {
+            font-weight: bold;
+            background-color: #f1f1f1 !important;
+        }
+
+            .summary-row td {
+                border-top: 2px solid #1a4a5a;
+                border-bottom: 2px solid #1a4a5a;
+                padding: 12px 8px;
+            }
+    </style>
 </head>
-<body>
-    <div class="header-info">
+<body style="height: 100%">
+    <div class="header">
+        <h1>چاپ سند تبدیل</h1>
+        <div class="report-info">
+            <span>تاریخ استخراج گزارش: @ToPersianDate(DateTime.Now)</span>
+        </div>
+    </div>
+
+    <div class="document-info">
         <div class="info-item">
             <span class="info-label">شماره سند:</span>
             <span class="info-value">@Model.DocumentNumber</span>
         </div>
         <div class="info-item">
-            <span class="info-label">تاریخ:</span>
-            <span class="info-value">@Model.CreatedAt.ToString("yyyy/MM/dd")</span>
+            <span class="info-label">تاریخ ایجاد:</span>
+            <span class="info-value">@ToPersianDate(Model.CreatedAt)</span>
         </div>
     </div>
 
     <h4 class="section-title">اقلام مصرفی</h4>
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th>کالا</th>
@@ -43,19 +181,32 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.ConsumedItems)
+            @if (Model.ConsumedItems != null && Model.ConsumedItems.Any())
+            {
+                foreach (var item in Model.ConsumedItems)
+                {
+                    <tr>
+                        <td>@CleanString(FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName))</td>
+                        <td>@CleanString(FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName))</td>
+                        <td>@item.Quantity.ToString("N0")</td>
+                    </tr>
+                }
+                <tr class="summary-row">
+                    <td colspan="2">جمع کل اقلام مصرفی</td>
+                    <td>@(Model.ConsumedItems.Sum(i => i.Quantity).ToString("N0"))</td>
+                </tr>
+            }
+            else
             {
                 <tr>
-                    <td>@FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName)</td>
-                    <td>@FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName)</td>
-                    <td>@item.Quantity</td>
+                    <td colspan="3" style="text-align:center; padding:20px;">هیچ قلم مصرفی وجود ندارد</td>
                 </tr>
             }
         </tbody>
     </table>
 
     <h4 class="section-title">اقلام تولیدی</h4>
-    <table>
+    <table class="data-table">
         <thead>
             <tr>
                 <th>کالا</th>
@@ -64,12 +215,22 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Model.ProducedItems)
+            @if (Model.ProducedItems != null && Model.ProducedItems.Any())
+            {
+                foreach (var item in Model.ProducedItems)
+                {
+                    <tr>
+                        <td>@CleanString(FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName))</td>
+                        <td>@CleanString(FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName))</td>
+                        <td>@item.Quantity.ToString("N0")</td>
+                    </tr>
+                }
+              
+            }
+            else
             {
                 <tr>
-                    <td>@FormatItem(item.CategoryName, item.GroupName, item.StatusName, item.ProductName)</td>
-                    <td>@FormatLocation(item.WarehouseName, item.ZoneName, item.SectionName)</td>
-                    <td>@item.Quantity</td>
+                    <td colspan="3" style="text-align:center; padding:20px;">هیچ قلم تولیدی وجود ندارد</td>
                 </tr>
             }
         </tbody>

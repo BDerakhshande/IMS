@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Application.WarehouseManagement.Services
 {
-    public class WarehouseTransactionDetailService:IWarehouseTransactionDetailService
+    public class WarehouseTransactionDetailService : IWarehouseTransactionDetailService
     {
         private readonly IWarehouseDbContext _warehouseContext;
         private readonly IApplicationDbContext _projectContext;
@@ -26,18 +27,30 @@ namespace IMS.Application.WarehouseManagement.Services
             _projectContext = projectContext;
         }
 
-        public async Task<(List<WarehouseTransactionDetailDto> Transactions, List<ProjectDto> Projects)> GetAllTransactionsWithProjectsAsync(
-            string? projectName = null,
-            string? transactionType = null,
-            CancellationToken cancellationToken = default)
+        public async Task<(List<WarehouseTransactionDetailDto> Transactions, List<ProjectDto> Projects, List<string> TransactionTypes)>
+    GetAllTransactionsWithProjectsAsync(
+        string? projectName = null,
+        string? transactionType = null,
+        bool isSearchClicked = false,
+        CancellationToken cancellationToken = default)
         {
-            // ---------------- Fetch Projects ----------------
+            // ---------------- Fetch Projects (همیشه کامل) ----------------
             var allProjects = await _projectContext.Projects
-                .Select(p => new { p.Id, p.ProjectName })
+                .Select(p => new ProjectDto
+                {
+                    Id = p.Id,
+                    ProjectName = p.ProjectName
+                })
                 .ToListAsync(cancellationToken);
+            // همه نوع تراکنش
+            var allTransactionTypes = new List<string> { "Receipt", "Issue", "Conversion" , "Transfer"};
 
-            // ---------------- ReceiptOrIssue Items ----------------
-            var receiptOrIssueQuery = _warehouseContext.ReceiptOrIssueItems
+            if (!isSearchClicked)
+                return (new List<WarehouseTransactionDetailDto>(), allProjects, allTransactionTypes);
+
+            
+
+            var receiptOrIssueItems = await _warehouseContext.ReceiptOrIssueItems
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Status)
                         .ThenInclude(s => s.Group)
@@ -49,48 +62,8 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(x => x.DestinationZone)
                 .Include(x => x.DestinationSection)
                 .Include(x => x.ReceiptOrIssue)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(projectName))
-            {
-                var projectNameLower = projectName.ToLower();
-                receiptOrIssueQuery = receiptOrIssueQuery.Where(x =>
-                    !string.IsNullOrWhiteSpace(x.ProjectTitle) &&
-                    x.ProjectTitle.ToLower().Contains(projectNameLower));
-            }
-
-            if (!string.IsNullOrWhiteSpace(transactionType) && !transactionType.Equals("Conversion", StringComparison.OrdinalIgnoreCase))
-            {
-                if (Enum.TryParse<ReceiptOrIssueType>(transactionType, true, out var typeEnum))
-                {
-                    receiptOrIssueQuery = receiptOrIssueQuery
-                        .Where(x => x.ReceiptOrIssue != null && x.ReceiptOrIssue.Type == typeEnum);
-                }
-            }
-
-            var receiptOrIssueTransactions = await receiptOrIssueQuery
-                .Select(x => new WarehouseTransactionDetailDto
-                {
-                    Id = x.Id,
-                    DocumentNumber = x.ReceiptOrIssue!.DocumentNumber,
-                    TransactionType = x.ReceiptOrIssue.Type.ToString(),
-                    ProjectName = x.ProjectTitle,
-                    Date = x.ReceiptOrIssue.Date,
-                    SourceWarehouse = x.SourceWarehouse.Name,
-                    SourceZone = x.SourceZone.Name,
-                    SourceSection = x.SourceSection.Name,
-                    DestinationWarehouse = x.DestinationWarehouse.Name,
-                    DestinationZone = x.DestinationZone.Name,
-                    DestinationSection = x.DestinationSection.Name,
-                    ProductName = x.Product.Name,
-                    CategoryName = x.Category.Name ?? x.Product.Status.Group.Category.Name,
-                    GroupName = x.Group.Name ?? x.Product.Status.Group.Name,
-                    StatusName = x.Status.Name ?? x.Product.Status.Name,
-                    Quantity = x.Quantity
-                })
                 .ToListAsync(cancellationToken);
 
-            // ---------------- Consumed Items ----------------
             var consumedItems = await _warehouseContext.conversionConsumedItems
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Status)
@@ -102,37 +75,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(x => x.ConversionDocument)
                 .ToListAsync(cancellationToken);
 
-            var consumedTransactions = consumedItems
-                .Where(x => string.IsNullOrWhiteSpace(projectName) ||
-                            (x.ProjectId.HasValue && allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName.Contains(projectName, StringComparison.OrdinalIgnoreCase) == true))
-                .Select(x =>
-                {
-                    var projectNameMapped = x.ProjectId.HasValue
-                        ? allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName
-                        : null;
-
-                    return new WarehouseTransactionDetailDto
-                    {
-                        Id = x.Id,
-                        DocumentNumber = x.ConversionDocument.DocumentNumber,
-                        TransactionType = "Conversion",
-                        ProjectName = projectNameMapped,
-                        Date = x.ConversionDocument.CreatedAt,
-                        SourceWarehouse = x.Warehouse?.Name,
-                        SourceZone = x.Zone?.Name,
-                        SourceSection = x.Section?.Name,
-                        DestinationWarehouse = null,
-                        DestinationZone = null,
-                        DestinationSection = null,
-                        ProductName = x.Product?.Name,
-                        CategoryName = x.Category?.Name ?? x.Product?.Status?.Group?.Category?.Name,
-                        GroupName = x.Group?.Name ?? x.Product?.Status?.Group?.Name,
-                        StatusName = x.Status?.Name ?? x.Product?.Status?.Name,
-                        Quantity = x.Quantity
-                    };
-                });
-
-            // ---------------- Produced Items ----------------
             var producedItems = await _warehouseContext.conversionProducedItems
                 .Include(x => x.Product)
                     .ThenInclude(p => p.Status)
@@ -144,83 +86,107 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(x => x.ConversionDocument)
                 .ToListAsync(cancellationToken);
 
-            var producedTransactions = producedItems
-                .Where(x => string.IsNullOrWhiteSpace(projectName) ||
-                            (x.ProjectId.HasValue && allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName.Contains(projectName, StringComparison.OrdinalIgnoreCase) == true))
-                .Select(x =>
-                {
-                    var projectNameMapped = x.ProjectId.HasValue
+            // ---------------- Map Transactions ----------------
+            var receiptOrIssueTransactions = receiptOrIssueItems.Select(x => new WarehouseTransactionDetailDto
+            {
+                Id = x.Id,
+                DocumentNumber = x.ReceiptOrIssue!.DocumentNumber,
+                TransactionType = x.ReceiptOrIssue.Type.ToString(),
+                ProjectName = !string.IsNullOrWhiteSpace(x.ProjectTitle)
+                    ? x.ProjectTitle
+                    : x.ProjectId.HasValue
                         ? allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName
-                        : null;
+                        : null,
+                Date = x.ReceiptOrIssue.Date,
+                SourceWarehouse = x.SourceWarehouse?.Name,
+                SourceZone = x.SourceZone?.Name,
+                SourceSection = x.SourceSection?.Name,
+                DestinationWarehouse = x.DestinationWarehouse?.Name,
+                DestinationZone = x.DestinationZone?.Name,
+                DestinationSection = x.DestinationSection?.Name,
+                ProductName = x.Product.Name,
+                CategoryName = x.Category?.Name ?? x.Product.Status.Group.Category.Name,
+                GroupName = x.Group?.Name ?? x.Product.Status.Group.Name,
+                StatusName = x.Status?.Name ?? x.Product.Status.Name,
+                Quantity = x.Quantity
+            }).ToList();
 
-                    return new WarehouseTransactionDetailDto
-                    {
-                        Id = x.Id,
-                        DocumentNumber = x.ConversionDocument.DocumentNumber,
-                        TransactionType = "Conversion",
-                        ProjectName = projectNameMapped,
-                        Date = x.ConversionDocument.CreatedAt,
-                        SourceWarehouse = null,
-                        SourceZone = null,
-                        SourceSection = null,
-                        DestinationWarehouse = x.Warehouse?.Name,
-                        DestinationZone = x.Zone?.Name,
-                        DestinationSection = x.Section?.Name,
-                        ProductName = x.Product?.Name,
-                        CategoryName = x.Category?.Name ?? x.Product?.Status?.Group?.Category?.Name,
-                        GroupName = x.Group?.Name ?? x.Product?.Status?.Group?.Name,
-                        StatusName = x.Status?.Name ?? x.Product?.Status?.Name,
-                        Quantity = x.Quantity
-                    };
-                });
-
-            // ---------------- Combine Conversion ----------------
-            var conversionTransactions = consumedTransactions
-                .Concat(producedTransactions)
-                .ToList();
-
-            // ---------------- Apply TransactionType Filter ----------------
-            List<WarehouseTransactionDetailDto> transactions;
-            if (!string.IsNullOrWhiteSpace(transactionType))
+            var consumedTransactions = consumedItems.Select(x => new WarehouseTransactionDetailDto
             {
-                if (transactionType.Equals("Conversion", StringComparison.OrdinalIgnoreCase))
-                {
-                    transactions = conversionTransactions
-                        .OrderByDescending(t => t.Date)
-                        .ToList();
-                }
-                else
-                {
-                    transactions = receiptOrIssueTransactions
-                        .Where(t => t.TransactionType.Equals(transactionType, StringComparison.OrdinalIgnoreCase))
-                        .OrderByDescending(t => t.Date)
-                        .ToList();
-                }
-            }
-            else
+                Id = x.Id,
+                DocumentNumber = x.ConversionDocument.DocumentNumber,
+                TransactionType = "Conversion",
+                ProjectName = x.ProjectId.HasValue ? allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName : null,
+                Date = x.ConversionDocument.CreatedAt,
+                SourceWarehouse = x.Warehouse?.Name,
+                SourceZone = x.Zone?.Name,
+                SourceSection = x.Section?.Name,
+                DestinationWarehouse = null,
+                DestinationZone = null,
+                DestinationSection = null,
+                ProductName = x.Product?.Name,
+                CategoryName = x.Category?.Name ?? x.Product?.Status?.Group?.Category?.Name,
+                GroupName = x.Group?.Name ?? x.Product?.Status?.Group?.Name,
+                StatusName = x.Status?.Name ?? x.Product?.Status?.Name,
+                Quantity = x.Quantity
+            }).ToList();
+
+            var producedTransactions = producedItems.Select(x => new WarehouseTransactionDetailDto
             {
-                transactions = receiptOrIssueTransactions
-                    .Concat(conversionTransactions)
-                    .OrderByDescending(t => t.Date)
+                Id = x.Id,
+                DocumentNumber = x.ConversionDocument.DocumentNumber,
+                TransactionType = "Conversion",
+                ProjectName = x.ProjectId.HasValue ? allProjects.FirstOrDefault(p => p.Id == x.ProjectId.Value)?.ProjectName : null,
+                Date = x.ConversionDocument.CreatedAt,
+                SourceWarehouse = null,
+                SourceZone = null,
+                SourceSection = null,
+                DestinationWarehouse = x.Warehouse?.Name,
+                DestinationZone = x.Zone?.Name,
+                DestinationSection = x.Section?.Name,
+                ProductName = x.Product?.Name,
+                CategoryName = x.Category?.Name ?? x.Product?.Status?.Group?.Category?.Name,
+                GroupName = x.Group?.Name ?? x.Product?.Status?.Group?.Name,
+                StatusName = x.Status?.Name ?? x.Product?.Status?.Name,
+                Quantity = x.Quantity
+            }).ToList();
+
+            var conversionTransactions = consumedTransactions.Concat(producedTransactions).ToList();
+
+            // ---------------- Apply Filters on Transactions Only ----------------
+            var allTransactions = receiptOrIssueTransactions.Concat(conversionTransactions).ToList();
+
+            if (!string.IsNullOrWhiteSpace(projectName) && projectName != "همه")
+                allTransactions = allTransactions
+                    .Where(t => !string.IsNullOrWhiteSpace(t.ProjectName) &&
+                                t.ProjectName.Contains(projectName, StringComparison.OrdinalIgnoreCase))
                     .ToList();
-            }
 
-            // ---------------- Fetch Projects for Filter ----------------
-            var projects = allProjects
-                .Select(p => new ProjectDto
-                {
-                    Id = p.Id,
-                    ProjectName = p.ProjectName
-                })
-                .ToList();
+            if (!string.IsNullOrWhiteSpace(transactionType) && transactionType != "همه")
+                allTransactions = allTransactions
+                    .Where(t => t.TransactionType.Equals(transactionType, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
 
-            return (transactions, projects);
+
+            var transactions = allTransactions.OrderByDescending(t => t.Date).ToList();
+
+            return (transactions, allProjects , allTransactionTypes);
         }
 
-        public async Task<byte[]> ExportTransactionsToExcelAsync(string? projectName = null, string? transactionType = null)
+
+        private static string ToShamsi(DateTime date)
+        {
+            var pc = new PersianCalendar();
+            return $"{pc.GetYear(date):0000}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
+        }
+
+        public async Task<byte[]> ExportTransactionsToExcelAsync(
+         string? projectName = null,
+         string? transactionType = null,
+         CancellationToken cancellationToken = default)
         {
             // دریافت داده‌ها با فیلترهای اعمال شده
-            var (transactions, _) = await GetAllTransactionsWithProjectsAsync(projectName, transactionType);
+            var (transactions, _, _) = await GetAllTransactionsWithProjectsAsync(projectName, transactionType, true, cancellationToken);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("گزارش تراکنش‌های انبار");
@@ -234,7 +200,9 @@ namespace IMS.Application.WarehouseManagement.Services
             worksheet.Cell(1, 6).Value = "مبدا";
             worksheet.Cell(1, 7).Value = "مقصد";
             worksheet.Cell(1, 8).Value = "کالا";
+            worksheet.Cell(1, 9).Value = "تعداد";
 
+            // ترجمه نوع تراکنش به فارسی
             var transactionTypeNames = new Dictionary<string, string>
     {
         { "Conversion", "تبدیل" },
@@ -250,7 +218,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
                 worksheet.Cell(row, 1).Value = i + 1;
                 worksheet.Cell(row, 2).Value = item.DocumentNumber;
-                worksheet.Cell(row, 3).Value = item.Date.ToString("yyyy/MM/dd");
+                worksheet.Cell(row, 3).Value = item.Date;
                 worksheet.Cell(row, 4).Value = transactionTypeNames.ContainsKey(item.TransactionType)
                                                ? transactionTypeNames[item.TransactionType]
                                                : item.TransactionType;
@@ -266,22 +234,24 @@ namespace IMS.Application.WarehouseManagement.Services
                                              .Where(x => !string.IsNullOrWhiteSpace(x)));
                 worksheet.Cell(row, 7).Value = string.IsNullOrEmpty(destination) ? "-" : destination;
 
+                // کالا
                 worksheet.Cell(row, 8).Value = $"{item.ProductName} / {item.CategoryName} / {item.GroupName} / {item.StatusName}";
+
+                // تعداد
+                worksheet.Cell(row, 9).Value = item.Quantity;
 
                 row++;
             }
+       
 
-            // جمع کل
-            var totalQuantity = transactions.Sum(x => x.Quantity);
-            worksheet.Cell(row, 7).Value = "جمع کل:";
-            worksheet.Cell(row, 8).Value = totalQuantity;
-
+            // تنظیم خودکار عرض ستون‌ها
             worksheet.Columns().AdjustToContents();
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             return stream.ToArray();
         }
+
     }
 }
 

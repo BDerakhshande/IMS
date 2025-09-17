@@ -7,7 +7,7 @@
 }
 @{
     var categories = ViewBag.Categories as IEnumerable<SelectListItem>;
- }
+}
 @functions {
     string FormatLocationSummary(IEnumerable<SelectListItem> warehouses, IEnumerable<SelectListItem> zones, IEnumerable<SelectListItem> sections, int? warehouseId, int? zoneId, int? sectionId)
     {
@@ -27,18 +27,59 @@
     }
 }
 
+<link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="~/lib/select2/css/select2.min.css" rel="stylesheet">
+<link href="~/lib/select2-bootstrap-5-theme-1.3.0/select2-bootstrap-5-theme.min.css" stylesheet">
+<!-- اگر FontAwesome نیاز دارید -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+
 <style>
+    /* هماهنگی Select2 با Bootstrap */
+    .select2-container {
+        width: 100% !important;
+        font-size: 0.85rem;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection--single {
+        height: 32px;
+        padding: 0.25rem 0.5rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__rendered {
+        color: #212529;
+        line-height: 1.5;
+        font-size: 0.82rem;
+        padding-right: 30px;
+        padding-left: 10px;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__clear {
+        right: 8px !important;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .select2-container--bootstrap-5 .select2-selection__arrow {
+        right: 4px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* راست‌چین برای RTL */
     select.form-select[dir="rtl"],
-    select.form-select.text-end {
+    .select2-container[dir="rtl"] .select2-selection--single {
         direction: rtl;
         text-align: right;
         padding-right: 1rem;
         padding-left: 2rem;
-        background-position: left 0.75rem center !important;
-        background-size: 16px 16px;
-        background-repeat: no-repeat;
     }
 
+    /* حذف ظاهر پیش‌فرض مرورگر */
     select.form-select,
     select.select2-hidden-accessible {
         -webkit-appearance: none;
@@ -47,18 +88,19 @@
         background-image: none !important;
     }
 
+    /* جدول فشرده */
     .table-sm-custom {
         font-size: 0.85rem;
     }
 
         .table-sm-custom .form-select,
-        .table-sm-custom .form-control {
+        .table-sm-custom .form-control,
+        .table-sm-custom .select2-container .select2-selection--single {
             font-size: 0.85rem;
             padding: 0.25rem 0.5rem;
             height: auto;
         }
 
-        .table-sm-custom label,
         .table-sm-custom .accordion-button {
             font-size: 0.82rem;
         }
@@ -66,10 +108,6 @@
         .table-sm-custom .btn-sm {
             padding: 0.25rem 0.5rem;
             font-size: 0.8rem;
-        }
-
-        .table-sm-custom .accordion-body {
-            padding: 0.5rem;
         }
 
     .btn-icon {
@@ -93,20 +131,6 @@
         padding: 1.25rem 1.5rem;
     }
 
-    .select2-container--bootstrap5 .select2-selection {
-        min-height: 38px;
-        border-radius: 6px;
-    }
-
-    .table th {
-        white-space: nowrap;
-        vertical-align: middle;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
     .form-control, .form-select {
         border-radius: 6px;
         padding: 0.375rem 0.75rem;
@@ -120,10 +144,6 @@
         border-radius: 6px;
         padding: 0.375rem 0.75rem;
         font-weight: 500;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
     }
 
     .text-danger.small {
@@ -156,11 +176,6 @@
         border-color: rgba(0,0,0,.125);
     }
 </style>
-
-<!-- Select2 CSS -->
-<link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
-<link href="~/lib/select2-bootstrap5-theme/select2-bootstrap5.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
 <div class="card border-0 shadow-sm" dir="rtl">
     <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
@@ -204,7 +219,7 @@
 
                 <div class="col-md-3">
                     <label asp-for="Type" class="form-label fw-bold small text-end w-100">نوع</label>
-                    <select asp-for="Type" class="form-select form-select-sm text-end">
+                    <select asp-for="Type" class="form-select form-select-sm select2 text-end">
                         <option value="">انتخاب کنید...</option>
                         <option value="1">رسید</option>
                         <option value="2">حواله</option>
@@ -212,8 +227,6 @@
                     </select>
                     <span asp-validation-for="Type" class="text-danger small d-block text-end"></span>
                 </div>
-
-             
             </div>
 
             <div class="row g-2 mb-3">
@@ -233,7 +246,7 @@
             </div>
 
             <div class="table-responsive border rounded-3 mb-3">
-                <table class="table table-hover table-sm mb-0" id="itemsTable">
+                <table class="table table-hover table-sm mb-0 table-sm-custom" id="itemsTable">
                     <thead class="table-light" style="font-size: 0.8rem;">
                         <tr class="text-center">
                             <th class="py-2">کالا</th>
@@ -245,11 +258,10 @@
                             <th class="py-2" style="width: 80px;">عملیات</th>
                         </tr>
                     </thead>
-                    <tbody class="table-sm-custom">
+                    <tbody>
                         @for (int i = 0; i < Model.Items.Count; i++)
                         {
                             <tr class="align-middle" data-index="@i">
-                                <!-- انتخاب کالا -->
                                 <td>
                                     <div class="accordion" id="productAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -270,28 +282,32 @@
                                             </h2>
                                             <div id="productCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#productAccordion_@i">
                                                 <div class="accordion-body p-2">
-                                                    <select asp-for="Items[i].CategoryId" asp-items="ViewBag.Categories" class="form-select ...">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">دسته‌بندی</label>
+                                                    <select asp-for="Items[i].CategoryId" class="form-select form-select-sm category-select select2 item-select text-end" data-index="@i">
                                                         <option value="">انتخاب دسته‌بندی</option>
+                                                        @foreach (var item in ViewBag.Categories as SelectList)
+                                                        {
+                                                            <option value="@item.Value" selected="@(item.Value == Model.Items[i].CategoryId.ToString())">@item.Text</option>
+                                                        }
                                                     </select>
-
-
-                                                    <select asp-for="Items[i].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select mt-2 text-end" data-index="@i">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">گروه</label>
+                                                    <select asp-for="Items[i].GroupId" class="form-select form-select-sm group-select select2 item-select mt-2 text-end" data-index="@i">
                                                         <option value="">انتخاب گروه</option>
                                                         @foreach (var group in Model.Items[i].AvailableGroups ?? new List<SelectListItem>())
                                                         {
                                                             <option value="@group.Value" selected="@(group.Value == Model.Items[i].GroupId?.ToString())">@group.Text</option>
                                                         }
                                                     </select>
-
-                                                    <select asp-for="Items[i].StatusId" class="form-select form-select-sm status-select mt-2 shadow-sm text-end" data-index="@i">
-                                                        <option value="">انتخاب وضعیت</option>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">طبقه</label>
+                                                    <select asp-for="Items[i].StatusId" class="form-select form-select-sm status-select select2 mt-2 text-end" data-index="@i">
+                                                        <option value="">انتخاب طبقه</option>
                                                         @foreach (var status in Model.Items[i].AvailableStatuses ?? new List<SelectListItem>())
                                                         {
                                                             <option value="@status.Value" selected="@(status.Value == Model.Items[i].StatusId?.ToString())">@status.Text</option>
                                                         }
                                                     </select>
-
-                                                    <select asp-for="Items[i].ProductId" class="form-select form-select-sm product-select select2 shadow-sm mt-2 text-end" data-index="@i">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">کالا</label>
+                                                    <select asp-for="Items[i].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="@i">
                                                         <option value="">انتخاب کالا</option>
                                                         @foreach (var product in Model.Items[i].AvailableProducts ?? new List<SelectListItem>())
                                                         {
@@ -303,14 +319,14 @@
                                         </div>
                                     </div>
                                 </td>
-
-                                <!-- تعداد -->
                                 <td style="width: 120px;">
-                                    <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control form-control-sm shadow-sm no-spinner text-end" />
+                                    <input asp-for="Items[i].Quantity"
+                                           value="@Model.Items[i].Quantity.ToString("0.##")"
+                                           type="number" min="1" step="0.01"
+                                           class="form-control form-control-sm text-end" />
+
                                     <span asp-validation-for="Items[i].Quantity" class="text-danger small d-block mt-1 text-end"></span>
                                 </td>
-
-                                <!-- مبدا -->
                                 <td>
                                     <div class="accordion" id="sourceAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -331,7 +347,7 @@
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="source">
+                                                        <select asp-for="Items[i].SourceWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="@i" data-type="source">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in Model.Items[i].AvailableSourceWarehouses ?? new List<SelectListItem>())
                                                             {
@@ -340,10 +356,9 @@
                                                         </select>
                                                         <span asp-validation-for="Items[i].SourceWarehouseId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
-
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                                        <select asp-for="Items[i].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="@i" data-type="source">
+                                                        <select asp-for="Items[i].SourceZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="@i" data-type="source">
                                                             <option value="">انتخاب قسمت</option>
                                                             @foreach (var item in Model.Items[i].AvailableSourceZones ?? new List<SelectListItem>())
                                                             {
@@ -352,10 +367,9 @@
                                                         </select>
                                                         <span asp-validation-for="Items[i].SourceZoneId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
-
                                                     <div>
                                                         <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                                        <select asp-for="Items[i].SourceSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="source">
+                                                        <select asp-for="Items[i].SourceSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="source">
                                                             <option value="">انتخاب بخش</option>
                                                             @foreach (var item in Model.Items[i].AvailableSourceSections ?? new List<SelectListItem>())
                                                             {
@@ -369,8 +383,6 @@
                                         </div>
                                     </div>
                                 </td>
-
-                                <!-- مقصد -->
                                 <td>
                                     <div class="accordion" id="destAccordion_@i">
                                         <div class="accordion-item border-0">
@@ -391,7 +403,7 @@
                                                 <div class="accordion-body p-2">
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-type="destination">
+                                                        <select asp-for="Items[i].DestinationWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب انبار</option>
                                                             @foreach (var item in Model.Items[i].AvailableDestinationWarehouses ?? new List<SelectListItem>())
                                                             {
@@ -400,10 +412,9 @@
                                                         </select>
                                                         <span asp-validation-for="Items[i].DestinationWarehouseId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
-
                                                     <div class="mb-2">
                                                         <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                                        <select asp-for="Items[i].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="@i" data-type="destination">
+                                                        <select asp-for="Items[i].DestinationZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="@i" data-type="destination">
                                                             <option value="">انتخاب قسمت</option>
                                                             @foreach (var item in Model.Items[i].AvailableDestinationZones ?? new List<SelectListItem>())
                                                             {
@@ -412,10 +423,9 @@
                                                         </select>
                                                         <span asp-validation-for="Items[i].DestinationZoneId" class="text-danger small d-block mt-1 text-end"></span>
                                                     </div>
-
                                                     <div>
                                                         <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                                        <select asp-for="Items[i].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="destination">
+                                                        <select asp-for="Items[i].DestinationSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="destination">
                                                             <option value="">انتخاب بخش</option>
                                                             @foreach (var item in Model.Items[i].AvailableDestinationSections ?? new List<SelectListItem>())
                                                             {
@@ -429,9 +439,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <!-- پروژه -->
                                 <td>
-                                    <select asp-for="Items[i].ProjectId" class="form-select form-select-sm select2 shadow-sm text-end">
+                                    <select asp-for="Items[i].ProjectId" class="form-select form-select-sm select2-project text-end" data-index="@i">
                                         <option value="">انتخاب پروژه...</option>
                                         @foreach (var project in Model.Items[i].AvailableProjects ?? new List<SelectListItem>())
                                         {
@@ -440,9 +449,8 @@
                                     </select>
                                     <span asp-validation-for="Items[i].ProjectId" class="text-danger small d-block text-end"></span>
                                 </td>
-                                <!-- درخواست -->
                                 <td>
-                                    <select asp-for="Items[i].PurchaseRequestId" class="form-select form-select-sm select2 shadow-sm text-end">
+                                    <select asp-for="Items[i].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request text-end" data-index="@i">
                                         <option value="">انتخاب درخواست...</option>
                                         @foreach (var purchaseRequest in Model.Items[i].AvailablePurchaseRequests ?? new List<SelectListItem>())
                                         {
@@ -451,7 +459,6 @@
                                     </select>
                                     <span asp-validation-for="Items[i].PurchaseRequestId" class="text-danger small d-block text-end"></span>
                                 </td>
-                                <!-- دکمه‌ها -->
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
                                         <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
@@ -481,697 +488,510 @@
 </div>
 
 @section Scripts {
-    <!-- در انتهای body یا بخش Scripts -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/select2/js/select2.full.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/js/MenuJs.js"></script>
+    <!-- jQuery باید قبل از select2.min.js باشد -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
+
+
+    <script src="/js/MenuJs.js"></script>
+    <script type="text/html" id="CategoryTemplateOptions">
+        @foreach (var category in ViewBag.Categories as IEnumerable<SelectListItem> ?? new List<SelectListItem>())
+        {
+                <option value="@category.Value">@category.Text</option>
+        }
+    </script>
+
+    <script type="text/html" id="ProjectTemplateOptions">
+        @foreach (var project in Model.Items.FirstOrDefault()?.AvailableProjects ?? new List<SelectListItem>())
+        {
+                <option value="@project.Value">@project.Text</option>
+        }
+    </script>
+
+    <script type="text/html" id="PurchaseRequestTemplateOptions">
+        @foreach (var purchaseRequest in Model.Items.FirstOrDefault()?.AvailablePurchaseRequests ?? new List<SelectListItem>())
+        {
+                <option value="@purchaseRequest.Value">@purchaseRequest.Text</option>
+        }
+    </script>
+
     <script>
-        // ارسال داده‌های ViewBag به JS به صورت JSON
-        const categories = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories));
-        const groups = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups));
-        const statuses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Statuses));
-        const products = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Products));
-        const warehouses = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses));
-        const zones = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones));
-        const sections = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections));
-        const projects = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects));
-        const purchaseRequests = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests));
-
-
+        const viewBagData = {
+            categories: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories)),
+            groups: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Groups)),
+            statuses: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Statuses)),
+            products: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Products)),
+            warehouses: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Warehouses)),
+            zones: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones)),
+            sections: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections)),
+            projects: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects)),
+            purchaseRequests: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests))
+                };
 
         $(document).ready(function () {
-            $('.select2').select2({
-                theme: 'bootstrap5',
-                placeholder: 'انتخاب کنید',
-                allowClear: true,
-                dir: 'rtl', // اطمینان از پشتیبانی RTL
-                minimumResultsForSearch: 0
-            });
-        });
-
-        // ساخت گزینه‌ها
-        function buildOptions(items) {
-            return items.map(item => `<option value="${item.Value}">${item.Text}</option>`).join('');
-        }
-
-        document.getElementById('addItemBtn').addEventListener('click', function () {
-            const tableBody = document.querySelector('#itemsTable tbody');
-            const rowCount = tableBody.querySelectorAll('tr').length;
-
-            const errorRow = `
-                <tr class="validation-row" data-index="${rowCount}" style="display: none;">
-                    <td colspan="5">
-                        <div class="alert alert-danger error-message-list mb-0"></div>
-                    </td>
-                </tr>`;
-
-            const template = `
-                <tr class="align-middle" data-index="${rowCount}">
-                    <td>
-                        <div class="accordion" id="productAccordion_${rowCount}">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
-                                        انتخاب کالا و مشخصات آن
-                                    </button>
-                                </h2>
-                                <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
-                                    <div class="accordion-body p-2">
-                                        <select name="Items[${rowCount}].CategoryId" class="form-select form-select-sm category-select select2 shadow-sm item-select text-end" data-index="${rowCount}">
-                                            <option value="">انتخاب دسته‌بندی</option>
-                                            ${buildOptions(categories)}
-                                        </select>
-                                        <select name="Items[${rowCount}].GroupId" class="form-select form-select-sm group-select select2 shadow-sm item-select text-end mt-2" data-index="${rowCount}">
-                                            <option value="">انتخاب گروه</option>
-                                        </select>
-                                        <select name="Items[${rowCount}].StatusId" class="form-select form-select-sm status-select text-end mt-2" data-index="${rowCount}">
-                                            <option value="">انتخاب وضعیت</option>
-                                        </select>
-                                        <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 shadow-sm text-end mt-2" data-index="${rowCount}">
-                                            <option value="">انتخاب کالا</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td style="width: 120px;">
-                        <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control form-control-sm shadow-sm no-spinner text-end" />
-                        <span class="text-danger small d-block mt-1 text-end"></span>
-                    </td>
-                    <td>
-                        <div class="accordion" id="sourceAccordion_${rowCount}">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
-                                        مشخصات مبدا
-                                    </button>
-                                </h2>
-                                <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
-                                    <div class="accordion-body p-2">
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                            <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="${rowCount}" data-type="source">
-                                                <option value="">انتخاب انبار</option>
-                                                ${buildOptions(warehouses)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                            <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-type="source" data-index="${rowCount}">
-                                                <option value="">انتخاب قسمت</option>
-                                                ${buildOptions(zones)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                        <div>
-                                            <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                            <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="source">
-                                                <option value="">انتخاب بخش</option>
-                                                ${buildOptions(sections)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <div class="accordion" id="destAccordion_${rowCount}">
-                            <div class="accordion-item border-0">
-                                <h2 class="accordion-header">
-                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
-                                        مشخصات مقصد
-                                    </button>
-                                </h2>
-                                <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
-                                    <div class="accordion-body p-2">
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                            <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="${rowCount}" data-type="destination">
-                                                <option value="">انتخاب انبار</option>
-                                                ${buildOptions(warehouses)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                        <div class="mb-2">
-                                            <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                            <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="${rowCount}" data-type="destination">
-                                                <option value="">انتخاب قسمت</option>
-                                                ${buildOptions(zones)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                        <div>
-                                            <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                            <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-type="destination">
-                                                <option value="">انتخاب بخش</option>
-                                                ${buildOptions(sections)}
-                                            </select>
-                                            <span class="text-danger small d-block mt-1 text-end"></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-            <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project" dir="rtl" data-index="${rowCount}">
-                ${buildOptions(projects)}
-            </select>
-            <span class="text-danger small d-block text-end"></span>
-        </td>
-           <td>
-            <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request" dir="rtl" data-index="${rowCount}">
-                ${buildOptions(purchaseRequests)}
-            </select>
-            <span class="text-danger small d-block text-end"></span>
-        </td>
-
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center gap-1">
-                            <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
-                                <i class="bi bi-check-lg"></i>
-                            </button>
-                            <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>`;
-
-            tableBody.insertAdjacentHTML('beforeend', errorRow);
-            tableBody.insertAdjacentHTML('beforeend', template);
-
-            const newRow = tableBody.querySelector(`tr.align-middle[data-index="${rowCount}"]`);
-            const newErrorRow = tableBody.querySelector(`tr.validation-row[data-index="${rowCount}"]`);
-
-            $(newRow).find('.select2').select2({
-                theme: 'bootstrap5',
-                placeholder: 'انتخاب کنید',
-                allowClear: true,
-                dir: 'rtl',
-                minimumResultsForSearch: 0
-            });
-        });
-
-        // مدیریت کلیک روی دکمه "ثبت"
-        document.querySelector('#itemsTable').addEventListener('click', function (event) {
-            if (event.target.closest('.save-item')) {
-                const button = event.target.closest('.save-item');
-                const row = button.closest('tr.align-middle');
-                const rowIndex = row.dataset.index;
-                validateRow(rowIndex);
-            }
-        });
-
-        // تابع اعتبارسنجی
-        function validateRow(rowIndex) {
-            const row = document.querySelector(`tr.align-middle[data-index="${rowIndex}"]`);
-            const errorRow = document.querySelector(`tr.validation-row[data-index="${rowIndex}"]`);
-            const errorMessageList = errorRow.querySelector('.error-message-list');
-
-            let errors = [];
-
-            // بررسی فیلدهای مورد نیاز
-            const category = row.querySelector(`select[name="Items[${rowIndex}].CategoryId"]`).value;
-            const quantity = row.querySelector(`input[name="Items[${rowIndex}].Quantity"]`).value;
-            const sourceWarehouse = row.querySelector(`select[name="Items[${rowIndex}].SourceWarehouseId"]`).value;
-            const destWarehouse = row.querySelector(`select[name="Items[${rowIndex}].DestinationWarehouseId"]`).value;
-
-            if (!category) errors.push('دسته‌بندی انتخاب نشده است.');
-            if (!quantity || quantity <= 0) errors.push('تعداد باید بیشتر از صفر باشد.');
-            if (!sourceWarehouse) errors.push('انبار مبدا انتخاب نشده است.');
-            if (!destWarehouse) errors.push('انبار مقصد انتخاب نشده است.');
-
-            // مدیریت نمایش ردیف خطا
-            if (errors.length > 0) {
-                errorMessageList.innerHTML = errors.map(error => `<p class="mb-0">${error}</p>`).join('');
-                errorRow.style.display = 'table-row';
-            } else {
-                errorMessageList.innerHTML = '';
-                errorRow.style.display = 'none';
-            }
-        }
-
-        $(document).on('change', '.warehouse-select', function () {
-            let $this = $(this);
-            let index = $this.data('index');
-            let type = $this.data('type');
-            let warehouseId = $this.val();
-
-            let zoneSelect = $(`select[name="Items[${index}].${capitalize(type)}ZoneId"]`);
-            let sectionSelect = $(`select[name="Items[${index}].${capitalize(type)}SectionId"]`);
-
-            if (!warehouseId) {
-                zoneSelect.prop('disabled', true).empty().append($('<option>', { value: '', text: 'ابتدا انبار را انتخاب کنید' }));
-                sectionSelect.prop('disabled', true).empty().append($('<option>', { value: '', text: 'ابتدا قسمت را انتخاب کنید' }));
-                return;
-            }
-
-            $.ajax({
-                url: '/WarehouseManagement/ReceiptOrIssue/GetZones',
-                type: 'GET',
-                data: { warehouseId: warehouseId },
-                success: function (zones) {
-                    if (zoneSelect.hasClass("select2-hidden-accessible")) {
-                        zoneSelect.select2('destroy');
+            // فعال‌سازی Select2 برای تمام دراپ‌داون‌ها
+            function initSelect2($el, placeholder) {
+                $el.each(function () {
+                    const $select = $(this);
+                    if ($select.hasClass('select2-hidden-accessible')) {
+                        $select.select2('destroy');
                     }
-                    console.log("داده‌های zones:", zones);
-                    zoneSelect.empty().append($('<option>', { value: '', text: 'انتخاب قسمت' }));
-                    zones.forEach(zone => {
-                        zoneSelect.append($('<option>', { value: zone.value, text: zone.text }));
+                    $select.select2({
+                        theme: 'bootstrap-5',
+                        placeholder: placeholder || 'انتخاب کنید',
+                        allowClear: true,
+                        dir: 'rtl',
+                        minimumResultsForSearch: 0,
+
+                        width: '100%',
+                        dropdownParent: $select.closest('.accordion-body').length ? $select.closest('.accordion-body') : $(document.body)
                     });
-
-                    zoneSelect.prop('disabled', false).select2({
-                        theme: 'bootstrap5',
-                        placeholder: 'انتخاب قسمت',
-                        allowClear: true
-                    });
-
-                    sectionSelect.prop('disabled', true).empty().append($('<option>', { value: '', text: 'ابتدا قسمت را انتخاب کنید' }));
-                },
-                error: function () {
-                    alert('خطا در بارگذاری قسمت‌ها. لطفاً دوباره تلاش کنید.');
-                }
-            });
-        });
-
-        $(document).on('change', '.zone-select', function () {
-            let $this = $(this);
-            let nameAttr = $this.attr('name');
-            console.log("🔄 zone-select changed:", nameAttr);
-
-            let match = nameAttr.match(/Items\[(\d+)\]\.(Source|Destination)ZoneId/);
-            if (!match) {
-                console.warn("⚠️ نام المنت با الگوی مورد انتظار مطابقت ندارد:", nameAttr);
-                return;
+                });
             }
 
-            let index = match[1];
-            let type = match[2].toLowerCase();
-            let zoneId = $this.val();
-
-            console.log(`📌 index: ${index}, type: ${type}, zoneId: ${zoneId}`);
-
-            let sectionSelect = $(`select[name="Items[${index}].${capitalize(type)}SectionId"]`);
-            console.log("🎯 یافتن SectionSelect:", sectionSelect.length ? sectionSelect : "❌ پیدا نشد");
-
-            if (!zoneId) {
-                console.log("🚫 zoneId خالی است، غیرفعال‌سازی لیست بخش‌ها");
-                sectionSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا قسمت را انتخاب کنید'
-                }));
-                return;
+            // ساخت گزینه‌ها برای دراپ‌داون‌ها
+            function buildOptions(list, defaultText) {
+                let options = `<option value="">${defaultText}</option>`;
+                list.forEach(item => {
+                    const val = item.value ?? item.Value ?? '';
+                    const txt = item.text ?? item.Text ?? '';
+                    options += `<option value="${val}">${txt}</option>`;
+                });
+                return options;
             }
 
-            $.ajax({
-                url: '/WarehouseManagement/ReceiptOrIssue/GetSections',
-                type: 'GET',
-                data: { zoneId: zoneId },
-                beforeSend: function () {
-                    console.log("📡 درخواست ارسال شد به سرور برای zoneId:", zoneId);
-                },
-                success: function (sections) {
-                    console.log("✅ دریافت لیست بخش‌ها:", sections);
-                    sectionSelect.empty().append($('<option>', {
-                        value: '',
-                        text: 'انتخاب بخش'
-                    }));
-                    sections.forEach(section => {
-                        sectionSelect.append($('<option>', {
-                            value: section.value,
-                            text: section.text
-                        }));
-                    });
-                    sectionSelect.prop('disabled', false).select2({
-                        theme: 'bootstrap5',
-                        placeholder: 'انتخاب بخش',
-                        allowClear: true
-                    });
-                },
-                error: function (xhr, status, error) {
-                    console.error("❌ خطا در Ajax:", status, error);
-                    alert('خطا در بارگذاری بخش‌ها. لطفاً دوباره تلاش کنید.');
-                }
-            });
-        });
+            // فعال‌سازی اولیه Select2
+            initSelect2($('select.select2'), 'انتخاب کنید');
+            initSelect2($('select.select2-project'), 'انتخاب پروژه');
+            initSelect2($('select.select2-purchase-request'), 'انتخاب درخواست خرید');
+            initSelect2($('select.category-select, select.warehouse-select'), 'جستجو و انتخاب');
 
-        // تابع کمکی برای بزرگ کردن حرف اول
-        function capitalize(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+            // مدیریت تغییر دسته‌بندی
+            $(document).on('change', '.category-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const categoryId = $this.val();
 
-        $(document).on('change', '.item-select[name$="CategoryId"]', function () {
-            let $this = $(this);
-            let index = $this.data('index');
-            let categoryId = $this.val();
+                const $groupSelect = $(`select[name="Items[${index}].GroupId"]`);
+                const $statusSelect = $(`select[name="Items[${index}].StatusId"]`);
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
 
-            let groupSelect = $(`select[name="Items[${index}].GroupId"]`);
-            let statusSelect = $(`select[name="Items[${index}].StatusId"]`);
-            let productSelect = $(`select[name="Items[${index}].ProductId"]`);
+                // ریست گروه، طبقه و محصول
+                destroySelect2($groupSelect);
+                destroySelect2($statusSelect);
+                destroySelect2($productSelect);
+                $groupSelect.html('<option value="">ابتدا دسته‌بندی را انتخاب کنید</option>').prop('disabled', true);
+                $statusSelect.html('<option value="">ابتدا گروه را انتخاب کنید</option>').prop('disabled', true);
+                $productSelect.html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
 
-            console.log(`Selectors found: groupSelect=${groupSelect.length}, statusSelect=${statusSelect.length}, productSelect=${productSelect.length}`);
+                if (!categoryId) return;
 
-            // Reset dependent dropdowns
-            if (groupSelect.length) {
-                if (groupSelect.hasClass('select2-hidden-accessible')) {
-                    groupSelect.select2('destroy');
-                    console.log('🚀 select2 destroyed on groupSelect');
-                }
-                groupSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا دسته‌بندی را انتخاب کنید'
-                }));
-            }
-
-            if (statusSelect.length) {
-                if (statusSelect.hasClass('select2-hidden-accessible')) {
-                    statusSelect.select2('destroy');
-                    console.log('🚀 select2 destroyed on statusSelect');
-                }
-                statusSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا گروه را انتخاب کنید'
-                }));
-            }
-
-            if (productSelect.length) {
-                if (productSelect.hasClass('select2-hidden-accessible')) {
-                    productSelect.select2('destroy');
-                    console.log('🚀 select2 destroyed on productSelect');
-                }
-                productSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا وضعیت را انتخاب کنید'
-                }));
-            }
-
-            if (!categoryId) {
-                console.log('⚠️ دسته‌بندی انتخاب نشده، عملیات متوقف شد.');
-                return;
-            }
-
-            $.ajax({
-                url: '/WarehouseManagement/ReceiptOrIssue/GetGroups',
-                type: 'GET',
-                data: { categoryId: categoryId },
-                success: function (groups) {
-                    console.log('✅ دریافت گروه‌ها:', groups);
-
-                    if (groupSelect.length) {
-                        groupSelect.empty().append($('<option>', {
-                            value: '',
-                            text: 'انتخاب گروه'
-                        }));
-
-                        if (groups && groups.length) {
-                            groups.forEach(function (group) {
-                                groupSelect.append($('<option>', {
-                                    value: group.value,
-                                    text: group.text
-                                }));
-                                console.log(`   افزودن گروه: value=${group.value}, text=${group.text}`);
-                            });
-                            groupSelect.prop('disabled', false);
-
-                            groupSelect.select2({
-                                theme: 'bootstrap5',
-                                placeholder: 'انتخاب گروه',
-                                allowClear: true
-                            });
-                            console.log('✔️ لیست گروه‌ها بروزرسانی و select2 فعال شد.');
-                        } else {
-                            console.log('⚠️ گروهی برای دسته‌بندی انتخاب‌شده یافت نشد.');
-                        }
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('❌ خطا در درخواست Ajax دریافت گروه‌ها:', status, error, xhr.responseText);
+                $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetGroups?categoryId=${categoryId}`, function (groups) {
+                    $groupSelect.html(buildOptions(groups, 'انتخاب گروه')).prop('disabled', false);
+                    initSelect2($groupSelect, 'انتخاب گروه');
+                }).fail(function () {
                     alert('خطا در بارگذاری گروه‌ها. لطفاً دوباره تلاش کنید.');
-                }
+                });
             });
-        });
 
-        $(document).on('change', '.item-select[name$="GroupId"]', function () {
-            let $this = $(this);
-            let index = $this.data('index');
-            let groupId = $this.val();
+            // مدیریت تغییر گروه
+            $(document).on('change', '.group-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const groupId = $this.val();
 
-            console.log(`🔄 GroupId changed: index=${index}, groupId=${groupId}`);
+                const $statusSelect = $(`select[name="Items[${index}].StatusId"]`);
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
 
-            let statusSelect = $(`select[name="Items[${index}].StatusId"]`);
-            let productSelect = $(`select[name="Items[${index}].ProductId"]`);
+                destroySelect2($statusSelect);
+                destroySelect2($productSelect);
+                $statusSelect.html('<option value="">ابتدا گروه را انتخاب کنید</option>').prop('disabled', true);
+                $productSelect.html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
 
-            // ریست وضعیت و کالا
-            if (statusSelect.length) {
-                if (statusSelect.hasClass('select2-hidden-accessible')) {
-                    statusSelect.select2('destroy');
-                }
-                statusSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا گروه را انتخاب کنید'
-                }));
-            }
+                if (!groupId) return;
 
-            if (productSelect.length) {
-                if (productSelect.hasClass('select2-hidden-accessible')) {
-                    productSelect.select2('destroy');
-                }
-                productSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا وضعیت را انتخاب کنید'
-                }));
-            }
-
-            if (!groupId) {
-                console.log('⚠️ گروه انتخاب نشده، عملیات متوقف شد.');
-                return;
-            }
-
-            // درخواست برای گرفتن وضعیت‌ها
-            $.ajax({
-                url: '/WarehouseManagement/ReceiptOrIssue/GetStatuses',
-                type: 'GET',
-                data: { groupId: groupId },
-                success: function (statuses) {
-                    console.log('✅ دریافت وضعیت‌ها:', statuses);
-
-                    statusSelect.empty().append($('<option>', {
-                        value: '',
-                        text: 'انتخاب وضعیت'
-                    }));
-
-                    if (statuses && statuses.length) {
-                        statuses.forEach(function (status) {
-                            statusSelect.append($('<option>', {
-                                value: status.value,
-                                text: status.text
-                            }));
-                        });
-
-                        statusSelect.prop('disabled', false).select2({
-                            theme: 'bootstrap5',
-                            placeholder: 'انتخاب وضعیت',
-                            allowClear: true
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('❌ خطا در درخواست Ajax دریافت وضعیت‌ها:', status, error, xhr.responseText);
-                    alert('خطا در بارگذاری وضعیت‌ها. لطفاً دوباره تلاش کنید.');
-                }
+                $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetStatuses?groupId=${groupId}`, function (statuses) {
+                    $statusSelect.html(buildOptions(statuses, 'انتخاب طبقه')).prop('disabled', false);
+                    initSelect2($statusSelect, 'انتخاب طبقه');
+                }).fail(function () {
+                    alert('خطا در بارگذاری طبقه‌ها. لطفاً دوباره تلاش کنید.');
+                });
             });
-        });
 
-        $(document).on('change', '.status-select', function () {
-            let $this = $(this);
-            let index = $this.data('index');
-            let statusId = $this.val();
+            // مدیریت تغییر طبقه
+            $(document).on('change', '.status-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const statusId = $this.val();
 
-            console.log(`🔄 StatusId changed: index=${index}, statusId=${statusId}`);
+                const $productSelect = $(`select[name="Items[${index}].ProductId"]`);
 
-            let productSelect = $(`select[name="Items[${index}].ProductId"]`);
+                destroySelect2($productSelect);
+                $productSelect.html('<option value="">ابتدا طبقه را انتخاب کنید</option>').prop('disabled', true);
 
-            if (productSelect.length) {
-                if (productSelect.hasClass('select2-hidden-accessible')) {
-                    productSelect.select2('destroy');
-                }
-                productSelect.prop('disabled', true).empty().append($('<option>', {
-                    value: '',
-                    text: 'ابتدا وضعیت را انتخاب کنید'
-                }));
-            }
+                if (!statusId) return;
 
-            if (!statusId) {
-                console.log('⚠️ وضعیت انتخاب نشده، عملیات متوقف شد.');
-                return;
-            }
-
-            $.ajax({
-                url: '/WarehouseManagement/ReceiptOrIssue/GetProducts',
-                type: 'GET',
-                data: { statusId: statusId },
-                success: function (products) {
-                    console.log('✅ دریافت کالاها:', products);
-                    productSelect.empty().append($('<option>', {
-                        value: '',
-                        text: 'انتخاب کالا'
-                    }));
-                    if (products && products.length) {
-                        products.forEach(function (product) {
-                            productSelect.append($('<option>', {
-                                value: product.value,
-                                text: product.text
-                            }));
-                        });
-                        productSelect.prop('disabled', false).select2({
-                            theme: 'bootstrap5',
-                            placeholder: 'انتخاب کالا',
-                            allowClear: true
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    console.error('❌ خطا در درخواست Ajax دریافت کالاها:', status, error, xhr.responseText);
+                $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetProducts?statusId=${statusId}`, function (products) {
+                    $productSelect.html(buildOptions(products, 'انتخاب کالا')).prop('disabled', false);
+                    initSelect2($productSelect, 'انتخاب کالا');
+                }).fail(function () {
                     alert('خطا در بارگذاری کالاها. لطفاً دوباره تلاش کنید.');
-                }
-            });
-        });
-
-        $(document).on('click', '.remove-item', function () {
-            const $row = $(this).closest('tr.align-middle');
-            const index = $row.data('index');
-            const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
-
-            // تخریب Select2 برای جلوگیری از نشت حافظه
-            $row.find('.select2').each(function () {
-                if ($(this).hasClass('select2-hidden-accessible')) {
-                    $(this).select2('destroy');
-                }
+                });
             });
 
-            // حذف ردیف اصلی و ردیف خطا
-            $row.remove();
-            $errorRow.remove();
-        });
+            // مدیریت تغییر انبار
+            $(document).on('change', '.warehouse-select', function () {
+                const $this = $(this);
+                const index = $this.data('index');
+                const type = $this.data('type');
+                const warehouseId = $this.val();
 
-        $(document).on('click', '.save-item', function () {
-                 const $row = $(this).closest('tr[data-index]');
-                 const index = $row.data('index');
-                 const prefix = 'Items';
+                const $zoneSelect = $(`select[name="Items[${index}].${capitalize(type)}ZoneId"]`);
+                const $sectionSelect = $(`select[name="Items[${index}].${capitalize(type)}SectionId"]`);
 
-                 // استخراج مقادیر
-                 const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
-                 const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+                destroySelect2($zoneSelect);
+                destroySelect2($sectionSelect);
+                $zoneSelect.html('<option value="">ابتدا انبار را انتخاب کنید</option>').prop('disabled', true);
+                $sectionSelect.html('<option value="">ابتدا قسمت را انتخاب کنید</option>').prop('disabled', true);
 
-                 // مقادیر مبدا
-                 const sourceWarehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
-                 const sourceZoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
-                 const sourceSectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
+                if (!warehouseId) return;
 
-                 // مقادیر مقصد
-                 const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
-                 const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
-                 const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
+                $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetZones?warehouseId=${warehouseId}`, function (zones) {
+                    $zoneSelect.html(buildOptions(zones, 'انتخاب قسمت')).prop('disabled', false);
+                    initSelect2($zoneSelect, 'انتخاب قسمت');
+                }).fail(function () {
+                    alert('خطا در بارگذاری قسمت‌ها. لطفاً دوباره تلاش کنید.');
+                });
+            });
 
-                 // اعتبارسنجی فیلدها
-                 let errorMessages = [];
+            // مدیریت تغییر قسمت
+            $(document).on('change', '.zone-select', function () {
+                const $this = $(this);
+                const nameAttr = $this.attr('name');
+                const match = nameAttr.match(/Items\[(\d+)\]\.(Source|Destination)ZoneId/);
+                if (!match) return;
 
-                 // اعتبارسنجی کالا و تعداد
-                 if (!productId) errorMessages.push("کالا انتخاب نشده است.");
-                 if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+                const index = match[1];
+                const type = match[2].toLowerCase();
+                const zoneId = $this.val();
 
-                 // اعتبارسنجی مبدا
-                 if (!sourceWarehouseId) errorMessages.push("انبار مبدا انتخاب نشده است.");
-                 if (!sourceZoneId) errorMessages.push("قسمت مبدا انتخاب نشده است.");
-                 if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
+                const $sectionSelect = $(`select[name="Items[${index}].${capitalize(type)}SectionId"]`);
 
-                 // اعتبارسنجی مقصد
-                 if (!destWarehouseId) errorMessages.push("انبار مقصد انتخاب نشده است.");
-                 if (!destZoneId) errorMessages.push("قسمت مقصد انتخاب نشده است.");
-                 if (!destSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
+                destroySelect2($sectionSelect);
+                $sectionSelect.html('<option value="">ابتدا قسمت را انتخاب کنید</option>').prop('disabled', true);
 
-                 const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
-                 const $errorBox = $errorRow.find('.error-message-list');
+                if (!zoneId) return;
 
-                 if (errorMessages.length > 0) {
-                     $errorBox.html(`<ul>${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
-                     $errorRow.show();
-                     return;
-                 } else {
-                     $errorBox.empty();
-                     $errorRow.hide();
-                 }
+                $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetSections?zoneId=${zoneId}`, function (sections) {
+                    $sectionSelect.html(buildOptions(sections, 'انتخاب بخش')).prop('disabled', false);
+                    initSelect2($sectionSelect, 'انتخاب بخش');
+                }).fail(function () {
+                    alert('خطا در بارگذاری بخش‌ها. لطفاً دوباره تلاش کنید.');
+                });
+            });
 
-                 // دریافت متن‌های خلاصه برای کالا
-                 const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
-                 const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
-                 const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
-                 const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-                 const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
+            // تابع کمکی برای بزرگ کردن حرف اول
+            function capitalize(str) {
+                return str.charAt(0).toUpperCase() + str.slice(1);
+            }
 
-                 // دریافت متن‌های خلاصه برای مکان مبدا
-                 const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
-                 const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
-                 const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
-                 const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+            // تابع تخریب Select2
+            function destroySelect2($el) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+            }
 
-                 // دریافت متن‌های خلاصه برای مکان مقصد
-                 const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
-                 const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
-                 const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
-                 const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+            // افزودن آیتم جدید
+            $('#addItemBtn').on('click', function () {
+                const tableBody = $('#itemsTable tbody');
+                const rowCount = tableBody.find('tr.align-middle').length;
 
-                 // بستن آکاردئون کالا و درج خلاصه متن
-                 const $productCollapse = $row.find(`#productCollapse_${index}`);
-                 const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
-                 $productHeader.html(productSummary);
-                 bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+                const template = `
+                            <tr class="align-middle" data-index="${rowCount}">
+                                <td>
+                                    <div class="accordion" id="productAccordion_${rowCount}">
+                                        <div class="accordion-item border-0">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
+                                                    انتخاب کالا و مشخصات آن
+                                                </button>
+                                            </h2>
+                                            <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
+                                                <div class="accordion-body p-2">
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">دسته‌بندی</label>
+                                                    <select name="Items[${rowCount}].CategoryId" class="form-select form-select-sm category-select select2 item-select text-end" data-index="${rowCount}">
+                                                        <option value="">انتخاب دسته‌بندی</option>
+                                                        ${$('#CategoryTemplateOptions').html() || '<option value="">دسته‌بندی در دسترس نیست</option>'}
+                                                    </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">گروه</label>
+                                                    <select name="Items[${rowCount}].GroupId" class="form-select form-select-sm group-select select2 item-select mt-2 text-end" data-index="${rowCount}" disabled>
+                                                        <option value="">انتخاب گروه</option>
+                                                    </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">طبقه</label>
+                                                    <select name="Items[${rowCount}].StatusId" class="form-select form-select-sm status-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
+                                                        <option value="">انتخاب طبقه</option>
+                                                    </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">کالا</label>
+                                                    <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
+                                                        <option value="">انتخاب کالا</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="width: 120px;">
+                                    <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control form-control-sm text-end" />
+                                    <span class="text-danger small d-block mt-1 text-end"></span>
+                                </td>
+                                <td>
+                                    <div class="accordion" id="sourceAccordion_${rowCount}">
+                                        <div class="accordion-item border-0">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
+                                                    مشخصات مبدا
+                                                </button>
+                                            </h2>
+                                            <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
+                                                <div class="accordion-body p-2">
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                        <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="source">
+                                                            <option value="">انتخاب انبار</option>
+                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                        <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="source" disabled>
+                                                            <option value="">انتخاب قسمت</option>
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                        <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="source" disabled>
+                                                            <option value="">انتخاب بخش</option>
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="accordion" id="destAccordion_${rowCount}">
+                                        <div class="accordion-item border-0">
+                                            <h2 class="accordion-header">
+                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
+                                                    مشخصات مقصد
+                                                </button>
+                                            </h2>
+                                            <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
+                                                <div class="accordion-body p-2">
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                        <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="destination">
+                                                            <option value="">انتخاب انبار</option>
+                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                        <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="destination" disabled>
+                                                            <option value="">انتخاب قسمت</option>
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                    <div>
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                        <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="destination" disabled>
+                                                            <option value="">انتخاب بخش</option>
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project text-end" data-index="${rowCount}">
+                                        <option value="">انتخاب پروژه...</option>
+                                        ${$('#ProjectTemplateOptions').html() || '<option value="">پروژه در دسترس نیست</option>'}
+                                    </select>
+                                    <span class="text-danger small d-block text-end"></span>
+                                </td>
+                                <td>
+                                    <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request text-end" data-index="${rowCount}">
+                                        <option value="">انتخاب درخواست...</option>
+                                        ${$('#PurchaseRequestTemplateOptions').html() || '<option value="">درخواست در دسترس نیست</option>'}
+                                    </select>
+                                    <span class="text-danger small d-block text-end"></span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
 
-                 // بستن آکاردئون مکان مبدا و درج خلاصه متن
-                 const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-                 const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
-                 $sourceHeader.html(sourceSummary);
-                 bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
+                tableBody.append(template);
 
-                 // بستن آکاردئون مکان مقصد و درج خلاصه متن
-                 const $destCollapse = $row.find(`#destCollapse_${index}`);
-                 const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
-                 $destHeader.html(destSummary);
-                 bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
-             });
-        $('#receiptIssueForm').submit(function (e) {
-            e.preventDefault();
-            const form = this;
-            const formData = new FormData(form);
+                // فعال‌سازی Select2 برای دراپ‌داون‌های جدید
+                initSelect2($(`tr[data-index="${rowCount}"] .select2`), 'انتخاب کنید');
+                initSelect2($(`tr[data-index="${rowCount}"] .select2-project`), 'انتخاب پروژه');
+                initSelect2($(`tr[data-index="${rowCount}"] .select2-purchase-request`), 'انتخاب درخواست خرید');
+                initSelect2($(`tr[data-index="${rowCount}"] .category-select, tr[data-index="${rowCount}"] .warehouse-select`), 'جستجو و انتخاب');
 
-            $.ajax({
-                url: $(form).attr('action'),
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.success) {
-                        if (confirm("سند با موفقیت ذخیره شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
-                            // فرض: سرور response.documentId را برمی‌گرداند
-                            window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
-                        } else {
-                            window.location.href = '/WarehouseManagement/ReceiptOrIssue/Index';
-                        }
-                    } else {
-                        alert("خطا:\n" + (response.errors || []).join('\n'));
+                // فعال‌سازی آکاردئون برای ردیف جدید
+                const collapseElements = [
+                    document.querySelector(`#productCollapse_${rowCount}`),
+                    document.querySelector(`#sourceCollapse_${rowCount}`),
+                    document.querySelector(`#destCollapse_${rowCount}`)
+                ];
+                collapseElements.forEach(el => {
+                    if (el) {
+                        new bootstrap.Collapse(el, { toggle: false });
                     }
-                },
-                error: function () {
-                    alert('خطا در ارسال اطلاعات به سرور.');
+                });
+            });
+
+            // حذف آیتم
+            $(document).on('click', '.remove-item', function () {
+                const $row = $(this).closest('tr');
+                $row.find('.select2').each(function () {
+                    destroySelect2($(this));
+                });
+                $row.remove();
+            });
+
+            // اعتبارسنجی و ذخیره آیتم
+            $(document).on('click', '.save-item', function () {
+                const $row = $(this).closest('tr[data-index]');
+                const index = $row.data('index');
+                const prefix = 'Items';
+
+                // استخراج مقادیر
+                const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
+                const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+                const sourceWarehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
+                const sourceZoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
+                const sourceSectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
+                const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
+                const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
+                const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
+                const projectId = $row.find(`select[name="${prefix}[${index}].ProjectId"]`).val();
+
+                // اعتبارسنجی
+                let errorMessages = [];
+                if (!productId) errorMessages.push("کالا انتخاب نشده است.");
+                if (!quantity || parseFloat(quantity) <= 0) errorMessages.push("مقدار باید بزرگ‌تر از صفر باشد.");
+                if (!sourceWarehouseId) errorMessages.push("انبار مبدا انتخاب نشده است.");
+                if (!sourceZoneId) errorMessages.push("قسمت مبدا انتخاب نشده است.");
+                if (!sourceSectionId) errorMessages.push("بخش مبدا انتخاب نشده است.");
+                if (!destWarehouseId) errorMessages.push("انبار مقصد انتخاب نشده است.");
+                if (!destZoneId) errorMessages.push("قسمت مقصد انتخاب نشده است.");
+                if (!destSectionId) errorMessages.push("بخش مقصد انتخاب نشده است.");
+
+                // نمایش خطاها
+                const $errorBox = $row.next('.validation-row[data-index="' + index + '"] .error-message-list');
+                if (errorMessages.length > 0) {
+                    if ($errorBox.length === 0) {
+                        $row.after(`
+                                    <tr class="validation-row bg-danger bg-opacity-10" data-index="${index}">
+                                        <td colspan="7" class="p-2">
+                                            <div class="alert alert-danger p-2 mb-0 small error-message-list">
+                                                <ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `);
+                    } else {
+                        $errorBox.html(`<ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
+                    }
+                    return;
+                } else {
+                    $row.next(`tr.validation-row[data-index="${index}"]`).remove();
                 }
+
+                // به‌روزرسانی خلاصه‌ها
+                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
+                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
+                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
+                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
+                const productSummary = `${categoryText} / ${groupText} / ${statusText} / <strong>${productText}</strong>`;
+
+                const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
+                const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
+                const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
+                const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+                const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
+                const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
+                const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
+                const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+                const projectText = projectId ? $row.find(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text() : "بدون پروژه";
+
+                // بستن آکاردئون‌ها و به‌روزرسانی هدرها
+                const $productCollapse = $row.find(`#productCollapse_${index}`);
+                const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
+                $productHeader.html(`<div dir="rtl" class="w-100"><div class="fw-bold">${productSummary}</div></div>`);
+                bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
+
+                const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
+                const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
+                $sourceHeader.html(`<div dir="rtl" class="w-100">${sourceSummary}</div>`);
+                bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
+
+                const $destCollapse = $row.find(`#destCollapse_${index}`);
+                const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
+                $destHeader.html(`<div dir="rtl" class="w-100">${destSummary}</div>`);
+                bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
+
+                $row.removeClass('table-warning').addClass('table-success');
+                $(this).removeClass('btn-outline-success').addClass('btn-success').attr('title', 'ویرایش');
+            });
+
+            // ارسال فرم
+            $('#receiptIssueForm').on('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const formData = new FormData(form);
+
+                $.ajax({
+                    url: $(form).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        if (response.success) {
+                            if (confirm("سند با موفقیت ویرایش شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
+                                window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
+                            } else {
+                                window.location.href = '/WarehouseManagement/ReceiptOrIssue/Index';
+                            }
+                        } else {
+                            alert("خطا:\n" + (response.errors || []).join('\n'));
+                        }
+                    },
+                    error: function () {
+                        alert('خطا در ارسال اطلاعات به سرور.');
+                    }
+                });
             });
         });
     </script>

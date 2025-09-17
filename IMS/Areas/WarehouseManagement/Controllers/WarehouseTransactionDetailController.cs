@@ -23,17 +23,24 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
         // GET: /WarehouseManagement/WarehouseTransactionDetail
-        public async Task<IActionResult> Index(string? projectName, string? transactionType)
+        public async Task<IActionResult> Index(
+            string? projectName,
+            string? transactionType,
+            bool isSearchClicked = false) // پارامتر مشخص می‌کند که کاربر جستجو زده
         {
-            var (transactions, projects) = await _transactionDetailService
-                .GetAllTransactionsWithProjectsAsync(projectName, transactionType);
+            // فراخوانی سرویس با سه مقدار خروجی
+            var (transactions, projects, transactionTypes) = await _transactionDetailService
+                .GetAllTransactionsWithProjectsAsync(projectName, transactionType, isSearchClicked);
 
+            // ساخت ViewModel برای ویو
             var viewModel = new WarehouseTransactionDetailViewModel
             {
                 Transactions = transactions,
                 Projects = projects,
+                TransactionTypes = transactionTypes, 
                 SelectedProjectName = projectName,
-                SelectedTransactionType = transactionType
+                SelectedTransactionType = transactionType,
+                IsSearchClicked = isSearchClicked
             };
 
             return View(viewModel);
@@ -48,24 +55,24 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(string? projectName, string? transactionType)
         {
-            // گرفتن داده‌ها از سرویس اصلی
-            var (transactions, projects) = await _transactionDetailService
-                .GetAllTransactionsWithProjectsAsync(projectName, transactionType);
+            // گرفتن داده‌ها از سرویس با فیلترهای اعمال شده
+            var (transactions, projects, transactionTypes) = await _transactionDetailService
+                .GetAllTransactionsWithProjectsAsync(projectName, transactionType, true);
 
             // آماده‌سازی ViewModel برای PDF
             var vm = new WarehouseTransactionDetailPdfViewModel
             {
                 Transactions = transactions,
                 Projects = projects,
+                TransactionTypes = transactionTypes,
                 SelectedProjectName = projectName,
                 SelectedTransactionType = transactionType
             };
 
+            // بازگرداندن PDF با Rotativa
             return new ViewAsPdf("WarehouseTransactionPdfView", vm)
             {
                 FileName = $"WarehouseTransactions_{DateTime.Now:yyyyMMddHHmmss}.pdf",
@@ -73,7 +80,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
                 PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
                 CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
-                
             };
         }
 

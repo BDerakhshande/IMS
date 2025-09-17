@@ -124,8 +124,12 @@
             font-size: 1.5rem;
         }
 </style>
+<link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="~/lib/select2-bootstrap-5-theme-1.3.0/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
-<link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
 
 <div class="card border-0 shadow-sm" dir="rtl">
     <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
@@ -153,7 +157,7 @@
                                 <div class="row g-2">
                                     <div class="col-md-4">
                                         <label class="form-label small">انبار</label>
-                                        <select name="Warehouses[@i].WarehouseId"  class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadZones(this)">
+                                        <select name="Warehouses[@i].WarehouseId" class="form-select form-select-sm select2 shadow-sm" data-index="@i" onchange="loadZones(this)">
                                             <option value="">انتخاب انبار</option>
                                             @foreach (var wh in (SelectList)ViewBag.Warehouses)
                                             {
@@ -163,7 +167,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">قسمت</label>
-                                        <select name="Warehouses[@i].ZoneIds"  class="form-select form-select-sm shadow-sm" data-index="@i" onchange="loadSections(this)" disabled>
+                                        <select name="Warehouses[@i].ZoneIds" class="form-select form-select-sm select2 shadow-sm" data-index="@i" onchange="loadSections(this)" disabled>
                                             @if (warehouse.ZoneIds != null && warehouse.ZoneIds.Any())
                                             {
                                                 @foreach (var zone in (SelectList)ViewBag.Zones)
@@ -179,7 +183,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label small">بخش‌ها</label>
-                                        <select name="Warehouses[@i].SectionIds"  class="form-select form-select-sm shadow-sm" data-index="@i" disabled>
+                                        <select name="Warehouses[@i].SectionIds" class="form-select form-select-sm select2 shadow-sm" data-index="@i" disabled>
                                             @if (warehouse.SectionIds != null && warehouse.SectionIds.Any())
                                             {
                                                 @foreach (var section in (SelectList)ViewBag.Sections)
@@ -189,7 +193,7 @@
                                             }
                                             else
                                             {
-                                                <option value="">ابتدا منطقه را انتخاب کنید</option>
+                                                <option value="">ابتدا قسمت را انتخاب کنید</option>
                                             }
                                         </select>
                                     </div>
@@ -223,7 +227,7 @@
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label small">دسته‌بندی</label>
-                            <select id="CategoryId" name="CategoryId" class="form-select form-select-sm shadow-sm" onchange="loadGroups(this.value)">
+                            <select id="CategoryId" name="CategoryId" class="form-select form-select-sm select2 shadow-sm" onchange="loadGroups(this.value)">
                                 <option value="">انتخاب دسته‌بندی</option>
                                 @foreach (var category in (SelectList)ViewBag.Categories)
                                 {
@@ -233,7 +237,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">گروه</label>
-                            <select id="GroupId" name="GroupId" class="form-select form-select-sm shadow-sm" onchange="loadStatuses(this.value)">
+                            <select id="GroupId" name="GroupId" class="form-select form-select-sm select2 shadow-sm" onchange="loadStatuses(this.value)">
                                 <option value="">انتخاب گروه</option>
                                 @foreach (var group in (SelectList)ViewBag.Groups)
                                 {
@@ -243,7 +247,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">طبقه</label>
-                            <select id="StatusId" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
+                            <select id="StatusId" name="StatusId" class="form-select form-select-sm select2 shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
                                 <option value="">انتخاب طبقه</option>
                                 @if (ViewBag.Statuses != null)
                                 {
@@ -256,7 +260,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label small">کالا</label>
-                            <select id="ProductId" name="ProductId" class="form-select form-select-sm shadow-sm" @(ViewBag.Products != null ? "" : "disabled")>
+                            <select id="ProductId" name="ProductId" class="form-select form-select-sm select2 shadow-sm" @(ViewBag.Products != null ? "" : "disabled")>
                                 <option value="">ابتدا طبقه را انتخاب کنید</option>
                                 @if (ViewBag.Products != null)
                                 {
@@ -316,7 +320,7 @@
             </h6>
             <div class="action-buttons-right">
                 <button type="button" class="btn btn-xs btn-outline-primary rounded-pill" onclick="document.getElementById('pdfExportForm').submit();">
-                    <i class="fas fa-file-pdf me-2"></i> پرینت 
+                    <i class="fas fa-file-pdf me-2"></i> پرینت
                 </button>
                 <button type="button" class="btn btn-xs btn-outline-success rounded-pill" onclick="exportToExcel()">
                     <i class="fas fa-file-excel me-1"></i> اکسل
@@ -401,16 +405,16 @@ else
 
 
 @section Scripts {
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="~/lib/select2/js/select2.min.js"></script>
+    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/MenuJs.js"></script>
     <script>
         const warehousesList = @Html.Raw(JsonSerializer.Serialize(
-            ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
-                .Select(w => new { value = w.Value, text = w.Text })
+        ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
+        .Select(w => new { value = w.Value, text = w.Text })
         ));
-                 
+
 
 
         function getWarehouseOptions() {
@@ -418,10 +422,10 @@ else
             return warehousesList.map(w => `<option value="${w.value}">${w.text}</option>`).join('');
         }
 
-                         function printPdfReport() {
+        function printPdfReport() {
             var form = document.getElementById('inventoryReportForm');
             form.action = '/WarehouseManagement/InventoryReport/ExportToPdf'; // تغییر آدرس به اکشن پی‌دی‌اف
-            form.method = 'post'; 
+            form.method = 'post';
             form.target = '_blank'; // باز شدن در تب جدید
 
             form.submit();
@@ -440,12 +444,12 @@ else
 
 
 
-               if ($('#reportResults').length) {
-            // اسکرول به div نتایج با انیمیشن نرم
-            $('html, body').animate({
-                scrollTop: $('#reportResults').offset().top - 100 // فاصله از بالا
-            }, 500);
-        }
+            if ($('#reportResults').length) {
+                // اسکرول به div نتایج با انیمیشن نرم
+                $('html, body').animate({
+                    scrollTop: $('#reportResults').offset().top - 100 // فاصله از بالا
+                }, 500);
+            }
             // فعال‌سازی Select2 برای تمام dropdownها
             initializeSelect2();
 
@@ -462,17 +466,29 @@ else
             });
         });
 
-        function initializeSelect2() {
-            $('.select2-dropdown:not(.select2-hidden-accessible)').each(function () {
+        function initializeSelect2(container = document) {
+            // فقط دراپ‌داون‌هایی که هنوز Select2 روی آن‌ها اعمال نشده است
+            $(container).find('.select2:not(.select2-hidden-accessible)').each(function () {
                 const $this = $(this);
-                const selectedValue = $this.val(); // ذخیره مقدار فعلی
+                const selectedValue = $this.val();
                 $this.select2({
                     placeholder: $this.attr('placeholder') || 'انتخاب کنید',
                     allowClear: true,
                     width: '100%',
-                    dir: 'rtl'
+                    dir: 'rtl',
+                    minimumResultsForSearch: 1,
+                    language: {
+                        noResults: function () {
+                            return 'نتیجه‌ای یافت نشد';
+                        },
+                        searching: function () {
+                            return 'در حال جستجو...';
+                        },
+                        inputTooShort: function (args) {
+                            return 'لطفاً حداقل یک کاراکتر وارد کنید';
+                        }
+                    }
                 });
-                // بازگرداندن مقدار انتخاب‌شده پس از مقداردهی Select2
                 if (selectedValue) {
                     $this.val(selectedValue).trigger('change');
                 }
@@ -487,16 +503,16 @@ else
             const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
 
             zoneSelect.prop('disabled', true)
-                      .html('<option value="">در حال بارگذاری...</option>')
-                      .trigger('change');
+                .html('<option value="">در حال بارگذاری...</option>')
+                .trigger('change');
             sectionSelect.prop('disabled', true)
-                         .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
-                         .trigger('change');
+                .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
+                .trigger('change');
 
             if (!warehouseId) {
                 zoneSelect.prop('disabled', true)
-                          .html('<option value="">ابتدا انبار را انتخاب کنید</option>')
-                          .trigger('change');
+                    .html('<option value="">ابتدا انبار را انتخاب کنید</option>')
+                    .trigger('change');
                 return;
             }
 
@@ -522,13 +538,13 @@ else
             const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
 
             sectionSelect.prop('disabled', true)
-                         .html('<option value="">در حال بارگذاری...</option>')
-                         .trigger('change');
+                .html('<option value="">در حال بارگذاری...</option>')
+                .trigger('change');
 
             if (!zoneIds.length) {
                 sectionSelect.prop('disabled', true)
-                             .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
-                             .trigger('change');
+                    .html('<option value="">ابتدا منطقه را انتخاب کنید</option>')
+                    .trigger('change');
                 return;
             }
 
@@ -546,53 +562,47 @@ else
                     sectionSelect.html('<option value="">خطا در بارگذاری</option>').trigger('change');
                 });
         }
-
-        // افزودن فیلتر انبار جدید
         function addWarehouseFilter() {
             const container = $('#warehouseFiltersContainer');
             const newIndex = container.children().length;
             const optionsHtml = getWarehouseOptions();
 
             const filterHtml = `
-                <div class="warehouse-filter-group p-3 border rounded mb-3">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">انبار</label>
-                            <select name="Warehouses[${newIndex}].WarehouseId" class="form-select select2-dropdown" data-index="${newIndex}" onchange="loadZones(this)">
-                    ${optionsHtml}
-                </select>
+                        <div class="warehouse-filter-group p-3 border rounded mb-3">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">انبار</label>
+                                    <select name="Warehouses[${newIndex}].WarehouseId" class="form-select select2" data-index="${newIndex}" onchange="loadZones(this)">
+                                        ${optionsHtml}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">قسمت</label>
+                                    <select name="Warehouses[${newIndex}].ZoneIds" class="form-select select2" data-index="${newIndex}" onchange="loadSections(this)" disabled>
+                                        <option value="">ابتدا انبار را انتخاب کنید</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">بخش‌ها</label>
+                                    <select name="Warehouses[${newIndex}].SectionIds" class="form-select select2" data-index="${newIndex}" disabled>
+                                        <option value="">ابتدا قسمت را انتخاب کنید</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="text-end mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWarehouseFilter(this)">
+                                    <i class="fas fa-times me-1"></i> حذف
+                                </button>
+                            </div>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">مناطق</label>
-                            <select name="Warehouses[${newIndex}].ZoneIds"
-                                    class="form-select select2-dropdown"
-                                    data-index="${newIndex}"
-                                    onchange="loadSections(this)"
-                                    disabled>
-                                <option value="">ابتدا انبار را انتخاب کنید</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">بخش‌ها</label>
-                            <select name="Warehouses[${newIndex}].SectionIds"
-                                    class="form-select select2-dropdown"
-                                    data-index="${newIndex}"
-                                    disabled>
-                                <option value="">ابتدا منطقه را انتخاب کنید</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="text-end mt-2">
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeWarehouseFilter(this)">
-                            <i class="fas fa-times me-1"></i> حذف
-                        </button>
-                    </div>
-                </div>
-            `;
+                    `;
 
-            container.append(filterHtml);
-            initializeSelect2();
+            // افزودن HTML جدید به کانتینر
+            const newFilter = $(filterHtml).appendTo(container);
+            // مقداردهی Select2 فقط برای دراپ‌داون‌های جدید
+            initializeSelect2(newFilter);
         }
+
 
         function removeWarehouseFilter(button) {
             const container = $('#warehouseFiltersContainer');
@@ -612,19 +622,19 @@ else
                 // Re-index remaining filters
                 container.children('.warehouse-filter-group').each(function (index) {
                     $(this).find('select[name$="WarehouseId"]')
-                           .attr('name', `Warehouses[${index}].WarehouseId`)
-                           .attr('data-index', index)
-                           .data('index', index);
+                        .attr('name', `Warehouses[${index}].WarehouseId`)
+                        .attr('data-index', index)
+                        .data('index', index);
 
                     $(this).find('select[name$="ZoneIds"]')
-                           .attr('name', `Warehouses[${index}].ZoneIds`)
-                           .attr('data-index', index)
-                           .data('index', index);
+                        .attr('name', `Warehouses[${index}].ZoneIds`)
+                        .attr('data-index', index)
+                        .data('index', index);
 
                     $(this).find('select[name$="SectionIds"]')
-                           .attr('name', `Warehouses[${index}].SectionIds`)
-                           .attr('data-index', index)
-                           .data('index', index);
+                        .attr('name', `Warehouses[${index}].SectionIds`)
+                        .attr('data-index', index)
+                        .data('index', index);
                 });
             } else {
                 alert('حداقل یک فیلتر انبار باید باقی بماند.');
@@ -641,23 +651,23 @@ else
             const productSelect = $('#ProductId');
 
             groupSelect.prop('disabled', true)
-                       .empty()
-                       .append('<option value="">در حال بارگذاری...</option>')
-                       .trigger('change');
+                .empty()
+                .append('<option value="">در حال بارگذاری...</option>')
+                .trigger('change');
             statusSelect.prop('disabled', true)
-                        .empty()
-                        .append('<option value="">ابتدا گروه را انتخاب کنید</option>')
-                        .trigger('change');
+                .empty()
+                .append('<option value="">ابتدا گروه را انتخاب کنید</option>')
+                .trigger('change');
             productSelect.prop('disabled', true)
-                         .empty()
-                         .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
-                         .trigger('change');
+                .empty()
+                .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
+                .trigger('change');
 
             if (!categoryId) {
                 console.warn("هیچ دسته‌بندی انتخاب نشده است");
                 groupSelect.empty()
-                           .append('<option value="">انتخاب دسته‌بندی</option>')
-                           .trigger('change');
+                    .append('<option value="">انتخاب دسته‌بندی</option>')
+                    .trigger('change');
                 return;
             }
 
@@ -677,19 +687,19 @@ else
 
                     groupSelect.empty().append('<option value="">همه گروه‌ها</option>');
 
-                            data.forEach(group => {
-            groupSelect.append(new Option(group.text, group.value));
-        });
+                    data.forEach(group => {
+                        groupSelect.append(new Option(group.text, group.value));
+                    });
 
 
                     groupSelect.prop('disabled', false).trigger('change');
 
-                   const selectedGroupId = "@(Model.GroupId?.ToString() ?? "")";
+                    const selectedGroupId = "@(Model.GroupId?.ToString() ?? "")";
 
 
                     console.log("Selected group ID from model:", selectedGroupId);
 
-                          if (selectedGroupId) {
+                    if (selectedGroupId) {
 
                         groupSelect.val(selectedGroupId).trigger('change');
                         loadStatuses(selectedGroupId);
@@ -707,19 +717,19 @@ else
             const productSelect = $('#ProductId');
 
             statusSelect.prop('disabled', true)
-                        .empty()
-                        .append('<option value="">در حال بارگذاری...</option>')
-                        .trigger('change');
+                .empty()
+                .append('<option value="">در حال بارگذاری...</option>')
+                .trigger('change');
             productSelect.prop('disabled', true)
-                         .empty()
-                         .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
-                         .trigger('change');
+                .empty()
+                .append('<option value="">ابتدا وضعیت را انتخاب کنید</option>')
+                .trigger('change');
 
             if (!groupId) {
                 console.warn("هیچ گروهی انتخاب نشده است");
                 statusSelect.empty()
-                            .append('<option value="">انتخاب گروه</option>')
-                            .trigger('change');
+                    .append('<option value="">انتخاب گروه</option>')
+                    .trigger('change');
                 return;
             }
 
@@ -739,18 +749,18 @@ else
 
                     statusSelect.empty().append('<option value="">همه وضعیت‌ها</option>');
 
-                            data.forEach(status => {
-            statusSelect.append(new Option(status.text, status.value));
-        });
+                    data.forEach(status => {
+                        statusSelect.append(new Option(status.text, status.value));
+                    });
 
 
                     statusSelect.prop('disabled', false).trigger('change');
 
-                   const selectedStatusId = "@(Model.StatusId?.ToString() ?? "")";
+                    const selectedStatusId = "@(Model.StatusId?.ToString() ?? "")";
 
                     console.log("Selected status ID from model:", selectedStatusId);
 
-                           if (selectedStatusId) {
+                    if (selectedStatusId) {
                         statusSelect.val(selectedStatusId).trigger('change');
                         loadProducts(selectedStatusId);
                     }
@@ -767,15 +777,15 @@ else
             const productSelect = $('#ProductId');
 
             productSelect.prop('disabled', true)
-                         .empty()
-                         .append('<option value="">در حال بارگذاری...</option>')
-                         .trigger('change');
+                .empty()
+                .append('<option value="">در حال بارگذاری...</option>')
+                .trigger('change');
 
             if (!statusId) {
                 console.warn("هیچ وضعیتی انتخاب نشده است");
                 productSelect.empty()
-                             .append('<option value="">انتخاب وضعیت</option>')
-                             .trigger('change');
+                    .append('<option value="">انتخاب وضعیت</option>')
+                    .trigger('change');
                 return;
             }
 
@@ -823,14 +833,14 @@ else
             form.reset();
 
             // اگر از select2 استفاده می‌کنی، باید select2 رو هم ریست کنی
-            $('.select2-dropdown').each(function() {
+            $('.select2-dropdown').each(function () {
                 $(this).val(null).trigger('change');
             });
 
             // اگر بخوای فیلترهای انبار رو هم به حالت اولیه برگردونی (مثلاً فقط یک فیلتر داشته باشی)
             const container = $('#warehouseFiltersContainer');
             if (container.children().length > 1) {
-                container.children('.warehouse-filter-group').not(':first').each(function() {
+                container.children('.warehouse-filter-group').not(':first').each(function () {
                     $(this).find('.select2-dropdown').select2('destroy');
                     $(this).remove();
                 });
@@ -838,7 +848,7 @@ else
                 container.children().find('.select2-dropdown').val(null).trigger('change');
             }
         }
-            function printReport() {
+        function printReport() {
             window.print();
         }
 
@@ -858,7 +868,7 @@ else
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `InventoryReport_${new Date().toISOString().slice(0,19).replace(/[:T]/g, '')}.xlsx`;
+                a.download = `InventoryReport_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '')}.xlsx`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
