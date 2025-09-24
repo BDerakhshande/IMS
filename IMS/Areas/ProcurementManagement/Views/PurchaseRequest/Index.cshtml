@@ -1,6 +1,7 @@
 ﻿@using IMS.Application.ProcurementManagement.DTOs
 @using System.Reflection
 @using System.ComponentModel
+@using IMS.Areas.ProjectManagement.Helper
 @model List<IMS.Application.ProcurementManagement.DTOs.PurchaseRequestDto>
 
 @{
@@ -72,7 +73,7 @@
                                     {
                                         <tr>
                                             <td class="text-center fw-bold py-1 align-middle">@item.RequestNumber</td>
-                                            <td class="text-center py-1 align-middle">@item.RequestDate.ToString("yyyy/MM/dd")</td>
+                                            <td class="text-center py-1 align-middle">@item.RequestDate.ToShamsi()</td>
                                             <td class="text-center py-1 align-middle">@item.RequestTypeName</td>
                                             <td class="text-center py-1 align-middle">@item.Title</td>
                                             <td class="text-center py-1 align-middle">@item.Items.Count</td>

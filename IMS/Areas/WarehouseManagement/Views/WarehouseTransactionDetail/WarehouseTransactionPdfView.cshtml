@@ -180,10 +180,10 @@
                         <td>@item.Quantity.ToString("N0")</td>
                     </tr>
                 }
-                <tr class="summary-row">
+             @*    <tr class="summary-row">
                     <td colspan="8">جمع کل</td>
                     <td>@Model.Transactions.Sum(t => t.Quantity).ToString("N0")</td>
-                </tr>
+                </tr> *@
             }
             else
             {
