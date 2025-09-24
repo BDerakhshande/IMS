@@ -131,13 +131,16 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
-    <script src="~/js/MenuJs.js"></script>
+    <script src="~/js/MenuJs.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const globalSearch = document.getElementById('globalSearch');
             const cardsContainer = document.querySelector('.row');
+
+            // 🚨 اگر المنت‌ها وجود نداشتن، از ادامه جلوگیری کن
+            if (!globalSearch || !cardsContainer) return;
+
             const cards = cardsContainer.querySelectorAll('.col-md-4');
             const noResultsMessage = document.createElement('div');
             noResultsMessage.className = 'col-12 text-center py-3 text-muted';
@@ -153,7 +156,7 @@
                 card.setAttribute('tabindex', '0');
             });
 
-            globalSearch.addEventListener('input', function() {
+            globalSearch.addEventListener('input', function () {
                 const term = this.value.trim().toLowerCase();
                 let hasResults = false;
 
@@ -214,6 +217,8 @@
 
                 // ایجاد دکمه‌های صفحه‌بندی
                 const paginationContainer = document.getElementById('paginationContainer');
+                if (!paginationContainer) return; // 🚨 اگر نبود، کرش نکنه
+
                 paginationContainer.innerHTML = '';
 
                 for (let i = 1; i <= totalPages; i++) {
@@ -246,7 +251,7 @@
             }
 
             // فعال‌سازی tooltip
-            if (typeof $ !== 'undefined' && $.fn.tooltip) {
+            if (typeof $ !== 'undefined' && $.fn && $.fn.tooltip) {
                 $('[data-bs-toggle="tooltip"]').tooltip();
             }
         });
