@@ -1,6 +1,6 @@
 ﻿@model IMS.Application.WarehouseManagement.DTOs.InventoryCreateDto
 @{
-    ViewData["Title"] = "مدیریت موجودی کالا";
+    ViewData["Title"] = "افزایش موجودی کالا";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 <style>
@@ -70,7 +70,7 @@
                     </div>
                 </div>
 
-                <form asp-action="LoadInventory" method="post" class="needs-validation" novalidate>
+                <form id="inventoryForm" class="needs-validation" novalidate>
                     @Html.AntiForgeryToken()
 
                     <div class="card-body p-1">
@@ -160,79 +160,46 @@
                             </div>
                         </div>
 
-                        <!-- بخش نمایش و مدیریت موجودی -->
+                        <!-- بخش افزایش موجودی -->
                         <div class="card border-0 shadow-sm mb-3">
                             <div class="card-header py-1 d-flex align-items-center" style="background-color: #f8f9fa;">
                                 <i class="fas fa-box-open me-1" style="font-size: 0.85rem;"></i>
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">مدیریت موجودی انبار</h6>
+                                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">افزایش موجودی انبار</h6>
                             </div>
                             <div class="card-body p-2">
                                 <div class="row align-items-center g-2">
-                                    <!-- نمایش موجودی فعلی -->
-                                    <div class="col-md-4">
+                                    <!-- مقدار افزایشی -->
+                                    <div class="col-md-6">
                                         <div class="form-group mb-2">
-                                            <label class="form-label small">موجودی فعلی</label>
+                                            <label for="IncreaseAmount" class="form-label small">مقدار افزایشی</label>
                                             <div class="input-group input-group-sm">
-                                                <span class="input-group-text bg-light"><i class="fas fa-cubes text-muted"></i></span>
-                                                <input asp-for="Quantity" class="form-control" readonly style="background-color: #f8f9fa;" id="Quantity">
+                                                <span class="input-group-text bg-light"><i class="fas fa-plus text-muted"></i></span>
+                                                <input type="number" class="form-control" id="IncreaseAmount" min="1" step="1" value="1">
                                                 <span class="input-group-text bg-light">عدد</span>
                                             </div>
+                                            <div class="form-text small text-muted mt-1">مقدار باید عددی و مثبت باشد</div>
                                         </div>
                                     </div>
+
                                     <!-- دکمه‌های عملیاتی -->
-                                    <div class="col-md-8">
+                                    <div class="col-md-6">
                                         <div class="d-flex justify-content-end gap-1 mt-3">
                                             <a asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index" class="btn btn-sm btn-outline-secondary d-flex align-items-center py-1 px-2" style="height: 28px; font-size: 0.8rem;">
                                                 <i class="fas fa-arrow-right me-1" style="font-size: 0.8rem;"></i>
                                                 <span>بازگشت</span>
                                             </a>
-                                            <button type="button" id="btnLoadInventory" class="btn btn-sm btn-primary d-flex align-items-center py-1 px-2" style="height: 28px; font-size: 0.8rem;">
-                                                <span class="spinner-border spinner-border-sm me-1 d-none" id="loadingSpinner" role="status" aria-hidden="true"></span>
-                                                <i class="fas fa-search me-1 d-inline" id="searchIcon" style="font-size: 0.8rem;"></i>
-                                                <span>دریافت موجودی</span>
-                                            </button>
-                                            <button type="button" id="btnEditInventory" class="btn btn-sm btn-warning d-flex align-items-center py-1 px-2" disabled style="height: 28px; font-size: 0.8rem;">
-                                                <i class="fas fa-edit me-1" style="font-size: 0.8rem;"></i>
-                                                <span>ویرایش</span>
+                                            <button type="button" id="btnAddInventory" class="btn btn-sm btn-success d-flex align-items-center py-1 px-2" style="height: 28px; font-size: 0.8rem;">
+                                                <i class="fas fa-plus me-1" style="font-size: 0.8rem;"></i>
+                                                <span>افزایش موجودی</span>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- فرم ویرایش موجودی (مخفی شده) -->
-                                <div id="editForm" class="mt-3 pt-3 border-top" style="display: none;">
-                                    <div class="row g-3 align-items-end">
-                                        <!-- فیلد مقدار جدید -->
-                                        <div class="col-md-5 col-lg-4">
-                                            <div class="form-group mb-0">
-                                                <label for="newQuantity" class="form-label small fw-semibold text-muted mb-1">مقدار جدید موجودی</label>
-                                                <div class="input-group input-group-sm">
-                                                    <input type="number" class="form-control form-control-sm border-secondary" id="newQuantity" min="0" step="1" aria-label="مقدار جدید موجودی">
-                                                    <span class="input-group-text bg-light">عدد</span>
-                                                </div>
-                                                <div class="form-text small text-muted mt-1">مقدار باید عددی و غیرمنفی باشد</div>
-                                            </div>
-                                        </div>
-                                        <!-- دکمه‌های عملیات -->
-                                        <div class="col-md-7 col-lg-5">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <button type="button" id="btnSaveEdit" class="btn btn-sm btn-success d-flex align-items-center justify-content-center" style="min-width: 90px; height: 32px;">
-                                                    <span class="d-flex align-items-center">
-                                                        <i class="fas fa-check-circle me-1" style="font-size: 0.75rem;"></i>
-                                                        <span style="font-size: 0.8rem;">ذخیره تغییرات</span>
-                                                    </span>
-                                                </button>
-                                                <button type="button" id="btnCancelEdit" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="min-width: 80px; height: 32px;">
-                                                    <span class="d-flex align-items-center">
-                                                        <i class="fas fa-ban me-1" style="font-size: 0.75rem;"></i>
-                                                        <span style="font-size: 0.8rem;">انصراف</span>
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <!-- پیام وضعیت (اختیاری) -->
-                                        <div class="col-12">
-                                            <div id="editStatusMessage" class="small mt-1" style="display: none;"></div>
-                                        </div>
+
+                                <!-- پیام وضعیت -->
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <div id="operationStatusMessage" class="small mt-1" style="display: none;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -248,26 +215,6 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal برای تأیید تغییرات -->
-<div class="modal fade" id="confirmEditModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">تأیید تغییر موجودی</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>آیا از تغییر موجودی از <span id="currentQtyDisplay" class="fw-bold"></span> به <span id="newQtyDisplay" class="fw-bold"></span> اطمینان دارید؟</p>
-                <p class="mb-0">علت: <span id="reasonDisplay" class="fst-italic text-muted"></span></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                <button type="button" id="btnConfirmEdit" class="btn btn-primary">تأیید تغییر</button>
             </div>
         </div>
     </div>
@@ -313,12 +260,24 @@
                 }
             }
 
+            function showStatusMessage(message, isSuccess) {
+                var statusDiv = $('#operationStatusMessage');
+                statusDiv.removeClass('alert-success alert-danger')
+                    .addClass(isSuccess ? 'alert alert-success' : 'alert alert-danger')
+                    .text(message)
+                    .slideDown();
+
+                setTimeout(function () {
+                    statusDiv.slideUp();
+                }, 5000);
+            }
+
             // بارگذاری دراپ‌داون‌ها
             $('#CategoryId').change(function () {
                 var catId = $(this).val();
                 console.log('CategoryId changed:', catId);
 
-                $.get('/WarehouseManagement/Inventory/GetGroups', { categoryId: catId }, function (data) {
+                $.get('/WarehouseManagement/InventoryOperation/GetGroups', { categoryId: catId }, function (data) {
                     console.log('Data received from GetGroups:', data);
                     populateDropdown('#GroupId', data, '-- انتخاب گروه --');
                     $('#StatusId, #ProductId').empty().append('<option>-- انتخاب --</option>').trigger('change');
@@ -332,7 +291,7 @@
                 var groupId = $(this).val();
                 console.log('GroupId changed:', groupId);
 
-                $.get('/WarehouseManagement/Inventory/GetStatuses', { groupId: groupId }, function (data) {
+                $.get('/WarehouseManagement/InventoryOperation/GetStatuses', { groupId: groupId }, function (data) {
                     console.log('Data received from GetStatuses:', data);
                     populateDropdown('#StatusId', data, '-- انتخاب وضعیت --');
                     $('#ProductId').empty().append('<option>-- انتخاب کالا --</option>').trigger('change');
@@ -346,7 +305,7 @@
                 var statusId = $(this).val();
                 console.log('StatusId changed:', statusId);
 
-                $.get('/WarehouseManagement/Inventory/GetProducts', { statusId: statusId }, function (data) {
+                $.get('/WarehouseManagement/InventoryOperation/GetProducts', { statusId: statusId }, function (data) {
                     console.log('Data received from GetProducts:', data);
                     populateDropdown('#ProductId', data, '-- انتخاب کالا --');
                 }).fail(function (xhr, status, error) {
@@ -356,7 +315,7 @@
 
             $('#WarehouseId').change(function () {
                 var warehouseId = $(this).val();
-                $.get('/WarehouseManagement/Inventory/GetZones', { warehouseId: warehouseId }, function (data) {
+                $.get('/WarehouseManagement/InventoryOperation/GetZones', { warehouseId: warehouseId }, function (data) {
                     populateDropdown('#ZoneId', data, '-- انتخاب ناحیه --');
                     $('#SectionId').empty().append('<option>-- انتخاب بخش --</option>').trigger('change');
                 });
@@ -364,13 +323,20 @@
 
             $('#ZoneId').change(function () {
                 var zoneId = $(this).val();
-                $.get('/WarehouseManagement/Inventory/GetSections', { zoneId: zoneId }, function (data) {
+                $.get('/WarehouseManagement/InventoryOperation/GetSections', { zoneId: zoneId }, function (data) {
                     populateDropdown('#SectionId', data, '-- انتخاب بخش --');
                 });
             });
 
-            // ---------- مدیریت دکمه دریافت موجودی ----------
-            $('#btnLoadInventory').click(function () {
+            // مدیریت دکمه افزایش موجودی
+            $('#btnAddInventory').click(function () {
+                var increaseAmount = parseInt($('#IncreaseAmount').val());
+
+                if (isNaN(increaseAmount) || increaseAmount <= 0) {
+                    showStatusMessage('لطفاً مقدار افزایشی معتبر وارد کنید (عدد مثبت).', false);
+                    return;
+                }
+
                 var data = {
                     WarehouseId: $('#WarehouseId').val(),
                     ZoneId: $('#ZoneId').val(),
@@ -379,113 +345,37 @@
                     GroupId: $('#GroupId').val(),
                     StatusId: $('#StatusId').val(),
                     ProductId: $('#ProductId').val(),
+                    Quantity: increaseAmount,
                     __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                 };
 
                 if (!data.WarehouseId || !data.ProductId) {
-                    alert('لطفاً ابتدا انبار و کالا را انتخاب کنید.');
+                    showStatusMessage('لطفاً ابتدا انبار و کالا را انتخاب کنید.', false);
                     return;
                 }
 
-                $('#loadingSpinner').removeClass('d-none');
-                $('#searchIcon').addClass('d-none');
-                $('#btnLoadInventory').prop('disabled', true);
+                $('#btnAddInventory').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> در حال افزایش...');
 
                 $.ajax({
-                    url: '@Url.Action("LoadInventory", "Inventory", new { area = "WarehouseManagement" })',
-                    type: 'POST',
-                    data: data,
-                    success: function (result) {
-                        if (result && result.quantity !== undefined) {
-                            $('#Quantity').val(result.quantity);
-                            $('#btnEditInventory').prop('disabled', false);
-                        } else {
-                            alert('موجودی یافت نشد.');
-                            $('#Quantity').val('');
-                            $('#btnEditInventory').prop('disabled', true);
-                        }
-                    },
-                    error: function () {
-                        alert('خطا در دریافت موجودی!');
-                        $('#Quantity').val('');
-                        $('#btnEditInventory').prop('disabled', true);
-                    },
-                    complete: function () {
-                        $('#loadingSpinner').addClass('d-none');
-                        $('#searchIcon').removeClass('d-none');
-                        $('#btnLoadInventory').prop('disabled', false);
-                    }
-                });
-            });
-
-            // ---------- مدیریت دکمه ویرایش ----------
-            $('#btnEditInventory').click(function () {
-                $('#editForm').slideDown();
-                $('#newQuantity').val($('#Quantity').val());
-                $('#btnEditInventory').prop('disabled', true);
-                $('#btnLoadInventory').prop('disabled', true);
-                $('#Quantity').prop('readonly', true).css('background-color', '#f8f9fa');
-            });
-
-            // ---------- دکمه انصراف ----------
-            $('#btnCancelEdit').click(function () {
-                resetEditForm();
-            });
-
-            // ---------- دکمه ذخیره ----------
-            $('#btnSaveEdit').click(function () {
-                const newQty = parseInt($('#newQuantity').val());
-
-                if (isNaN(newQty)) {
-                    alert('لطفاً مقدار معتبر وارد کنید.');
-                    return;
-                }
-                if (newQty < 0) {
-                    alert('مقدار نمی‌تواند منفی باشد.');
-                    return;
-                }
-
-                var data = {
-                    ProductId: $('#ProductId').val(),
-                    WarehouseId: $('#WarehouseId').val(),
-                    ZoneId: $('#ZoneId').val(),
-                    SectionId: $('#SectionId').val(),
-                    NewQuantity: newQty,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                };
-
-                $('#btnSaveEdit').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> در حال ذخیره...');
-
-                $.ajax({
-                    url: '@Url.Action("UpdateInventory", "Inventory", new { area = "WarehouseManagement" })',
+                    url: '@Url.Action("Add", "InventoryOperation", new { area = "WarehouseManagement" })',
                     type: 'POST',
                     data: data,
                     success: function (response) {
                         if (response.success) {
-                            $('#Quantity').val(response.newQuantity);
-                            alert('موجودی با موفقیت به‌روزرسانی شد.');
-                            resetEditForm();
+                            showStatusMessage('موجودی با موفقیت افزایش یافت.', true);
+                            $('#IncreaseAmount').val('1'); // بازنشانی مقدار افزایشی
                         } else {
-                            alert(response.message || 'خطا در به‌روزرسانی موجودی.');
+                            showStatusMessage(response.message || 'خطا در افزایش موجودی.', false);
                         }
                     },
                     error: function () {
-                        alert('خطا در ارتباط با سرور.');
+                        showStatusMessage('خطا در ارتباط با سرور.', false);
                     },
                     complete: function () {
-                        $('#btnSaveEdit').prop('disabled', false).html('<i class="fas fa-check me-1"></i> ذخیره');
+                        $('#btnAddInventory').prop('disabled', false).html('<i class="fas fa-plus me-1"></i> افزایش موجودی');
                     }
                 });
             });
-
-            // ---------- تابع بازنشانی فرم ویرایش ----------
-            function resetEditForm() {
-                $('#editForm').slideUp();
-                $('#newQuantity').val('');
-                $('#btnEditInventory').prop('disabled', false);
-                $('#btnLoadInventory').prop('disabled', false);
-                $('#Quantity').prop('readonly', false);
-            }
         });
     </script>
 }

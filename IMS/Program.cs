@@ -42,6 +42,7 @@ builder.Services.AddScoped<IInventoryTransactionReportService, InventoryTransact
 
 
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IInventoryOperationService , InventoryOperationService>();
 builder.Services.AddScoped<IGroupService, GroupService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
 builder.Services.AddScoped<IStatusService, StatusService>();
