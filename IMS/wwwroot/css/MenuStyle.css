@@ -23,6 +23,10 @@ body, html {
     height: 100%;
 }
 
+    body.dark-mode {
+        background-color: #083344;
+    }
+
 .system-access-container {
     min-height: 100vh;
     display: flex;
@@ -232,6 +236,10 @@ body, html {
     margin-right: var(--sidebar-collapsed-width);
     transition: margin-right var(--transition-speed);
     min-height: calc(100vh - var(--header-height));
+}
+body.dark-mode .main-content {
+    background-color: #083344; /* همان رنگ بدن */
+    color: white; /* متن سفید شود */
 }
 
 .sidebar.expanded ~ .main-content {
