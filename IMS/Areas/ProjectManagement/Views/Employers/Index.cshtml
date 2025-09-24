@@ -81,7 +81,7 @@
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.8rem;">
-                                    @foreach (var employer in Model)
+                                    @foreach (var employer in Model.OrderByDescending(e => e.Id))
                                     {
                                         <tr style="height: 32px;">
                                             <td class="text-center py-1 align-middle">@employer.CompanyName</td>
@@ -180,7 +180,7 @@
                 }
             });
 
-            const rowsPerPage = 10;
+            const rowsPerPage = 20;
             let currentPage = 1;
 
             function paginateTable() {

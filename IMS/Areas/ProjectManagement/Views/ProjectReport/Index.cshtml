@@ -8,11 +8,15 @@
 }
 
 <style>
-    /* استایل‌های مشابه ویو موجودی انبار */
+    /* بدنه اصلی */
     body {
         font-size: 0.9rem;
+        direction: rtl;
+        text-align: right;
+        font-family: "IranSans", sans-serif;
     }
 
+    /* استایل select */
     select.form-select[dir="rtl"],
     select.form-select.text-end {
         direction: rtl;
@@ -32,6 +36,7 @@
         background-image: none !important;
     }
 
+    /* جدول کوچک سفارشی */
     .table-sm-custom {
         font-size: 0.8rem;
     }
@@ -53,26 +58,33 @@
             font-size: 0.75rem;
         }
 
+    /* کارت‌ها */
     .card-header {
         padding: 0.4rem 0.8rem;
+        text-align: right;
+        font-weight: 600;
     }
 
     .card-body {
         padding: 0.8rem;
+        text-align: right;
     }
 
+    /* لیبل فرم‌ها */
     .form-label {
         font-size: 0.8rem;
         font-weight: 500;
         margin-bottom: 0.2rem;
     }
 
+    /* دکمه‌ها */
     .btn-xs {
         padding: 0.15rem 0.3rem;
         font-size: 0.7rem;
         line-height: 1.2;
     }
 
+    /* بخش اکشن‌ها */
     .action-buttons {
         position: relative;
         margin-bottom: 1rem;
@@ -92,6 +104,7 @@
         gap: 0.5rem;
     }
 
+    /* جدول‌ها */
     .table-responsive {
         border-radius: 0.35rem;
         overflow: hidden;
@@ -99,29 +112,59 @@
 
     .table {
         margin-bottom: 0;
+        text-align: right;
+        direction: rtl;
     }
 
-        .table th {
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .table td {
+        .table th, .table td {
             font-size: 0.78rem;
             padding: 0.4rem 0.75rem;
             vertical-align: middle;
         }
 
+            /* راست‌چین و وسط‌چین برای سلول‌ها */
+            .table th.text-end, .table td.text-end {
+                text-align: right !important;
+            }
+
+            .table th.text-center, .table td.text-center {
+                text-align: center !important;
+            }
+
+    /* badge وضعیت */
+    .badge {
+        border-radius: 0.5rem;
+        padding: 0.35em 0.6em;
+        font-size: 0.75rem;
+        display: inline-block;
+        min-width: 60px;
+        text-align: center;
+    }
+
+    /* alert */
     .alert {
         font-size: 0.85rem;
         padding: 0.75rem 1rem;
+        text-align: right;
+        direction: rtl;
     }
 
         .alert i {
             font-size: 1.5rem;
         }
+
+    /* hover و افکت زیبا برای ردیف جدول */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+
+    /* جدول ریسپانسیو و متن قابل انتخاب */
+    .table td, .table th {
+        user-select: text;
+    }
 </style>
+
+
 
 <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
 <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
@@ -272,48 +315,59 @@
                     تعداد: @Model.ReportItems.Count.ToString("N0")
                 </span>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-start ps-4">نام پروژه</th>
-                                <th class="text-start">کارفرما</th>
-                                <th class="text-start">نوع پروژه</th>
-                                <th class="text-center">تاریخ شروع</th>
-                                <th class="text-center">تاریخ پایان</th>
-                                <th class="text-end pe-4">وضعیت</th>
-                                <th class="text-end pe-4">مدیر پروژه</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model.ReportItems)
-                            {
-                                <tr class="align-middle">
-                                    <td class="text-start ps-4">@item.ProjectName</td>
-                                    <td class="text-start">@item.EmployerName</td>
-                                    <td class="text-start">@item.ProjectTypeName</td>
-                                    <td class="text-center">@item.StartDate.ToShamsi()</td>
-                                    <td class="text-center">@item.EndDate.ToShamsi()</td>
-                                    <td class="text-center ">
-                                        @{
-                                            var statusClass = item.Status switch
-                                            {
-                                                "در حال انجام" => "bg-warning bg-opacity-10 text-warning",
-                                                "تکمیل شده" => "bg-success bg-opacity-10 text-success",
-                                                "متوقف شده" => "bg-danger bg-opacity-10 text-danger",
-                                                _ => "bg-secondary bg-opacity-10 text-secondary"
-                                            };
-                                        }
-                                        <span class="badge @statusClass" style="font-size: 0.7rem;">@item.Status</span>
-                                    </td>
-                                    <td class="text-end pe-4">@item.ProjectManager</td>
+            <div class="card shadow-sm border-0 rounded-2">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover table-striped mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:50px;" class="text-center">ردیف</th>
+                                    <th style="min-width:150px;">نام پروژه</th>
+                                    <th style="min-width:120px;">کارفرما</th>
+                                    <th style="min-width:120px;">نوع پروژه</th>
+                                    <th style="width:100px;" class="text-center">تاریخ شروع</th>
+                                    <th style="width:100px;" class="text-center">تاریخ پایان</th>
+                                    <th style="width:120px;" class="text-center">وضعیت</th>
+                                    <th style="min-width:130px;">مدیر پروژه</th>
                                 </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var rowIndex = 1;
+                                }
+                                @foreach (var item in Model.ReportItems)
+                                {
+                                    <tr>
+                                        <td class="text-center">@rowIndex</td>
+                                        @{
+                                            rowIndex++;
+                                        }
+                                        <td class="text-end">@item.ProjectName</td>
+                                        <td class="text-end">@item.EmployerName</td>
+                                        <td class="text-end">@item.ProjectTypeName</td>
+                                        <td class="text-center">@item.StartDate.ToShamsi()</td>
+                                        <td class="text-center">@item.EndDate.ToShamsi()</td>
+                                        <td class="text-center">
+                                            @{
+                                                var statusClass = item.Status switch
+                                                {
+                                                    "در حال انجام" => "badge bg-warning text-dark",
+                                                    "تکمیل شده" => "badge bg-success",
+                                                    "متوقف شده" => "badge bg-danger",
+                                                    _ => "badge bg-secondary"
+                                                };
+                                            }
+                                            <span class="@statusClass" style="min-width:60px; display:inline-block;">@item.Status</span>
+                                        </td>
+                                        <td class="text-end">@item.ProjectManager</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
 }

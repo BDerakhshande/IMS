@@ -53,7 +53,7 @@
 
                             <!-- ردیف دوم: موقعیت و مدیر انبار -->
                             <div class="row g-2 mb-3">
-                                <div class="col-md-6">
+                            @*     <div class="col-md-6">
                                     <div class="form-group">
                                         <label asp-for="Location" class="form-label fw-bold mb-1 small">
                                             <i class="fas fa-map-marker-alt me-1 text-muted"></i> موقعیت مکانی
@@ -64,7 +64,7 @@
                                         </div>
                                         <span asp-validation-for="Location" class="text-danger small mt-1 d-block"></span>
                                     </div>
-                                </div>
+                                </div> *@
 
                                 <div class="col-md-6">
                                     <div class="form-group">
@@ -97,7 +97,7 @@
                                 </div>
                             </div>
 
-                            <!-- شرایط نگهداری -->
+                          @*   <!-- شرایط نگهداری -->
                             <div class="form-group mb-3">
                                 <label asp-for="StorageConditions" class="form-label fw-bold mb-1 small">
                                     <i class="fas fa-temperature-low me-1 text-muted"></i> شرایط نگهداری
@@ -108,7 +108,7 @@
                                 </div>
                                 <span asp-validation-for="StorageConditions" class="text-danger small mt-1 d-block"></span>
                                 <div class="form-text small text-muted">حداکثر 500 کاراکتر</div>
-                            </div>
+                            </div> *@
 
                             <!-- توضیحات -->
                             <div class="form-group mb-3">
@@ -120,7 +120,7 @@
                                     <textarea asp-for="Description" class="form-control" rows="2" placeholder="توضیحات تکمیلی درباره انبار"></textarea>
                                 </div>
                                 <span asp-validation-for="Description" class="text-danger small mt-1 d-block"></span>
-                                <div class="form-text small text-muted">حداکثر 1000 کاراکتر</div>
+                              
                             </div>
 
                             <!-- دکمه‌های اقدام -->

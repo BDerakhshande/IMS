@@ -65,7 +65,7 @@
                                 <tr>
                                     <th class="text-center py-1">کد انبار</th>
                                     <th class="text-center py-1">نام انبار</th>
-                                    <th class="text-center py-1">موقعیت</th>
+                                   @*  <th class="text-center py-1">موقعیت</th> *@
                                     <th class="text-center py-1">مدیر</th>
                                     <th class="text-center py-1">وضعیت</th>
                                     <th class="text-center py-1">عملیات</th>
@@ -77,7 +77,7 @@
                                     <tr data-url="@Url.Action("Index", "Zones", new { area = "WarehouseManagement", id = warehouse.Id })" style="cursor: pointer; height: 32px;">
                                         <td class="text-center fw-bold py-1 align-middle">@warehouse.DisplayCode</td>
                                         <td class="text-center py-1 align-middle">@warehouse.Name</td>
-                                        <td class="text-center py-1 align-middle">@warehouse.Location</td>
+                                        @* <td class="text-center py-1 align-middle">@warehouse.Location</td> *@
                                         <td class="text-center py-1 align-middle">@warehouse.Manager</td>
                                         <td class="text-center py-1 align-middle">
                                             <span class="badge rounded-pill @(warehouse.IsActive ? "bg-success" : "bg-secondary") py-1" style="font-size: 0.75rem;">

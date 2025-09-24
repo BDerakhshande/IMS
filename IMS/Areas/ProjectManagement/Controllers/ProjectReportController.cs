@@ -45,9 +45,9 @@ namespace IMS.Areas.ProjectManagement.Controllers
 
             // پر کردن مقادیر اولیه فیلتر تاریخ
             model.Filter.StartDateFromShamsi = todayShamsi;
-            model.Filter.StartDateToShamsi = todayShamsi;
-            model.Filter.EndDateFromShamsi = todayShamsi;
-            model.Filter.EndDateToShamsi = todayShamsi;
+            //model.Filter.StartDateToShamsi = todayShamsi;
+            //model.Filter.EndDateFromShamsi = todayShamsi;
+            //model.Filter.EndDateToShamsi = todayShamsi;
 
             return View(model);
         }

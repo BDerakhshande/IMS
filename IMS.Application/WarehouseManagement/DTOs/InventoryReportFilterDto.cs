@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,5 +31,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public int WarehouseId { get; set; }
         public List<int> ZoneIds { get; set; } = new List<int>();
         public List<int> SectionIds { get; set; } = new List<int>();
+
+        public List<SelectListItem> Zones { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> Sections { get; set; } = new List<SelectListItem>();
     }
 }
