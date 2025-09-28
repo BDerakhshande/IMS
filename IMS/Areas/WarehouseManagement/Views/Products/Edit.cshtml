@@ -85,6 +85,15 @@
                                 <span asp-validation-for="Unit.Id" class="text-danger small mt-1 d-block"></span>
                             </div>
                         </div>
+                        <!-- چک باکس کالا یکتا -->
+                        <div class="col-md-6 d-flex align-items-center mb-3">
+                            <div class="form-check mb-0">
+                                <input asp-for="IsUnique" class="form-check-input" type="checkbox" id="IsUniqueCheck">
+                                <label asp-for="IsUnique" class="form-check-label fw-bold small mb-0 ms-2">
+                                    <i class="fas fa-fingerprint me-1"></i> کالا یکتا
+                                </label>
+                            </div>
+                        </div>
 
                         <!-- توضیحات -->
                         <div class="form-group mb-3">

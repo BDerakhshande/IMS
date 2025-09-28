@@ -1,0 +1,313 @@
+﻿@using System.ComponentModel.DataAnnotations
+@model List<IMS.Application.WarehouseManagement.DTOs.ProductItemDto>
+@{
+    ViewData["Title"] = "لیست آیتم‌های محصول";
+
+    Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
+
+
+
+    var productId = ViewBag.ProductId as int? ?? 0;
+
+   
+}
+<link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+<link href="~/vazirmatn/webfonts.css" rel="stylesheet" />
+
+<div class="container-fluid py-2" dir="rtl">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-boxes me-1" style="font-size: 0.85rem;"></i>
+                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-1">
+                        <div class="search-box" style="width: 180px;">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white text-secondary p-1">
+                                    <i class="fas fa-search" style="font-size: 0.8rem;"></i>
+                                </span>
+                                <input type="text"
+                                       id="globalSearch"
+                                       class="form-control form-control-sm p-1"
+                                       placeholder="جستجو..."
+                                       dir="rtl"
+                                       style="height: 20px; font-size: 0.8rem;">
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-1">
+                            <a asp-area="WarehouseManagement"
+                               asp-controller="Products"
+                               asp-action="Index"
+                               asp-route-statusId="@ViewBag.StatusId"
+                               class="btn btn-sm btn-light custom-btn">
+                                بازگشت به محصولات
+                            </a>
+
+                            <a asp-action="Create"
+                               asp-route-productId="@productId"
+                               class="btn btn-sm btn-light custom-btn">
+                                <i class="fas fa-plus me-1"></i>
+                                <span>آیتم جدید</span>
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                @if (TempData["SuccessMessage"] != null)
+
+                {
+                    <div class="alert alert-success alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-check-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+
+                {
+                    <div class="alert alert-danger alert-dismissible fade show mx-2 my-1 py-1" role="alert" style="font-size: 0.8rem;">
+                        <i class="fas fa-exclamation-circle me-1" style="font-size: 0.85rem;"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close p-1" data-bs-dismiss="alert" aria-label="Close" style="font-size: 0.7rem;"></button>
+                    </div>
+                }
+
+                <div class="card-body p-1">
+              
+
+                    @if (!Model.Any())
+
+                    {
+                        <div class="alert alert-info alert-dismissible fade show mx-2 my-1 py-1 text-center" role="alert" style="font-size: 0.8rem;">
+                            <i class="fas fa-box-open me-1" style="font-size: 0.85rem;"></i>
+                            هیچ آیتمی ثبت نشده است
+                        </div>
+                    }
+
+                    else
+
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead style="background-color: #f8f9fa; font-size: 0.82rem;">
+                                    <tr>
+                                        <th class="text-center py-1">ردیف</th>
+                                        <th class="text-center py-1">کد آیتم</th>
+                                        <th class="text-center py-1">دسته‌بندی</th>
+                                        <th class="text-center py-1">گروه</th>
+                                        <th class="text-center py-1">طبقه</th>
+                                        <th class="text-center py-1">نام محصول</th>
+                                        <th class="text-center py-1">وضعیت</th>
+                                        <th class="text-center py-1">پروژه</th>
+                                        <th class="text-center py-1">عملیات</th>
+                                    </tr>
+                                </thead>
+                                <tbody style="font-size: 0.8rem;">
+                                    @{
+                                        int index = 1;
+
+                                        foreach (var item in Model)
+
+                                        {
+                                            <tr style="height: 32px;">
+                                                <td class="text-center fw-bold py-1 align-middle">@index</td>
+                                                <td class="text-center fw-bold py-1 align-middle">@item.DisplayHierarchyByCode</td>
+                                                <td class="text-center py-1 align-middle">@item.CategoryName</td>
+                                                <td class="text-center py-1 align-middle">@item.GroupName</td>
+                                                <td class="text-center py-1 align-middle">@item.StatusName</td>
+                                                <td class="text-center py-1 align-middle">@item.ProductName</td>
+                                                <td class="text-center py-1 align-middle">
+                                                    @{
+                                                        var displayName = item.Status.GetType()
+
+                                                        .GetMember(item.Status.ToString())
+
+                                                        .First()
+
+                                                        .GetCustomAttributes(typeof(DisplayAttribute), false)
+
+                                                        .Cast<DisplayAttribute>()
+
+                                                        .FirstOrDefault()?.Name ?? item.Status.ToString();
+                                                    }
+                                                    <span class="badge @GetStatusBadgeClass(item.Status)" style="font-size: 0.75rem;">
+                                                        @displayName
+                                                    </span>
+                                                </td>
+                                                <td class="text-center py-1 align-middle">@item.ProjectName</td>
+                                                <td class="text-center py-1 align-middle">
+                                                    <div class="d-flex justify-content-center gap-1">
+                                                        <a asp-action="Edit"
+                                                           asp-route-id="@item.Id"
+                                                           class="btn btn-sm btn-outline-warning px-1"
+                                                           style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                           title="ویرایش">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <form asp-action="Delete" method="post" class="d-inline">
+                                                            <input type="hidden" name="id" value="@item.Id" />
+                                                            <input type="hidden" name="productId" value="@productId" />
+                                                            <button type="submit"
+                                                                    class="btn btn-sm btn-outline-danger px-1"
+                                                                    style="font-size: 0.75rem; min-width: 26px; height: 26px;"
+                                                                    title="حذف"
+                                                                    onclick="return confirm('آیا از حذف این آیتم مطمئن هستید؟');">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            index++;
+
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div class="d-flex justify-content-center mt-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0" id="paginationContainer"></ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(Enum status)
+
+    {
+
+        return status switch
+
+        {
+
+            _ when status.ToString() == "Active" => "bg-success",
+
+            _ when status.ToString() == "Inactive" => "bg-secondary",
+
+            _ when status.ToString() == "Reserved" => "bg-warning text-dark",
+
+            _ when status.ToString() == "Sold" => "bg-info",
+
+            _ when status.ToString() == "Returned" => "bg-danger",
+
+            _ => "bg-primary"
+
+        };
+
+    }
+}
+
+@section Scripts {
+    <script src="~/js/MenuJs.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // متغیرهای عمومی
+            const rowsPerPage = 10;
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            let filteredRows = [...allRows];
+            let currentPage = 1;
+
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.classList.add('no-results');
+            noResultsRow.innerHTML = '<td colspan="9" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
+
+            const globalSearch = document.getElementById('globalSearch');
+
+            function updateTableDisplay() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                allRows.forEach(row => row.style.display = 'none');
+                filteredRows.slice(start, end).forEach(row => row.style.display = '');
+
+                // نمایش پیام اگر نتیجه‌ای نیست
+                if (filteredRows.length === 0) {
+                    if (!tbody.contains(noResultsRow)) tbody.appendChild(noResultsRow);
+                } else if (tbody.contains(noResultsRow)) {
+                    noResultsRow.remove();
+                }
+
+                updatePaginationControls();
+            }
+
+            function updatePaginationControls() {
+                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+                const paginationContainer = document.getElementById('paginationContainer');
+                paginationContainer.innerHTML = '';
+
+                for (let i = 1; i <= pageCount; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', e => {
+                        e.preventDefault();
+                        currentPage = i;
+                        updateTableDisplay();
+                        highlightSearchTerm();
+                    });
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            function highlightSearchTerm() {
+                if (!globalSearch) return;
+                const term = globalSearch.value.trim().toLowerCase();
+
+                // پاک‌کردن هایلایت قبلی
+                allRows.forEach(row => {
+                    const cells = row.querySelectorAll('td:not(:last-child)');
+                    cells.forEach(cell => cell.innerHTML = cell.textContent);
+                });
+
+                if (term.length === 0) return;
+
+                filteredRows.forEach(row => {
+                    const cells = row.querySelectorAll('td:not(:last-child)');
+                    cells.forEach(cell => {
+                        const text = cell.textContent;
+                        const highlighted = text.replace(
+                            new RegExp(term, 'gi'),
+                            match => `<span class="bg-warning text-dark">${match}</span>`
+                        );
+                        cell.innerHTML = highlighted;
+                    });
+                });
+            }
+
+            if (globalSearch) {
+                globalSearch.addEventListener('input', function () {
+                    const term = this.value.trim().toLowerCase();
+                    currentPage = 1;
+
+                    // فیلتر کردن ردیف‌ها
+                    filteredRows = allRows.filter(row => {
+                        const cells = row.querySelectorAll('td:not(:last-child)');
+                        return Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(term));
+                    });
+
+                    updateTableDisplay();
+                    highlightSearchTerm();
+                });
+            }
+
+            // مقداردهی اولیه
+            updateTableDisplay();
+        });
+    </script>
+}

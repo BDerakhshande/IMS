@@ -36,7 +36,7 @@
                         <div class="d-flex gap-1">
                             <a asp-controller="Statuses"
                                asp-action="Index"
-                               asp-route-groupId="@ViewBag.GroupId"
+                               asp-route-status="@ViewBag.StatusId"
                                class="btn btn-sm btn-light d-flex align-items-center py-1 px-2"
                                style="height: 28px; font-size: 0.8rem;">
                                 <i class="fas  me-1" style="font-size: 0.8rem;"></i>
@@ -105,13 +105,17 @@
                                         <th class="text-center py-1">طبقه</th>
                                         <th class="text-center py-1">نام محصول</th>
                                         <th class="text-center py-1">توضیحات</th>
+                                        <th class="text-center py-1">کالا یکتا</th>
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.8rem;">
                                     @foreach (var item in Model)
                                     {
-                                        <tr data-url="@Url.Action("Details", "Products", new { id = item.Id })" style="cursor: pointer; height: 32px;">
+                                        <tr data-url="@Url.Action("Details", "Products", new { id = item.Id })"
+                                            data-product-item-url="@Url.Action("Index", "ProductItems", new { productId = item.Id })"
+                                            style="cursor: pointer; height: 32px;">
+
                                             <td class="text-center fw-bold py-1 align-middle">@item.ProductsFullCode</td>
                                             <td class="text-center py-1 align-middle">@item.CategoryName</td>
                                             <td class="text-center py-1 align-middle">@item.GroupName</td>
@@ -120,6 +124,17 @@
                                             <td class="text-truncate text-center py-1 align-middle" style="max-width: 200px;" title="@item.Description">
                                                 @item.Description
                                             </td>
+                                           
+                                            <td class="text-center py-1 align-middle">
+                                                @if (item.IsUnique)
+                                                {
+                                                    <span class="badge bg-success text-white" title="کالا یکتا">
+                                                        <i class="fas fa-check"></i>
+                                                    </span>
+                                                }
+                                            </td>
+
+
                                             <td class="text-center py-1 align-middle">
                                                 <div class="d-flex justify-content-center gap-1">
                                                     <a asp-action="Edit"
@@ -168,110 +183,121 @@
 
 @section Scripts {
     <script src="~/js/MenuJs.js"></script>
- <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // کلیک روی ردیف‌ها برای هدایت به Details
-    document.addEventListener('click', function (e) {
-        const row = e.target.closest('tbody tr[data-url]');
-        if (row && !e.target.closest('a, button, input, .btn, form')) {
-            const url = row.dataset.url;
-            if (url) window.location.href = url;
-        }
-    });
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rowsPerPage = 10;
+            const table = document.querySelector('table');
+            const tbody = table.querySelector('tbody');
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            let filteredRows = [...allRows];
+            let currentPage = 1;
 
-    // متغیرهای عمومی
-    const rowsPerPage = 10;
-    const table = document.querySelector('table');
-    const tbody = table.querySelector('tbody');
-    const allRows = Array.from(tbody.querySelectorAll('tr'));
-    let filteredRows = [...allRows];
-    let currentPage = 1;
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.classList.add('no-results');
+            noResultsRow.innerHTML = '<td colspan="8" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
 
-    const noResultsRow = document.createElement('tr');
-    noResultsRow.classList.add('no-results');
-    noResultsRow.innerHTML = '<td colspan="7" class="text-center py-2 text-muted" style="font-size: 0.8rem;">نتیجه‌ای یافت نشد</td>';
+            const globalSearch = document.getElementById('globalSearch');
 
-    const globalSearch = document.getElementById('globalSearch');
+            // ذخیره متن اصلی سلول‌ها (به جز ستون 7 و 8)
+            allRows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if (index === 6 || index === 7) return; // ستون کالا یکتا و عملیات را ذخیره نکن
+                    cell.dataset.originalText = cell.textContent;
+                });
+            });
 
-    function updateTableDisplay() {
-        const start = (currentPage - 1) * rowsPerPage;
-        const end = start + rowsPerPage;
+            function updateTableDisplay() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
 
-        allRows.forEach(row => row.style.display = 'none');
-        filteredRows.slice(start, end).forEach(row => row.style.display = '');
+                allRows.forEach(row => row.style.display = 'none');
+                filteredRows.slice(start, end).forEach(row => row.style.display = '');
 
-        // نمایش پیام اگر نتیجه‌ای نیست
-        if (filteredRows.length === 0) {
-            if (!tbody.contains(noResultsRow)) tbody.appendChild(noResultsRow);
-        } else if (tbody.contains(noResultsRow)) {
-            noResultsRow.remove();
-        }
+                if (filteredRows.length === 0) {
+                    if (!tbody.contains(noResultsRow)) tbody.appendChild(noResultsRow);
+                } else if (tbody.contains(noResultsRow)) {
+                    noResultsRow.remove();
+                }
 
-        updatePaginationControls();
-    }
-
-    function updatePaginationControls() {
-        const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
-        const paginationContainer = document.getElementById('paginationContainer');
-        paginationContainer.innerHTML = '';
-
-        for (let i = 1; i <= pageCount; i++) {
-            const li = document.createElement('li');
-            li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-            li.addEventListener('click', e => {
-                e.preventDefault();
-                currentPage = i;
-                updateTableDisplay();
+                updatePaginationControls();
                 highlightSearchTerm();
+            }
+
+            function updatePaginationControls() {
+                const pageCount = Math.ceil(filteredRows.length / rowsPerPage);
+                const paginationContainer = document.getElementById('paginationContainer');
+                paginationContainer.innerHTML = '';
+
+                for (let i = 1; i <= pageCount; i++) {
+                    const li = document.createElement('li');
+                    li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+                    li.addEventListener('click', e => {
+                        e.preventDefault();
+                        currentPage = i;
+                        updateTableDisplay();
+                    });
+                    paginationContainer.appendChild(li);
+                }
+            }
+
+            function highlightSearchTerm() {
+                if (!globalSearch) return;
+                const term = globalSearch.value.trim().toLowerCase();
+
+                filteredRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach((cell, index) => {
+                        if (index === 6 || index === 7) return; // ستون badge و عملیات را تغییر نده
+                        const originalText = cell.dataset.originalText || cell.textContent;
+                        if (term.length === 0) {
+                            cell.innerHTML = originalText;
+                        } else {
+                            const highlighted = originalText.replace(
+                                new RegExp(term, 'gi'),
+                                match => `<span class="bg-warning text-dark">${match}</span>`
+                            );
+                            cell.innerHTML = highlighted;
+                        }
+                    });
+                });
+            }
+
+            if (globalSearch) {
+                globalSearch.addEventListener('input', function () {
+                    const term = this.value.trim().toLowerCase();
+                    currentPage = 1;
+
+                    filteredRows = allRows.filter(row => {
+                        const cells = row.querySelectorAll('td');
+                        return Array.from(cells).some((cell, index) => {
+                            if (index === 6 || index === 7) return false; // badge و عملیات را چک نکن
+                            return cell.dataset.originalText.toLowerCase().includes(term);
+                        });
+                    });
+
+                    updateTableDisplay();
+                });
+            }
+
+            // کلیک روی ردیف
+            document.addEventListener('click', function (e) {
+                const row = e.target.closest('tbody tr[data-url]');
+                if (!row || e.target.closest('a, button, input, .btn, form')) return;
+
+                const isUnique = row.querySelector('td:nth-child(7) .fa-check');
+                if (isUnique) {
+                    const productItemUrl = row.dataset.productItemUrl;
+                    if (productItemUrl) window.location.href = productItemUrl;
+                } else {
+                    const url = row.dataset.url;
+                    if (url) window.location.href = url;
+                }
             });
-            paginationContainer.appendChild(li);
-        }
-    }
 
-    function highlightSearchTerm() {
-        if (!globalSearch) return;
-        const term = globalSearch.value.trim().toLowerCase();
-
-        // پاک‌کردن هایلایت قبلی
-        allRows.forEach(row => {
-            const cells = row.querySelectorAll('td:not(:last-child)');
-            cells.forEach(cell => cell.innerHTML = cell.textContent);
-        });
-
-        if (term.length === 0) return;
-
-        filteredRows.forEach(row => {
-            const cells = row.querySelectorAll('td:not(:last-child)');
-            cells.forEach(cell => {
-                const text = cell.textContent;
-                const highlighted = text.replace(
-                    new RegExp(term, 'gi'),
-                    match => `<span class="bg-warning text-dark">${match}</span>`
-                );
-                cell.innerHTML = highlighted;
-            });
-        });
-    }
-
-    if (globalSearch) {
-        globalSearch.addEventListener('input', function () {
-            const term = this.value.trim().toLowerCase();
-            currentPage = 1;
-
-            // فیلتر کردن ردیف‌ها
-            filteredRows = allRows.filter(row => {
-                const cells = row.querySelectorAll('td:not(:last-child)');
-                return Array.from(cells).some(cell => cell.textContent.toLowerCase().includes(term));
-            });
-
+            // مقداردهی اولیه
             updateTableDisplay();
-            highlightSearchTerm();
         });
-    }
-
-    // مقداردهی اولیه
-    updateTableDisplay();
-});
-</script>
+    </script>
 }

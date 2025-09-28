@@ -13,7 +13,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         [Required(ErrorMessage ="نام طیقه را وارد کنید")]
         public string Name { get; set; } = null!;
 
-        public string Code { get; set; } = null!;  // کد وضعیت (مثلاً شماره یا رشته)
+        public string Code { get; set; } = null!;  
 
         public int GroupId { get; set; }
         public string GroupName { get; set; } = null!;

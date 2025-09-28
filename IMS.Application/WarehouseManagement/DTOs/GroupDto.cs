@@ -20,7 +20,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         public string CategoryName { get; set; } = "";
         [Required(ErrorMessage = "کد گروه را وارد کنید")]
-        public string Code { get; set; } = null!; // ← از Entity خوانده شود
+        public string Code { get; set; } = null!; 
 
         public List<StatusDto>? Statuses { get; set; }
 

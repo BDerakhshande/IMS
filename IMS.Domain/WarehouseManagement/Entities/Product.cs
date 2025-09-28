@@ -15,11 +15,12 @@ namespace IMS.Domain.WarehouseManagement.Entities
 
         public int StatusId { get; set; }
         public Status Status { get; set; } = null!;
-
+        public bool IsUnique { get; set; }
         public decimal Price { get; set; }
         public int UnitId { get; set; }
         public Unit Unit { get; set; } = null!;
         public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
+        public ICollection<ProductItem> ProductItems { get; set; } = new List<ProductItem>();   
 
 
     }

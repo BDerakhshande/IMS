@@ -20,7 +20,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<StorageZone> StorageZones { get; set; } = null!;
         public DbSet<StorageSection> StorageSections { get; set; } = null!;
-
+        public DbSet<ProductItem> ProductItems { get; set; } = null!;
         public DbSet<Inventory> Inventories { get; set; } = null!;
 
         public DbSet<Category> Categories { get; set; } = null!;

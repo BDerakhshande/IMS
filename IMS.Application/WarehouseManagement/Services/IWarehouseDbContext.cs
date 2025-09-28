@@ -25,6 +25,7 @@ namespace IMS.Application.WarehouseManagement.Services
         DbSet<Inventory> Inventories { get; set; }
         public DbSet<StorageZone> StorageZones { get; }
         public DbSet<StorageSection> StorageSections { get;  } 
+        public DbSet<ProductItem> ProductItems { get;  } 
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

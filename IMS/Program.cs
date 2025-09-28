@@ -63,7 +63,7 @@ builder.Services.AddScoped<IProcurementManagementDbContext, ProcurementManagemen
 builder.Services.AddScoped<IInventoryTurnoverService, InventoryTurnoverService>();
 builder.Services.AddScoped<IWarehouseTransactionDetailService, WarehouseTransactionDetailService>();
 builder.Services.AddScoped<IPurchaseRequestFlatItemService, PurchaseRequestFlatItemService>();
-
+builder.Services.AddScoped<IProductItemService, ProductItemService>();
 builder.Services.AddAutoMapper(typeof(WarehouseMappingProfile));
 
 
