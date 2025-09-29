@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    partial class WarehouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250929062125_InventoryItemsAddMig")]
+    partial class InventoryItemsAddMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -589,28 +592,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.ToTable("ReceiptOrIssueItems");
                 });
 
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItemUniqueCode", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ReceiptOrIssueItemId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UniqueCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReceiptOrIssueItemId");
-
-                    b.ToTable("ReceiptOrIssueItemUniqueCode");
-                });
-
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.Status", b =>
                 {
                     b.Property<int>("Id")
@@ -1118,17 +1099,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItemUniqueCode", b =>
-                {
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItem", "ReceiptOrIssueItem")
-                        .WithMany("UniqueCodes")
-                        .HasForeignKey("ReceiptOrIssueItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ReceiptOrIssueItem");
-                });
-
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.Status", b =>
                 {
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.Group", "Group")
@@ -1199,11 +1169,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssue", b =>
                 {
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItem", b =>
-                {
-                    b.Navigation("UniqueCodes");
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.Status", b =>

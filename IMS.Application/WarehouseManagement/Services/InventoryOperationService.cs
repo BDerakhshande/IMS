@@ -20,7 +20,9 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<bool> AddAsync(InventoryCreateDto dto)
         {
+            // پیدا کردن موجودی موجود
             var existingInventory = await _context.Inventories
+                .Include(i => i.InventoryItems) // بارگذاری آیتم‌های یکتا
                 .FirstOrDefaultAsync(i =>
                     i.ProductId == dto.ProductId &&
                     i.WarehouseId == dto.WarehouseId &&
@@ -29,16 +31,56 @@ namespace IMS.Application.WarehouseManagement.Services
 
             if (existingInventory == null)
             {
-                // رکورد وجود نداره → چیزی اضافه نشه
-                return false;
+                // اگر موجودی هنوز وجود ندارد، یک رکورد جدید بسازیم
+                existingInventory = new Inventory
+                {
+                    ProductId = dto.ProductId,
+                    WarehouseId = dto.WarehouseId,
+                    ZoneId = dto.ZoneId,
+                    SectionId = dto.SectionId,
+                    Quantity = 0
+                };
+                _context.Inventories.Add(existingInventory);
             }
 
-            // فقط موجودی رو افزایش بده
-            existingInventory.Quantity += dto.Quantity;
+            if (dto.UniqueCodes != null && dto.UniqueCodes.Any())
+            {
+                // ===== حالت کالاهای یکتا =====
+                int addedCount = 0;
+                foreach (var code in dto.UniqueCodes)
+                {
+                    // بررسی اینکه کد یکتا تکراری نباشد
+                    if (!existingInventory.InventoryItems.Any(x => x.UniqueCode == code))
+                    {
+                        var item = new InventoryItem
+                        {
+                            UniqueCode = code,
+                            Inventory = existingInventory
+                        };
+                        existingInventory.InventoryItems.Add(item);
+                        addedCount++;
+                    }
+                }
+
+                if (addedCount == 0)
+                    throw new InvalidOperationException("هیچ کد یکتای جدیدی برای اضافه کردن وجود ندارد.");
+
+                // موجودی دقیقاً برابر تعداد آیتم‌های یکتا
+                existingInventory.Quantity = existingInventory.InventoryItems.Count;
+            }
+            else
+            {
+                // ===== حالت کالاهای عادی =====
+                if (dto.Quantity <= 0)
+                    throw new InvalidOperationException("برای کالاهای عادی باید مقدار افزایشی معتبر وارد شود.");
+
+                existingInventory.Quantity += dto.Quantity;
+            }
 
             await _context.SaveChangesAsync(CancellationToken.None);
             return true;
         }
+
 
 
         public async Task<decimal> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId)

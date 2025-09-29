@@ -50,29 +50,16 @@ namespace IMS.Application.WarehouseManagement.Services
                     .ThenInclude(i => i.Product)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (entity == null)
-                return null;
+            if (entity == null) return null;
 
-            // استخراج تمام ProjectId‌های آیتم‌ها
-            var projectIds = entity.Items
-                .Where(i => i.ProjectId.HasValue)
-                .Select(i => i.ProjectId!.Value)
-                .Distinct()
-                .ToList();
-
+            // استخراج Map پروژه‌ها
             var projectMap = await _projectContext.Projects
-                .Where(p => projectIds.Contains(p.Id))
+                .Where(p => entity.Items.Any(i => i.ProjectId == p.Id))
                 .ToDictionaryAsync(p => p.Id, p => p.ProjectName);
 
-            // استخراج تمام PurchaseRequestId‌های آیتم‌ها
-            var purchaseRequestIds = entity.Items
-                .Where(i => i.PurchaseRequestId.HasValue)
-                .Select(i => i.PurchaseRequestId!.Value)
-                .Distinct()
-                .ToList();
-
+            // استخراج Map درخواست‌های خرید
             var purchaseRequestMap = await _procurementContext.PurchaseRequests
-                .Where(pr => purchaseRequestIds.Contains(pr.Id))
+                .Where(pr => entity.Items.Any(i => i.PurchaseRequestId == pr.Id))
                 .ToDictionaryAsync(pr => pr.Id, pr => pr.Title);
 
             var dto = new ReceiptOrIssueDto
@@ -82,49 +69,50 @@ namespace IMS.Application.WarehouseManagement.Services
                 Date = entity.Date,
                 DocumentNumber = entity.DocumentNumber,
                 Description = entity.Description,
+                Items = entity.Items.Select(i => new ReceiptOrIssueItemDto
+                {
+                    Id = i.Id,
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
 
-                Items = (entity.Items ?? new List<ReceiptOrIssueItem>())
-                    .Select(i => new ReceiptOrIssueItemDto
-                    {
-                        Id = i.Id,
-                        ProductId = i.ProductId,
-                        Quantity = i.Quantity,
+                    SourceWarehouseId = i.SourceWarehouseId,
+                    SourceZoneId = i.SourceZoneId,
+                    SourceSectionId = i.SourceSectionId,
+                    SourceSectionName = i.SourceSection?.Name,
+                    SourceZoneName = i.SourceSection?.Zone?.Name,
+                    SourceWarehouseName = i.SourceSection?.Zone?.Warehouse?.Name ?? i.SourceWarehouse?.Name,
 
-                        SourceSectionId = i.SourceSectionId,
-                        SourceSectionName = i.SourceSection?.Name,
-                        SourceZoneName = i.SourceSection?.Zone?.Name,
-                        SourceWarehouseName = i.SourceSection?.Zone?.Warehouse?.Name,
+                    DestinationWarehouseId = i.DestinationWarehouseId,
+                    DestinationZoneId = i.DestinationZoneId,
+                    DestinationSectionId = i.DestinationSectionId,
+                    DestinationSectionName = i.DestinationSection?.Name,
+                    DestinationZoneName = i.DestinationSection?.Zone?.Name,
+                    DestinationWarehouseName = i.DestinationSection?.Zone?.Warehouse?.Name ?? i.DestinationWarehouse?.Name,
 
-                        DestinationSectionId = i.DestinationSectionId,
-                        DestinationSectionName = i.DestinationSection?.Name,
-                        DestinationZoneName = i.DestinationSection?.Zone?.Name,
-                        DestinationWarehouseName = i.DestinationSection?.Zone?.Warehouse?.Name,
+                    CategoryId = i.CategoryId,
+                    CategoryName = i.Category?.Name,
 
-                        CategoryId = i.CategoryId,
-                        CategoryName = i.Category?.Name,
+                    GroupId = i.GroupId,
+                    GroupName = i.Group?.Name,
 
-                        GroupId = i.GroupId,
-                        GroupName = i.Group?.Name,
+                    StatusId = i.StatusId,
+                    StatusName = i.Status?.Name,
 
-                        StatusId = i.StatusId,
-                        StatusName = i.Status?.Name,
+                    ProductName = i.Product?.Name,
 
-                        ProductName = i.Product?.Name,
+                    ProjectId = i.ProjectId,
+                    ProjectTitle = i.ProjectId.HasValue ? projectMap.GetValueOrDefault(i.ProjectId.Value) : null,
 
-                        ProjectId = i.ProjectId,
-                        ProjectTitle = i.ProjectId.HasValue && projectMap.ContainsKey(i.ProjectId.Value)
-                            ? projectMap[i.ProjectId.Value]
-                            : null,
+                    PurchaseRequestId = i.PurchaseRequestId,
+                    PurchaseRequestTitle = i.PurchaseRequestId.HasValue ? purchaseRequestMap.GetValueOrDefault(i.PurchaseRequestId.Value) : null,
 
-                        PurchaseRequestId = i.PurchaseRequestId,
-                        PurchaseRequestTitle = i.PurchaseRequestId.HasValue && purchaseRequestMap.ContainsKey(i.PurchaseRequestId.Value)
-                            ? purchaseRequestMap[i.PurchaseRequestId.Value]
-                            : null
-                    }).ToList()
+                    UniqueCodes = i.UniqueCodes.Select(uc => uc.UniqueCode).ToList()
+                }).ToList()
             };
 
             return dto;
         }
+
 
 
         public async Task<List<ReceiptOrIssueDto>> GetAllAsync(int? warehouseId = null)
@@ -214,16 +202,16 @@ namespace IMS.Application.WarehouseManagement.Services
                     PurchaseRequestId = i.PurchaseRequestId,
                     PurchaseRequestTitle = i.PurchaseRequestId.HasValue && purchaseRequests.ContainsKey(i.PurchaseRequestId.Value)
                         ? purchaseRequests[i.PurchaseRequestId.Value]
-                        : null
+                        : null,
+                    UniqueCodes = i.UniqueCodes.Select(uc => uc.UniqueCode).ToList()
                 }).ToList()
             }).ToList();
 
             return result;
         }
 
-
         public async Task<(ReceiptOrIssueDto? Result, List<string> Errors)> CreateAsync(
-        ReceiptOrIssueDto dto, CancellationToken cancellationToken = default)
+            ReceiptOrIssueDto dto, CancellationToken cancellationToken = default)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
@@ -258,35 +246,23 @@ namespace IMS.Application.WarehouseManagement.Services
                 .ToListAsync(cancellationToken);
 
             // جمع‌آوری خطاها
-            // جمع‌آوری خطاها
             var errors = new List<string>();
 
             // پردازش آیتم‌ها و جمع‌آوری خطاها
+            var stoppedProducts = new HashSet<int>();
             foreach (var item in dto.Items)
             {
-                // گرفتن نام محصول از دیکشنری
                 var productName = productNames.GetValueOrDefault(item.ProductId, "نامشخص");
 
-                // اعتبارسنجی اولیه
                 if (item.ProductId <= 0)
                     errors.Add($"شناسه کالا معتبر نیست.");
                 if (item.Quantity <= 0)
                     errors.Add($"تعداد برای کالا {productName} باید بیشتر از صفر باشد.");
 
-                // یافتن آیتم PurchaseRequestItem
                 var purchaseRequestItem = purchaseRequestItems
                     .FirstOrDefault(pri => pri.ProductId == item.ProductId && pri.PurchaseRequestId == item.PurchaseRequestId);
 
-
-
-
-
-                string? requestNumber = null;
-                if (purchaseRequestItem != null)
-                {
-                    requestNumber = purchaseRequestItem.PurchaseRequest?.RequestNumber;
-                }
-                var stoppedProducts = new HashSet<int>();
+                string? requestNumber = purchaseRequestItem?.PurchaseRequest?.RequestNumber;
 
                 if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped && dto.Type == ReceiptOrIssueType.Receipt)
                 {
@@ -303,15 +279,10 @@ namespace IMS.Application.WarehouseManagement.Services
                     if (!isInFlatItems)
                         errors.Add($"برای {productName} کالا هیچ درخواست خریدی ثبت نشده است.");
                 }
-
-
             }
 
-            // اگر خطایی بود، فقط خطاها را برگردان
             if (errors.Any())
                 return (null, errors);
-
-
 
             // بارگذاری بخش‌ها و زون‌ها
             var sourceSectionIds = dto.Items.Where(i => i.SourceSectionId.HasValue).Select(i => i.SourceSectionId!.Value).Distinct().ToList();
@@ -380,12 +351,64 @@ namespace IMS.Application.WarehouseManagement.Services
                               && (inv.SectionId == null || allSectionIds.Contains(inv.SectionId.Value)))
                 .ToListAsync(cancellationToken);
 
+            // بارگذاری InventoryItems مرتبط و نگاشت بر اساس Warehouse, Zone, Section و Product
+            var inventoryItems = await _dbContext.InventoryItems
+                .Include(ii => ii.Inventory)
+                .Where(ii => allWarehouseIds.Contains(ii.Inventory.WarehouseId)
+                             && allProductIds.Contains(ii.Inventory.ProductId)
+                             && (ii.Inventory.ZoneId == null || allZoneIds.Contains(ii.Inventory.ZoneId.Value))
+                             && (ii.Inventory.SectionId == null || allSectionIds.Contains(ii.Inventory.SectionId.Value)))
+                .ToListAsync(cancellationToken);
+
+            var inventoryItemsMap = inventoryItems
+                .GroupBy(ii => new
+                {
+                    ii.Inventory.WarehouseId,
+                    ii.Inventory.ZoneId,
+                    ii.Inventory.SectionId,
+                    ii.Inventory.ProductId
+                })
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // افزودن UniqueCodes به آیتم‌ها قبل از منطق موجودی
+            foreach (var item in entity.Items)
+            {
+                if (!item.SourceWarehouseId.HasValue)
+                    continue; // اگر انبار مبدأ ندارد، رد شود
+
+                var key = new
+                {
+                    WarehouseId = item.SourceWarehouseId.Value, // تبدیل به int
+                    ZoneId = item.SourceZoneId, // nullable می‌ماند
+                    SectionId = item.SourceSectionId, // nullable می‌ماند
+                    ProductId = item.ProductId
+                };
+
+                if (inventoryItemsMap.ContainsKey(key))
+                {
+                    var availableUniqueItems = inventoryItemsMap[key].Take((int)item.Quantity).ToList();
+
+                    foreach (var invItem in availableUniqueItems)
+                    {
+                        item.UniqueCodes.Add(new ReceiptOrIssueItemUniqueCode
+                        {
+                            UniqueCode = invItem.UniqueCode
+                        });
+                        _dbContext.InventoryItems.Remove(invItem);
+                    }
+
+                    item.Quantity = availableUniqueItems.Count;
+                }
+            }
+
+
+            // همان منطق اصلی موجودی‌ها بدون تغییر
             foreach (var item in entity.Items)
             {
                 var sourceInventory = inventories.FirstOrDefault(i => i.WarehouseId == item.SourceWarehouseId && i.ZoneId == item.SourceZoneId && i.SectionId == item.SourceSectionId && i.ProductId == item.ProductId);
                 var destinationInventory = inventories.FirstOrDefault(i => i.WarehouseId == item.DestinationWarehouseId && i.ZoneId == item.DestinationZoneId && i.SectionId == item.DestinationSectionId && i.ProductId == item.ProductId);
                 var productName = productNames.ContainsKey(item.ProductId) ? productNames[item.ProductId] : "نامشخص";
-                
+
                 if (destinationInventory == null)
                 {
                     destinationInventory = new Inventory
@@ -401,7 +424,6 @@ namespace IMS.Application.WarehouseManagement.Services
                     _dbContext.Inventories.Add(destinationInventory);
                 }
 
-                // حفظ منطق موجودی بدون تغییر
                 switch (dto.Type)
                 {
                     case ReceiptOrIssueType.Receipt:
@@ -419,15 +441,14 @@ namespace IMS.Application.WarehouseManagement.Services
                 }
             }
 
-   
             _dbContext.ReceiptOrIssues.Add(entity);
 
+            // به‌روزرسانی Pending Items در PurchaseRequest
             var pendingItemsToUpdate = dto.Items
                 .Where(i => i.PurchaseRequestId.HasValue)
                 .Select(i => new { i.PurchaseRequestId, i.ProductId, i.Quantity })
                 .ToList();
 
-            // فقط اگر سند حواله باشد
             if (pendingItemsToUpdate.Any() && (dto.Type == ReceiptOrIssueType.Issue || dto.Type == ReceiptOrIssueType.Transfer))
             {
                 var pendingRequestIds = pendingItemsToUpdate.Select(p => p.PurchaseRequestId!.Value).Distinct().ToList();
@@ -440,29 +461,24 @@ namespace IMS.Application.WarehouseManagement.Services
 
                 foreach (var item in pendingItemsToUpdate)
                 {
-                    var pendingItem = pendingItems
-                        .FirstOrDefault(p => p.PurchaseRequestId == item.PurchaseRequestId && p.ProductId == item.ProductId);
-                    if (!pendingItem.IsSupplyStopped && !pendingItem.IsFullyDelivered)
+                    var pendingItem = pendingItems.FirstOrDefault(p => p.PurchaseRequestId == item.PurchaseRequestId && p.ProductId == item.ProductId);
+                    if (pendingItem != null && !pendingItem.IsSupplyStopped && !pendingItem.IsFullyDelivered)
                     {
                         pendingItem.RemainingQuantity -= item.Quantity;
                         if (pendingItem.RemainingQuantity < 0)
                             pendingItem.RemainingQuantity = 0;
                     }
-                    pendingItem.IsFullySupplied = pendingItem.RemainingQuantity <= 0;
-                    
-                    pendingItem.IsFullyDelivered = pendingItem.RemainingQuantity <= 0 && !pendingItem.IsSupplyStopped;
-
+                    if (pendingItem != null)
+                    {
+                        pendingItem.IsFullySupplied = pendingItem.RemainingQuantity <= 0;
+                        pendingItem.IsFullyDelivered = pendingItem.RemainingQuantity <= 0 && !pendingItem.IsSupplyStopped;
+                    }
                 }
-
-
             }
-
-
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             await _procurementContext.SaveChangesAsync(cancellationToken);
 
-            // تبدیل به DTO برای بازگشت
             var resultDto = new ReceiptOrIssueDto
             {
                 Id = entity.Id,
@@ -481,13 +497,13 @@ namespace IMS.Application.WarehouseManagement.Services
                     DestinationSectionName = i.DestinationSection?.Name,
                     DestinationZoneName = i.DestinationSection?.Zone?.Name,
                     DestinationWarehouseName = i.DestinationSection?.Zone?.Warehouse?.Name,
-                    ProductName = productNames.ContainsKey(i.ProductId) ? productNames[i.ProductId] : "نامشخص"
+                    ProductName = productNames.ContainsKey(i.ProductId) ? productNames[i.ProductId] : "نامشخص",
+                    UniqueCodes = i.UniqueCodes.Select(uc => uc.UniqueCode).ToList()
                 }).ToList()
             };
 
             return (resultDto, errors);
         }
-
 
 
         public async Task<(ReceiptOrIssueDto? Result, List<string> Errors)> UpdateAsync(

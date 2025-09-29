@@ -34,6 +34,8 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<ConversionConsumedItem> conversionConsumedItems { get; set; }
         public DbSet<ConversionProducedItem> conversionProducedItems { get; set; }
         public DbSet<ConversionDocument> conversionDocuments { get; set; }
+        public DbSet<InventoryItem> InventoryItems { get; set; }
+        public DbSet<ReceiptOrIssueItemUniqueCode> ReceiptOrIssueItemUniqueCodes { get; set; }
         public DbSet<Unit> Units { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

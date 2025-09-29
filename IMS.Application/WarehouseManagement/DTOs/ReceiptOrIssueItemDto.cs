@@ -47,5 +47,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         public int? PurchaseRequestId { get; set; }      // ارتباط به درخواست خرید
         public string? PurchaseRequestTitle { get; set; } // عنوان درخواست خرید
+
+
+        public List<string> UniqueCodes { get; set; } = new List<string>();
     }
 }

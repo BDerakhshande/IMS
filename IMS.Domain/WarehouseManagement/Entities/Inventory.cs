@@ -23,5 +23,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public Product Product { get; set; }
 
         public decimal Quantity { get; set; }
+        // --- اضافه کردن رابطه با InventoryItem ---
+        public virtual ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
     }
 }

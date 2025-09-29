@@ -215,10 +215,21 @@
                                                             <option value="@product.Value" selected="@(product.Value == Model.Items[i].ProductId.ToString())">@product.Text</option>
                                                         }
                                                     </select>
+                                                    <div class="mb-2">
+                                                        <label class="form-label small text-muted mb-1 text-end w-100">کدهای یکتا</label>
+                                                        <select name="Items[${rowCount}].UniqueCodes"
+                                                                class="form-select form-select-sm select2 unique-codes-select text-end"
+                                                                data-index="${rowCount}">
+                                                            <option value="">انتخاب کد یکتا</option> <!-- فقط یک گزینه پیش‌فرض -->
+                                                        </select>
+                                                        <span class="text-danger small d-block mt-1"></span>
+                                                    </div>
+
+
+
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </td>
                                 <td style="width: 120px;">
                                     <input asp-for="Items[i].Quantity" type="number" min="1" class="form-control form-control-sm text-end" />
@@ -463,6 +474,16 @@
                                                 <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="${rowCount}">
                                                     <option value="">انتخاب کالا</option>
                                                 </select>
+                                                      <div class="mb-2">
+            <label class="form-label small text-muted mb-1 text-end w-100">کدهای یکتا</label>
+            <select name="Items[${rowCount}].UniqueCodes"
+                    class="form-select form-select-sm unique-codes-select text-end"
+                    data-index="${rowCount}">
+                <option value="">انتخاب کد یکتا</option>
+            </select>
+            <span class="text-danger small d-block mt-1"></span>
+        </div>
+
                                             </div>
                                         </div>
                                     </div>
@@ -769,7 +790,59 @@
                 },
                 error: () => alert('خطا در بارگذاری کالاها. لطفاً دوباره تلاش کنید.')
             });
+                });
+
+                  $(document).on("change", ".product-select", function () {
+            const rowIndex = $(this).data("index");
+            const productId = $(this).val();
+            const $uniqueSelect = $(`select[name="Items[${rowIndex}].UniqueCodes"]`);
+
+            // تخریب Select2 قبلی اگر وجود داشت
+            if ($uniqueSelect.hasClass('select2-hidden-accessible')) {
+                $uniqueSelect.select2('destroy');
+            }
+
+            // پاکسازی همه گزینه‌ها به جز گزینه پیش‌فرض
+            $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
+
+            if (productId) {
+                $.get(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes?productId=${productId}`, function (data) {
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            if (typeof item === 'string' || typeof item === 'number') {
+                                $uniqueSelect.append(`<option value="${item}">${item}</option>`);
+                            } else if (item.id !== undefined && item.uniqueCode !== undefined) {
+                                $uniqueSelect.append(`<option value="${item.id}">${item.uniqueCode}</option>`);
+                            }
+                        });
+                    }
+
+                    $uniqueSelect.select2({
+                        theme: 'bootstrap-5',
+                        placeholder: 'کد یکتا را انتخاب کنید',
+                        allowClear: true,
+                        dir: 'rtl',
+                        dropdownParent: $uniqueSelect.closest('.accordion-body').length
+                            ? $uniqueSelect.closest('.accordion-body')
+                            : $(document.body)
+                    });
+                }).fail(() => {
+                    console.error("❌ خطا در دریافت کدهای یکتا");
+                });
+            } else {
+                $uniqueSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'ابتدا کالا را انتخاب کنید',
+                    allowClear: true,
+                    dir: 'rtl',
+                    dropdownParent: $uniqueSelect.closest('.accordion-body').length
+                        ? $uniqueSelect.closest('.accordion-body')
+                        : $(document.body)
+                });
+            }
         });
+
+
 
         $(document).on('click', '.remove-item', function () {
             const $row = $(this).closest('tr.align-middle');
@@ -786,7 +859,7 @@
             $errorRow.remove();
         });
 
-        $(document).on('click', '.save-item', function () {
+                   $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr.align-middle');
             const index = $row.data('index');
             const prefix = 'Items';
@@ -800,6 +873,7 @@
             const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
             const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
             const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
+            const uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val(); // اصلاح‌شده
 
             let errors = [];
             if (!productId) errors.push('کالا انتخاب نشده است.');
@@ -810,6 +884,9 @@
             if (!destWarehouseId) errors.push('انبار مقصد انتخاب نشده است.');
             if (!destZoneId) errors.push('قسمت مقصد انتخاب نشده است.');
             if (!destSectionId) errors.push('بخش مقصد انتخاب نشده است.');
+            if (uniqueCodes && uniqueCodes.some(code => code.trim() === '')) {
+                errors.push('کدهای یکتا نمی‌توانند خالی باشند.');
+            }
 
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
@@ -838,21 +915,23 @@
             }).fail(() => alert('خطا در ارتباط با سرور.'));
         });
 
-        function finalizeRow($row, index, prefix) {
-            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
-            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
-            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
-            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}`;
+                   function finalizeRow($row, index, prefix) {
+            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text() || 'انتخاب نشده';
+            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text() || 'انتخاب نشده';
+            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text() || 'انتخاب نشده';
+            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text() || 'انتخاب نشده';
+            const uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val() || [];
+            const uniqueCodesText = uniqueCodes.length > 0 ? uniqueCodes.join(', ') : 'بدون کد یکتا';
+            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText} (${uniqueCodesText})`;
 
-            const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
-            const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
-            const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
+            const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+            const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text() || 'انتخاب نشده';
+            const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text() || 'انتخاب نشده';
             const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
 
-            const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
-            const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
-            const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
+            const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+            const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text() || 'انتخاب نشده';
+            const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text() || 'انتخاب نشده';
             const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
 
             const $productCollapse = $row.find(`#productCollapse_${index}`);

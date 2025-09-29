@@ -13,8 +13,8 @@ namespace IMS.Models.ProMan
         public ReceiptOrIssueType? Type { get; set; }
 
         public string? Description { get; set; }
-      
-    
+
+ 
         public List<ReceiptOrIssueItemViewModel> Items { get; set; } = new();
     }
 }

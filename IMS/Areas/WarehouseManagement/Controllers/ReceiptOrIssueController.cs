@@ -401,7 +401,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     StatusId = i.StatusId,
                     ProductId = i.ProductId,
                     ProjectId = i.ProjectId,
-                    PurchaseRequestId = i.PurchaseRequestId  // جدید
+                    PurchaseRequestId = i.PurchaseRequestId,
+                    UniqueCodes = i.UniqueCodes// جدید
                 }).ToList()
             };
         }
@@ -805,6 +806,20 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
 
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueCodes(int productId)
+        {
+            var codes = await _context.ProductItems
+                .Where(pi => pi.ProductId == productId)
+                .Select(pi => new
+                {
+                    pi.Id,
+                    pi.UniqueCode
+                })
+                .ToListAsync();
+
+            return Json(codes);
+        }
 
     }
 }

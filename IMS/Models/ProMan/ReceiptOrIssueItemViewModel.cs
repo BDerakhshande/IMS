@@ -34,6 +34,8 @@ namespace IMS.Models.ProMan
         public List<SelectListItem>? AvailableDestinationWarehouses { get; set; }
         public List<SelectListItem>? AvailableDestinationZones { get; set; }
         public List<SelectListItem>? AvailableDestinationSections { get; set; }
+        public List<SelectListItem> AvailableUniqueCodes { get; set; } = new List<SelectListItem>();
+        public List<string> UniqueCodes { get; set; } = new List<string>();
     }
 
 }

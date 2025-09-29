@@ -59,6 +59,6 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int? PurchaseRequestId { get; set; }      // ارتباط به درخواست خرید
         public string? PurchaseRequestTitle { get; set; } // عنوان درخواست خرید
 
-
+        public ICollection<ReceiptOrIssueItemUniqueCode> UniqueCodes { get; set; } = new List<ReceiptOrIssueItemUniqueCode>();
     }
 }
