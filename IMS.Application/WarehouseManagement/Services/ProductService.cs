@@ -39,7 +39,7 @@ namespace IMS.Application.WarehouseManagement.Services
                  Description = p.Description,
                  Price = p.Price,
 
-                 IsUnique = p.IsUnique, // اضافه شد
+                 //IsUnique = p.IsUnique, // اضافه شد
 
                  StatusId = p.StatusId,
                  StatusCode = p.Status.Code,
@@ -96,7 +96,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 Price = dto.Price,
                 StatusId = dto.StatusId,
                 UnitId = dto.Unit?.Id ?? 1,
-                IsUnique = dto.IsUnique
+                //IsUnique = dto.IsUnique
             };
 
             _context.Products.Add(product);
@@ -144,8 +144,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 Code = product.Code,
                 Description = product.Description,
                 Price = product.Price,
-                IsUnique = product.IsUnique,
-                Quantity = 0, // هنوز هیچ ProductItem ساخته نشده
 
                 StatusId = status.Id,
                 StatusCode = status.Code,
@@ -164,10 +162,13 @@ namespace IMS.Application.WarehouseManagement.Services
                     Id = unit?.Id ?? 1,
                     Name = unit?.Name ?? "عدد",
                     Symbol = unit?.Symbol ?? "pcs"
-                }
-            };
-        }
+                },
 
+                // اینجا ProductItems را مقداردهی می‌کنیم به یک لیست خالی
+                ProductItems = new List<ProductItemDto>()
+            };
+
+        }
 
 
 
@@ -179,10 +180,12 @@ namespace IMS.Application.WarehouseManagement.Services
                     .ThenInclude(s => s.Group)
                         .ThenInclude(g => g.Category)
                 .Include(p => p.Unit)
+                .Include(p => p.ProductItems) 
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
                 return null;
+
             return new ProductDto
             {
                 Id = product.Id,
@@ -210,17 +213,43 @@ namespace IMS.Application.WarehouseManagement.Services
                     Symbol = product.Unit?.Symbol ?? "pcs"
                 },
 
-                // اضافه کردن IsUnique
-                IsUnique = product.IsUnique
+          
+                // تبدیل ProductItem‌ها به DTO
+                ProductItems = product.ProductItems
+                    .Select(pi => new ProductItemDto
+                    {
+                        Id = pi.Id,
+                        ProductId = pi.ProductId,
+                        Sequence = pi.Sequence,
+                        UniqueCode = pi.UniqueCode,
+                        ItemStatus = pi.ProductItemStatus,
+                        // اگر پروژه یا کدهای سلسله‌مراتبی داری، اضافه کن
+                        ProjectId = pi.ProjectId,
+                        ProductCode = product.Code,
+                     
+                        StatusCode = product.Status?.Code,
+                        StatusName = product.Status?.Name,
+                  
+                        GroupCode = product.Status?.Group?.Code,
+                        GroupName = product.Status?.Group?.Name,
+                  
+                        CategoryCode = product.Status?.Group?.Category?.Code,
+                        CategoryName = product.Status?.Group?.Category?.Name
+                    })
+                    .ToList()
             };
-
         }
+
+
+
+
         public async Task UpdateAsync(ProductDto dto)
         {
             var product = await _context.Products
                 .Include(p => p.Status)
                     .ThenInclude(s => s.Group)
                         .ThenInclude(g => g.Category)
+                .Include(p => p.ProductItems) // اگر خواستیم ویرایش ProductItem‌ها
                 .FirstOrDefaultAsync(p => p.Id == dto.Id);
 
             if (product == null)
@@ -233,51 +262,30 @@ namespace IMS.Application.WarehouseManagement.Services
             if (duplicateProduct != null)
                 throw new Exception("کدی که وارد کرده‌اید در این وضعیت قبلاً ثبت شده است.");
 
+            // بروزرسانی اطلاعات اصلی محصول
             product.Name = dto.Name;
             product.Code = dto.Code;
             product.Description = dto.Description;
             product.StatusId = dto.StatusId;
             product.Price = dto.Price;
             product.UnitId = dto.Unit?.Id ?? product.UnitId;
-            product.IsUnique = dto.IsUnique;
+            //product.IsUnique = dto.IsUnique;
 
             await _context.SaveChangesAsync(CancellationToken.None);
 
-            // مدیریت ProductItemها برای محصولات یکتا
-            if (product.IsUnique)
+            // اگر میخوای امکان ویرایش پروژه یا وضعیت ProductItem‌ها رو اضافه کنید
+            if (dto.ProductItems != null && dto.ProductItems.Any())
             {
-                var existingItems = await _context.ProductItems
-                    .Where(pi => pi.ProductId == product.Id)
-                    .OrderBy(pi => pi.Id)
-                    .ToListAsync();
-
-                int existingCount = existingItems.Count;
-
-                if (dto.Quantity > existingCount)
+                foreach (var itemDto in dto.ProductItems)
                 {
-                    // اضافه کردن ProductItem جدید
-                    var additionalItems = new List<ProductItem>();
-                    for (int i = existingCount + 1; i <= dto.Quantity; i++)
+                    var item = product.ProductItems.FirstOrDefault(pi => pi.Id == itemDto.Id);
+                    if (item != null)
                     {
-                        additionalItems.Add(new ProductItem
-                        {
-                            ProductId = product.Id,
-                            UniqueCode = $"C{product.Status.Group.Category.Code}G{product.Status.Group.Code}S{product.Status.Code}P{product.Code}-{i}",
-                            ProductItemStatus = ProductItemStatus.Ready
-                        });
+                        item.ProjectId = itemDto.ProjectId;
+                        item.ProductItemStatus = itemDto.ItemStatus;
+                        // اگر میخوای UniqueCode رو هم تغییر بدی، اینجا میشه اضافه کرد
+                        // item.UniqueCode = itemDto.UniqueCode;
                     }
-                    _context.ProductItems.AddRange(additionalItems);
-                }
-                else if (dto.Quantity < existingCount)
-                {
-                    // حذف ProductItemهای اضافی (تنها آماده‌ها)
-                    var itemsToRemove = existingItems
-                        .Where(pi => pi.ProductItemStatus == ProductItemStatus.Ready)
-                        .Take(existingCount - dto.Quantity)
-                        .ToList();
-
-                    if (itemsToRemove.Any())
-                        _context.ProductItems.RemoveRange(itemsToRemove);
                 }
 
                 await _context.SaveChangesAsync(CancellationToken.None);
@@ -295,6 +303,7 @@ namespace IMS.Application.WarehouseManagement.Services
             if (product == null)
                 throw new Exception("محصول مورد نظر یافت نشد.");
 
+            // بررسی عملیات انجام شده
             bool hasOperations = await _context.conversionConsumedItems.AnyAsync(c => c.ProductId == id)
                 || await _context.conversionProducedItems.AnyAsync(c => c.ProductId == id)
                 || await _context.ReceiptOrIssueItems.AnyAsync(r => r.ProductId == id);
@@ -302,24 +311,18 @@ namespace IMS.Application.WarehouseManagement.Services
             if (hasOperations)
                 throw new Exception("امکان حذف این کالا وجود ندارد زیرا با این کالا عملیات انجام شده است.");
 
-            // حذف ProductItemها برای محصولات یکتا
-            if (product.IsUnique)
-            {
-                var productItems = await _context.ProductItems
-                    .Where(pi => pi.ProductId == id)
-                    .ToListAsync();
+          
 
-                if (productItems.Any())
-                    _context.ProductItems.RemoveRange(productItems);
-            }
-
-            if (product.Inventories != null && product.Inventories.Any())
+            // حذف Inventories
+            if (product.Inventories?.Any() == true)
                 _context.Inventories.RemoveRange(product.Inventories);
 
+            // حذف خود محصول
             _context.Products.Remove(product);
 
             await _context.SaveChangesAsync(CancellationToken.None);
         }
+
 
 
         public async Task<List<ProductDto>> GetByStatusIdAsync(int statusId)

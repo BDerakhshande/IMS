@@ -1,6 +1,7 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
 using IMS.Domain.WarehouseManagement.Entities;
+using IMS.Domain.WarehouseManagement.Enums;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -75,81 +76,60 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (!ModelState.IsValid)
                 return Json(new { success = false, message = "اطلاعات معتبر نیست." });
 
-            // پیدا کردن موجودی
+            try
+            {
+                var result = await _inventoryOperationService.AddAsync(dto);
+
+                if (result.success)
+                {
+                    // گرفتن مقدار جدید موجودی
+                    var newQuantity = await GetCurrentQuantity(dto);
+
+                    // اگر کد یکتا ایجاد شده، آن را به پاسخ اضافه کن
+                    if (dto.IsUnique && !string.IsNullOrEmpty(result.uniqueCode))
+                    {
+                        return Json(new
+                        {
+                            success = true,
+                            newQuantity = newQuantity,
+                            uniqueCode = result.uniqueCode,
+                            message = "کالای یکتا با موفقیت ایجاد شد"
+                        });
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        newQuantity = newQuantity,
+                        message = "موجودی با موفقیت افزایش یافت"
+                    });
+                }
+
+                return Json(new { success = false, message = "خطا در افزایش موجودی" });
+            }
+            catch (Exception ex)
+            {
+                // لاگ کردن خطا برای دیباگ
+                Console.WriteLine($"Error in Add action: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        private async Task<decimal> GetCurrentQuantity(InventoryCreateDto dto)
+        {
             var inventory = await _context.Inventories
-                .Include(i => i.InventoryItems)
                 .FirstOrDefaultAsync(i =>
                     i.ProductId == dto.ProductId &&
                     i.WarehouseId == dto.WarehouseId &&
                     i.ZoneId == dto.ZoneId &&
                     i.SectionId == dto.SectionId);
 
-            if (inventory == null)
-            {
-                inventory = new Inventory
-                {
-                    ProductId = dto.ProductId,
-                    WarehouseId = dto.WarehouseId,
-                    ZoneId = dto.ZoneId,
-                    SectionId = dto.SectionId,
-                    Quantity = 0
-                };
-                _context.Inventories.Add(inventory);
-            }
-
-            if (dto.UniqueCodes != null && dto.UniqueCodes.Any())
-            {
-                // ===== کالاهای یکتا =====
-                int addedCount = 0;
-                foreach (var code in dto.UniqueCodes.Distinct())
-                {
-                    if (!inventory.InventoryItems.Any(i => i.UniqueCode == code))
-                    {
-                        inventory.InventoryItems.Add(new InventoryItem
-                        {
-                            UniqueCode = code,
-                            Inventory = inventory
-                        });
-                        addedCount++;
-                    }
-                }
-
-                if (addedCount == 0)
-                    return Json(new { success = false, message = "هیچ کد یکتای جدیدی برای اضافه کردن وجود ندارد." });
-
-                inventory.Quantity = inventory.InventoryItems.Count;
-            }
-            else
-            {
-                // ===== کالاهای عادی =====
-                if (dto.Quantity <= 0)
-                    return Json(new { success = false, message = "برای کالاهای غیر یکتا باید مقدار معتبر وارد شود." });
-
-                inventory.Quantity += dto.Quantity;
-            }
-
-            await _context.SaveChangesAsync(CancellationToken.None);
-
-            return Json(new { success = true, newQuantity = inventory.Quantity });
+            return inventory?.Quantity ?? 0;
         }
 
-
-        [HttpGet]
-        public async Task<IActionResult> GetQuantity(int productId, int warehouseId, int? zoneId, int? sectionId)
-        {
-            var inventory = await _context.Inventories
-                .Include(i => i.InventoryItems)
-                .FirstOrDefaultAsync(i =>
-                    i.ProductId == productId &&
-                    i.WarehouseId == warehouseId &&
-                    ((zoneId == null && i.ZoneId == null) || (zoneId != null && i.ZoneId == zoneId)) &&
-                    ((sectionId == null && i.SectionId == null) || (sectionId != null && i.SectionId == sectionId))
-                );
-
-            var quantity = inventory?.Quantity ?? 0;
-
-            return Json(new { success = true, quantity });
-        }
+    
 
         // --- Ajax Methods ---
         [HttpGet]

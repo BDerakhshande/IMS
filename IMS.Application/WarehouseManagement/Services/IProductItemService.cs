@@ -13,7 +13,6 @@ namespace IMS.Application.WarehouseManagement.Services
     {
         Task<ProductItemDto?> GetByIdAsync(int id);
         Task<List<ProductItemDto>> GetByProductIdAsync(int productId);
-        Task<ProductItemDto> CreateAsync(ProductItemDto dto);
         Task<ProductItemDto?> UpdateAsync(ProductItemDto dto);
         Task<bool> DeleteAsync(int id);
         Task<List<SelectListItem>> GetProjectsAsync();

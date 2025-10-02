@@ -17,33 +17,36 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public int CategoryId { get; set; }
         public int GroupId { get; set; }
         public int StatusId { get; set; }
-       
 
         // پروژه اختیاری
         public int? ProjectId { get; set; }
-        // وضعیت محصول (اجباری)
-        [Required(ErrorMessage = "وضعیت محصول الزامی است.")]
-        public ProductItemStatus Status { get; set; } = ProductItemStatus.Ready;
 
-        // نام‌ها (برای نمایش در UI)
+        // وضعیت آیتم (اجباری)
+        [Required(ErrorMessage = "وضعیت آیتم الزامی است.")]
+        public ProductItemStatus ItemStatus { get; set; } = ProductItemStatus.Ready;
+
+        // کد یکتا
+        public string? UniqueCode { get; set; }
+
+        // نام‌ها (برای UI)
         public string? CategoryName { get; set; }
         public string? GroupName { get; set; }
         public string? StatusName { get; set; }
         public string? ProductName { get; set; }
+        public string? ProjectName { get; set; }
 
-        // کدها (برای نمایش سلسله‌مراتبی بر اساس کدها)
+        // کدها
         public string? CategoryCode { get; set; }
         public string? GroupCode { get; set; }
         public string? StatusCode { get; set; }
         public string? ProductCode { get; set; }
 
-        // شماره ترتیبی یا کد اختیاری
+        // شماره ترتیبی (برای مرتب‌سازی یا ساخت UniqueCode)
         public int Sequence { get; set; } = 1;
-        public string? ProjectName { get; set; }
 
-        // نمایش سلسله‌مراتبی بر اساس کدها
+        // نمایش سلسله‌مراتبی
         public string DisplayHierarchyByCode =>
-            $"C{CategoryCode}G{GroupCode}S{StatusCode}P{ProductCode}_{Sequence}";
+            UniqueCode ?? $"C{CategoryCode}G{GroupCode}S{StatusCode}P{ProductCode}_{Sequence}";
     }
 
 

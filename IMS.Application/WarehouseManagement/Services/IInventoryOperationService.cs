@@ -9,10 +9,10 @@ namespace IMS.Application.WarehouseManagement.Services
 {
     public interface IInventoryOperationService
     {
-        Task<bool> AddAsync(InventoryCreateDto dto);
+        
         Task<decimal> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId);
         Task<InventoryCreateDto> LoadAsync(InventoryCreateDto inputDto);
-
+        Task<(bool success, string uniqueCode)> AddAsync(InventoryCreateDto dto);
 
     }
 }

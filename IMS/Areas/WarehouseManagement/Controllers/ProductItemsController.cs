@@ -14,14 +14,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     {
         private readonly IProductItemService _productItemService;
         private readonly IProductService _productService;
-        private readonly IWarehouseDbContext _warehouseDbContext;
 
-        public ProductItemsController(IProductItemService productItemService , IProductService productService ,
-            IWarehouseDbContext warehouseDbContext)
+        public ProductItemsController(IProductItemService productItemService, IProductService productService)
         {
             _productItemService = productItemService;
             _productService = productService;
-            _warehouseDbContext = warehouseDbContext;
         }
 
         // GET: ProductItems
@@ -33,14 +30,11 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var items = await _productItemService.GetByProductIdAsync(productId);
             ViewBag.ProductId = productId;
 
-            // گرفتن محصول اصلی از IProductService
             var product = await _productService.GetByIdAsync(productId);
             ViewBag.StatusId = product?.StatusId ?? 0;
 
             return View(items);
         }
-
-
 
         // GET: ProductItems/Details/5
         public async Task<IActionResult> Details(int id)
@@ -50,72 +44,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return NotFound();
 
             return View(item);
-        }
-
-        // GET: ProductItems/Create
-        public async Task<IActionResult> Create(int productId)
-        {
-            if (productId <= 0)
-                return BadRequest("شناسه محصول معتبر نیست.");
-
-            // ===== محاسبه شماره ترتیبی بعدی =====
-            int nextSequence = 1;
-            var lastItem = await _warehouseDbContext.ProductItems
-                .Where(pi => pi.ProductId == productId)
-                .OrderByDescending(pi => pi.Sequence)
-                .FirstOrDefaultAsync();
-
-            if (lastItem != null)
-                nextSequence = lastItem.Sequence + 1;
-
-            var dto = new ProductItemDto
-            {
-                ProductId = productId,
-                Sequence = nextSequence  // شماره بعدی به جای 1
-            };
-
-            // پروژه‌ها
-            var projects = await _productItemService.GetProjectsAsync();
-            ViewBag.Projects = projects.Select(p => new SelectListItem
-            {
-                Value = p.Value.ToString(),
-                Text = p.Text,
-            }).ToList();
-
-            // وضعیت‌ها
-            ViewBag.Statuses = Enum.GetValues(typeof(ProductItemStatus))
-                .Cast<ProductItemStatus>()
-                .Select(s => new SelectListItem
-                {
-                    Value = ((int)s).ToString(),
-                    Text = s.ToString()
-                }).ToList();
-
-            return View(dto);
-        }
-
-
-
-
-        // POST: ProductItems/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProductItemDto dto)
-        {
-            if (!ModelState.IsValid)
-                return View(dto);
-
-            try
-            {
-                var createdItem = await _productItemService.CreateAsync(dto);
-                TempData["SuccessMessage"] = "آیتم محصول با موفقیت ایجاد شد.";
-                return RedirectToAction(nameof(Index), new { productId = dto.ProductId });
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-                return View(dto);
-            }
         }
 
         // GET: ProductItems/Edit/5
@@ -129,9 +57,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var projects = await _productItemService.GetProjectsAsync();
             ViewBag.Projects = projects.Select(p => new SelectListItem
             {
-                Value = p.Value.ToString(),
+                Value = p.Value,
                 Text = p.Text,
-                Selected = (item.ProjectId.HasValue && item.ProjectId.Value == int.Parse(p.Value))
+                Selected = (item.ProjectId.HasValue && item.ProjectId.Value.ToString() == p.Value)
             }).ToList();
 
             // وضعیت‌ها
@@ -141,23 +69,14 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 {
                     Value = ((int)s).ToString(),
                     Text = s.ToString(),
-                    Selected = (item.Status == s)
+                    Selected = (item.ItemStatus == s)
                 }).ToList();
 
             return View(item);
         }
 
-
-
-
-
-
-
-       
-
-
-    // POST: ProductItems/Edit/5
-    [HttpPost]
+        // POST: ProductItems/Edit/5
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ProductItemDto dto)
         {
@@ -183,6 +102,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
         }
 
+        // POST: ProductItems/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id, int productId)
@@ -202,6 +122,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             return RedirectToAction(nameof(Index), new { productId });
         }
-
     }
+
 }

@@ -57,7 +57,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 StatusName = item.Product?.Status?.Name,
                 ProductName = item.Product?.Name,
 
-                // پر کردن کدها
                 CategoryCode = item.Product?.Status?.Group?.Category?.Code,
                 GroupCode = item.Product?.Status?.Group?.Code,
                 StatusCode = item.Product?.Status?.Code,
@@ -66,11 +65,8 @@ namespace IMS.Application.WarehouseManagement.Services
                 Sequence = item.Sequence,
                 ProjectId = item.ProjectId,
                 ProjectName = projectName,
-
-                Status = item.ProductItemStatus
+                ItemStatus = item.ProductItemStatus
             };
-
-
         }
 
         public async Task<List<ProductItemDto>> GetByProductIdAsync(int productId)
@@ -87,6 +83,7 @@ namespace IMS.Application.WarehouseManagement.Services
             var projectIds = items.Where(i => i.ProjectId.HasValue).Select(i => i.ProjectId.Value).Distinct().ToList();
             var projects = await _projectContext.Projects
                 .Where(p => projectIds.Contains(p.Id))
+                .AsNoTracking()
                 .ToListAsync();
 
             return items.Select(item => new ProductItemDto
@@ -102,7 +99,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 StatusName = item.Product?.Status?.Name,
                 ProductName = item.Product?.Name,
 
-                // **پر کردن کدها**
                 CategoryCode = item.Product?.Status?.Group?.Category?.Code,
                 GroupCode = item.Product?.Status?.Group?.Code,
                 StatusCode = item.Product?.Status?.Code,
@@ -111,61 +107,12 @@ namespace IMS.Application.WarehouseManagement.Services
                 Sequence = item.Sequence,
                 ProjectId = item.ProjectId,
                 ProjectName = item.ProjectId.HasValue
-          ? projects.FirstOrDefault(p => p.Id == item.ProjectId.Value)?.ProjectName
-          : null,
+                    ? projects.FirstOrDefault(p => p.Id == item.ProjectId.Value)?.ProjectName
+                    : null,
 
-                Status = item.ProductItemStatus
+                ItemStatus = item.ProductItemStatus
             }).ToList();
-
         }
-
-        public async Task<ProductItemDto> CreateAsync(ProductItemDto dto)
-        {
-            // 1. بررسی وجود محصول
-            var product = await _warehouseContext.Products
-                .Include(p => p.Status)
-                    .ThenInclude(s => s.Group)
-                        .ThenInclude(g => g.Category)
-                .FirstOrDefaultAsync(p => p.Id == dto.ProductId);
-
-            if (product == null)
-                throw new Exception("محصول انتخاب شده یافت نشد.");
-
-            // 2. محاسبه شماره ترتیبی
-            int nextSequence = 1;
-            var lastItem = await _warehouseContext.ProductItems
-                .Where(pi => pi.ProductId == dto.ProductId)
-                .OrderByDescending(pi => pi.Sequence)
-                .FirstOrDefaultAsync();
-
-            if (lastItem != null)
-                nextSequence = lastItem.Sequence + 1;
-
-            dto.Sequence = nextSequence;
-
-            // 3. تولید UniqueCode خودکار
-            string uniqueCode = $"C{product.Status.Group.Category.Code}G{product.Status.Group.Code}S{product.Status.Code}P{product.Code}-{dto.Sequence}";
-
-            // 4. ایجاد موجودیت ProductItem
-            var entity = new ProductItem
-            {
-                ProductId = dto.ProductId,
-                Sequence = dto.Sequence,
-                ProjectId = dto.ProjectId,
-                ProductItemStatus = dto.Status, // پیش‌فرض Ready
-                UniqueCode = uniqueCode
-            };
-
-            _warehouseContext.ProductItems.Add(entity);
-            await _warehouseContext.SaveChangesAsync(CancellationToken.None);
-
-            // 5. بازگرداندن DTO کامل
-            dto.Id = entity.Id;
-        
-
-            return dto;
-        }
-
 
         public async Task<ProductItemDto?> UpdateAsync(ProductItemDto dto)
         {
@@ -176,8 +123,8 @@ namespace IMS.Application.WarehouseManagement.Services
 
             entity.Sequence = dto.Sequence;
             entity.ProjectId = dto.ProjectId;
-            entity.ProductItemStatus = dto.Status; // آپدیت وضعیت
-         
+            entity.ProductItemStatus = dto.ItemStatus;
+
             await _warehouseContext.SaveChangesAsync(CancellationToken.None);
             return dto;
         }
@@ -191,7 +138,6 @@ namespace IMS.Application.WarehouseManagement.Services
 
             _warehouseContext.ProductItems.Remove(entity);
             await _warehouseContext.SaveChangesAsync(CancellationToken.None);
-
             return true;
         }
 
@@ -209,4 +155,5 @@ namespace IMS.Application.WarehouseManagement.Services
             }).ToList();
         }
     }
+
 }

@@ -105,16 +105,16 @@
                                         <th class="text-center py-1">طبقه</th>
                                         <th class="text-center py-1">نام محصول</th>
                                         <th class="text-center py-1">توضیحات</th>
-                                        <th class="text-center py-1">کالا یکتا</th>
+                                   
                                         <th class="text-center py-1">عملیات</th>
                                     </tr>
                                 </thead>
                                 <tbody style="font-size: 0.8rem;">
                                     @foreach (var item in Model)
                                     {
-                                        <tr data-url="@Url.Action("Details", "Products", new { id = item.Id })"
-                                            data-product-item-url="@Url.Action("Index", "ProductItems", new { productId = item.Id })"
+                                        <tr data-product-item-url="@Url.Action("Index", "ProductItems", new { productId = item.Id })"
                                             style="cursor: pointer; height: 32px;">
+
 
                                             <td class="text-center fw-bold py-1 align-middle">@item.ProductsFullCode</td>
                                             <td class="text-center py-1 align-middle">@item.CategoryName</td>
@@ -124,15 +124,7 @@
                                             <td class="text-truncate text-center py-1 align-middle" style="max-width: 200px;" title="@item.Description">
                                                 @item.Description
                                             </td>
-                                           
-                                            <td class="text-center py-1 align-middle">
-                                                @if (item.IsUnique)
-                                                {
-                                                    <span class="badge bg-success text-white" title="کالا یکتا">
-                                                        <i class="fas fa-check"></i>
-                                                    </span>
-                                                }
-                                            </td>
+                                         
 
 
                                             <td class="text-center py-1 align-middle">
@@ -282,19 +274,14 @@
             }
 
             // کلیک روی ردیف
-            document.addEventListener('click', function (e) {
-                const row = e.target.closest('tbody tr[data-url]');
-                if (!row || e.target.closest('a, button, input, .btn, form')) return;
+               document.addEventListener('click', function (e) {
+            const row = e.target.closest('tbody tr[data-product-item-url]');
+            if (!row || e.target.closest('a, button, input, .btn, form')) return;
 
-                const isUnique = row.querySelector('td:nth-child(7) .fa-check');
-                if (isUnique) {
-                    const productItemUrl = row.dataset.productItemUrl;
-                    if (productItemUrl) window.location.href = productItemUrl;
-                } else {
-                    const url = row.dataset.url;
-                    if (url) window.location.href = url;
-                }
-            });
+            const productItemUrl = row.dataset.productItemUrl;
+            if (productItemUrl) window.location.href = productItemUrl;
+        });
+
 
             // مقداردهی اولیه
             updateTableDisplay();

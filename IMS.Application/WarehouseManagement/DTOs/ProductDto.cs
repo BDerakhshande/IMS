@@ -17,11 +17,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? Code { get; set; }
         public string? Description { get; set; }
 
-        public bool IsUnique { get; set; } = false;  // مشخص می‌کند کالا یکتا است یا خیر
-
-        [Range(1, int.MaxValue, ErrorMessage = "تعداد باید بیشتر از ۰ باشد")]
-        public int Quantity { get; set; } = 1; // تعداد برای کالاهای یکتا
-
+        
         public int StatusId { get; set; }
         public string? StatusCode { get; set; }
 
@@ -33,7 +29,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         public decimal Price { get; set; }
 
-        public string ProductsFullCode => $"C{(CategoryCode ?? "")}G{(GroupCode ?? "")}S{(StatusCode ?? "")}P{(Code ?? "")}";
+        public string ProductsFullCode =>
+            $"C{(CategoryCode ?? "")}G{(GroupCode ?? "")}S{(StatusCode ?? "")}P{(Code ?? "")}";
 
         public UnitDto Unit { get; set; } = new UnitDto();
 
@@ -43,6 +40,9 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string StatusName { get; set; } = "";
         public string GroupName { get; set; } = "";
         public string CategoryName { get; set; } = "";
+
+        // لیست آیتم‌ها برای نمایش در جزئیات
+        public List<ProductItemDto> ProductItems { get; set; } = new();
     }
 
 

@@ -1,5 +1,6 @@
 ﻿using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Domain.WarehouseManagement.Entities;
+using IMS.Domain.WarehouseManagement.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,13 @@ namespace IMS.Application.WarehouseManagement.Services
             _context = context;
         }
 
-        public async Task<bool> AddAsync(InventoryCreateDto dto)
+        public async Task<(bool success, string uniqueCode)> AddAsync(InventoryCreateDto dto)
         {
+            string generatedUniqueCode = null;
+
             // پیدا کردن موجودی موجود
             var existingInventory = await _context.Inventories
-                .Include(i => i.InventoryItems) // بارگذاری آیتم‌های یکتا
+                .Include(i => i.InventoryItems)
                 .FirstOrDefaultAsync(i =>
                     i.ProductId == dto.ProductId &&
                     i.WarehouseId == dto.WarehouseId &&
@@ -43,34 +46,55 @@ namespace IMS.Application.WarehouseManagement.Services
                 _context.Inventories.Add(existingInventory);
             }
 
-            if (dto.UniqueCodes != null && dto.UniqueCodes.Any())
+            if (dto.IsUnique)
             {
-                // ===== حالت کالاهای یکتا =====
-                int addedCount = 0;
-                foreach (var code in dto.UniqueCodes)
+                // پیدا کردن آخرین شماره موجود برای UniqueCode در همان موجودی
+                int lastCode = existingInventory.InventoryItems
+                                 .Select(i => int.TryParse(i.UniqueCode, out var n) ? n : 0)
+                                 .DefaultIfEmpty(0)
+                                 .Max();
+
+                int newCode = lastCode + 1;
+                generatedUniqueCode = newCode.ToString();
+
+                // تعیین شماره ترتیبی Sequence بر اساس آخرین ProductItem موجود برای همان محصول
+                // ابتدا داده‌ها را از دیتابیس بگیریم و سپس در حافظه پردازش کنیم
+                var productItems = await _context.ProductItems
+                    .Where(pi => pi.ProductId == dto.ProductId)
+                    .ToListAsync();
+
+                int lastSequence = productItems
+                    .Select(pi => pi.Sequence)
+                    .DefaultIfEmpty(0)
+                    .Max();
+
+                int newSequence = lastSequence + 1;
+
+                // اضافه کردن به InventoryItem
+                var item = new InventoryItem
                 {
-                    // بررسی اینکه کد یکتا تکراری نباشد
-                    if (!existingInventory.InventoryItems.Any(x => x.UniqueCode == code))
-                    {
-                        var item = new InventoryItem
-                        {
-                            UniqueCode = code,
-                            Inventory = existingInventory
-                        };
-                        existingInventory.InventoryItems.Add(item);
-                        addedCount++;
-                    }
-                }
+                    UniqueCode = generatedUniqueCode,
+                    Inventory = existingInventory
+                };
+                existingInventory.InventoryItems.Add(item);
 
-                if (addedCount == 0)
-                    throw new InvalidOperationException("هیچ کد یکتای جدیدی برای اضافه کردن وجود ندارد.");
+                // اضافه کردن به ProductItem با مقادیر پیش‌فرض وضعیت و پروژه
+                var productItem = new ProductItem
+                {
+                    ProductId = dto.ProductId,
+                    UniqueCode = generatedUniqueCode,
+                    Sequence = newSequence,
+                    ProductItemStatus = ProductItemStatus.Ready,
+                    ProjectId = null // یا مقدار دلخواه
+                };
+                _context.ProductItems.Add(productItem);
 
-                // موجودی دقیقاً برابر تعداد آیتم‌های یکتا
-                existingInventory.Quantity = existingInventory.InventoryItems.Count;
+                // افزایش موجودی کلی
+                existingInventory.Quantity += 1;
             }
             else
             {
-                // ===== حالت کالاهای عادی =====
+                // ===== حالت کالاهای غیر یکتا =====
                 if (dto.Quantity <= 0)
                     throw new InvalidOperationException("برای کالاهای عادی باید مقدار افزایشی معتبر وارد شود.");
 
@@ -78,10 +102,8 @@ namespace IMS.Application.WarehouseManagement.Services
             }
 
             await _context.SaveChangesAsync(CancellationToken.None);
-            return true;
+            return (true, generatedUniqueCode);
         }
-
-
 
         public async Task<decimal> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId)
         {
@@ -114,7 +136,8 @@ namespace IMS.Application.WarehouseManagement.Services
                 GroupId = inputDto.GroupId,
                 StatusId = inputDto.StatusId,
                 ProductId = inputDto.ProductId,
-                Quantity = existingInventory?.Quantity ?? 0
+                Quantity = existingInventory?.Quantity ?? 0,
+                IsUnique = inputDto.IsUnique
             };
         }
     }

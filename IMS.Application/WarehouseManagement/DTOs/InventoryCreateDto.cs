@@ -23,8 +23,7 @@ namespace IMS.Application.WarehouseManagement.DTOs
         // مقدار موجودی
         public decimal Quantity { get; set; }
 
-        // **لیست کدهای یکتا برای کالاهای یکتا**
-        public List<string>? UniqueCodes { get; set; }
+        public bool IsUnique { get; set; }
 
         // نمایش فقط در ویو (برای DropDownها)
         public IEnumerable<SelectListItem>? Warehouses { get; set; }

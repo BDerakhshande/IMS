@@ -3,8 +3,22 @@
     ViewData["Title"] = "افزایش موجودی کالا";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
 <style>
+    :root {
+        --primary-color: #1a4959;
+        --secondary-color: #2c7a99;
+        --accent-color: #3ab795;
+        --light-bg: #f8fafc;
+        --border-color: #e2e8f0;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+    }
+
     .form-group {
         margin-bottom: 0.5rem;
     }
@@ -15,9 +29,17 @@
         padding-left: 1.5rem !important;
     }
 
+    /* سایز استاندارد برای فیلدها */
     .form-control-sm, .form-select-sm {
         font-size: 0.8rem;
-        padding: 0.25rem 0.5rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 0.375rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        box-shadow: 0 0 0 2px rgba(26, 73, 89, 0.1);
+        border-color: var(--primary-color);
     }
 
     .input-group-sm > .form-control, .input-group-sm > .form-select {
@@ -29,160 +51,482 @@
         direction: rtl;
     }
 
+    /* سایز استاندارد برای Select2 */
     .select2-container--default .select2-selection--single {
-        height: 28px !important;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        padding: 0.25rem 0.5rem;
+        height: 32px !important;
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        padding: 0.35rem 0.65rem;
         font-size: 0.8rem;
+        transition: all 0.2s ease;
     }
 
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             line-height: 20px;
+            padding-right: 0;
         }
 
         .select2-container--default .select2-selection--single .select2-selection__arrow {
-            left: 10px !important;
+            left: 8px !important;
             right: auto !important;
             top: 50% !important;
             transform: translateY(-50%);
+            height: 24px;
         }
+
+    .select2-container--default.select2-container--focus .select2-selection--single {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(26, 73, 89, 0.1);
+    }
 
     .select2-container--default .select2-search--dropdown .select2-search__field {
         font-size: 0.8rem;
         direction: rtl;
+        border-radius: 0.375rem;
     }
 
     .select2-dropdown {
         direction: rtl;
         font-size: 0.8rem;
+        border-radius: 0.375rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border-color);
+    }
+
+    /* کارت‌ها با سایز استاندارد */
+    .card {
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        transition: all 0.2s ease;
+        border: 1px solid var(--border-color);
+    }
+
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 1rem;
+    }
+
+    /* دکمه‌ها با سایز استاندارد */
+    .btn {
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-success {
+        background-color: var(--success-color);
+        border-color: var(--success-color);
+    }
+
+        .btn-success:hover {
+            background-color: #0da271;
+            border-color: #0da271;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+
+    .btn-outline-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .form-check-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(26, 73, 89, 0.1);
+    }
+
+    .form-check-input {
+        width: 0.9rem;
+        height: 0.9rem;
+        margin-top: 0.15rem;
+    }
+
+    .form-check-label {
+        font-size: 0.8rem;
+    }
+
+    /* پیام وضعیت */
+    .status-message {
+        border-radius: 0.375rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+    }
+
+        .status-message.success {
+            background-color: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #065f46;
+        }
+
+        .status-message.error {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #7f1d1d;
+        }
+
+    /* عنوان‌های بخش */
+    .section-title {
+        color: var(--primary-color);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* گروه ورودی */
+    .input-group-text {
+        background-color: var(--light-bg);
+        border: 1px solid var(--border-color);
+        color: #64748b;
+        border-radius: 0.375rem;
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .input-group-sm > .input-group-text {
+        font-size: 0.8rem;
+        padding: 0.35rem 0.65rem;
+    }
+
+    .form-text {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+    }
+
+    /* لودینگ */
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        z-index: 10;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+    }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    .success-animation {
+        animation: bounceIn 0.4s;
+    }
+
+   
+
+    /* نشانگر مراحل */
+    .step-indicator {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        position: relative;
+    }
+
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background-color: var(--border-color);
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+
+    .step {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: white;
+        border: 1.5px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        position: relative;
+        z-index: 2;
+    }
+
+        .step.active {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .step.completed {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+    .step-label {
+        position: absolute;
+        top: 100%;
+        margin-top: 4px;
+        font-size: 0.65rem;
+        color: #64748b;
+        white-space: nowrap;
+        text-align: center;
+        width: 70px;
+        right: -23px;
+    }
+
+    .step.active .step-label {
+        color: var(--primary-color);
+        font-weight: 600;
+    }
+
+    .step.completed .step-label {
+        color: var(--success-color);
+    }
+
+    /* بهبود پهنای کانتینر */
+    .container-fluid {
+        max-width: 100%;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    /* بهبود کارت‌ها */
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    /* بهبود فاصله‌ها */
+    .row.g-3 {
+        --bs-gutter-x: 0.75rem;
+        --bs-gutter-y: 0.75rem;
+    }
+
+    /* سایز استاندارد برای لیبل‌ها */
+    .form-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+        color: #374151;
+    }
+
+    /* فیدبک اعتبارسنجی */
+    .invalid-feedback {
+        font-size: 0.75rem;
+    }
+
+    /* آیکون‌ها */
+    .fas, .far, .fal, .fab {
+        font-size: 0.75rem;
     }
 </style>
 
 <div class="container-fluid py-2" dir="rtl">
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xxl-10">
+            <div class="card border-0">
+                <!-- هدر اصلی -->
+                <div class="card-header py-2 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%); color: white;">
                     <div class="d-flex align-items-center">
-                        <i class="fas fa-boxes me-1" style="font-size: 0.85rem;"></i>
-                        <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
+                        <div>
+                            <h5 class="mb-0 fw-bold" style="font-size: 0.95rem;">@ViewData["Title"]</h5>
+                        </div>
                     </div>
                 </div>
 
-                <form id="inventoryForm" class="needs-validation" novalidate>
-                    @Html.AntiForgeryToken()
-                    <div class="card-body p-1">
-
-                        <!-- اطلاعات محل نگهداری -->
-                        <div class="card mb-3 border-0 shadow-sm">
-                            <div class="card-header py-1 d-flex align-items-center" style="background-color: #f8f9fa;">
-                                <i class="fas fa-warehouse me-1" style="font-size: 0.85rem;"></i>
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">اطلاعات محل نگهداری</h6>
+                <div class="position-relative">
+                    <!-- لودینگ -->
+                    <div class="loading-overlay" id="formLoading">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary mb-1" style="width: 1.5rem; height: 1.5rem;" role="status">
+                                <span class="visually-hidden">در حال بارگذاری...</span>
                             </div>
-                            <div class="card-body p-2">
-                                <div class="row g-2">
-                                    <div class="col-md-4">
-                                        <label asp-for="WarehouseId" class="form-label small">انبار</label>
-                                        <select asp-for="WarehouseId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Warehouses" id="WarehouseId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label asp-for="ZoneId" class="form-label small">قسمت</label>
-                                        <select asp-for="ZoneId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Zones" id="ZoneId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label asp-for="SectionId" class="form-label small">بخش</label>
-                                        <select asp-for="SectionId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Sections" id="SectionId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
+                            <p class="small text-muted" style="font-size: 0.75rem;">در حال پردازش اطلاعات...</p>
                         </div>
-
-                        <!-- اطلاعات کالا -->
-                        <div class="card mb-3 border-0 shadow-sm">
-                            <div class="card-header py-1 d-flex align-items-center" style="background-color: #f8f9fa;">
-                                <i class="fas fa-box me-1" style="font-size: 0.85rem;"></i>
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">اطلاعات کالا</h6>
-                            </div>
-                            <div class="card-body p-2">
-                                <div class="row g-2">
-                                    <div class="col-md-3">
-                                        <label asp-for="CategoryId" class="form-label small">دسته‌بندی</label>
-                                        <select asp-for="CategoryId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Categories" id="CategoryId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="GroupId" class="form-label small">گروه</label>
-                                        <select asp-for="GroupId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Groups" id="GroupId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="StatusId" class="form-label small">طبقه</label>
-                                        <select asp-for="StatusId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Statuses" id="StatusId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label asp-for="ProductId" class="form-label small">کالا</label>
-                                        <select asp-for="ProductId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Products" id="ProductId">
-                                            <option value="">-- انتخاب کنید --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- افزایش موجودی -->
-                        <div class="card border-0 shadow-sm mb-3">
-                            <div class="card-header py-1 d-flex align-items-center" style="background-color: #f8f9fa;">
-                                <i class="fas fa-box-open me-1" style="font-size: 0.85rem;"></i>
-                                <h6 class="mb-0 fw-bold" style="font-size: 0.85rem;">افزایش موجودی انبار</h6>
-                            </div>
-                            <div class="card-body p-2">
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <label for="IncreaseAmount" class="form-label small">مقدار افزایشی</label>
-                                        <div class="input-group input-group-sm mb-2">
-                                            <span class="input-group-text bg-light"><i class="fas fa-plus text-muted"></i></span>
-                                            <input type="number" class="form-control" id="IncreaseAmount" min="1" step="1" value="1">
-                                            <span class="input-group-text bg-light">عدد</span>
-                                        </div>
-                                        <div class="form-text small text-muted">برای کالاهای غیر یکتا استفاده می‌شود</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="UniqueCodesSelect" class="form-label small">کدهای یکتا</label>
-                                        <select id="UniqueCodesSelect" class="form-select form-select-sm select2-dropdown" multiple="multiple"></select>
-                                        <div class="form-text small text-muted mt-1">کدهای یکتا را از لیست انتخاب کنید.</div>
-                                    </div>
-                                </div>
-
-                                <div class="d-flex justify-content-end gap-1 mt-3">
-                                    <a asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index" class="btn btn-sm btn-outline-secondary d-flex align-items-center py-1 px-2">
-                                        <i class="fas fa-arrow-right me-1"></i> بازگشت
-                                    </a>
-                                    <button type="button" id="btnAddInventory" class="btn btn-sm btn-success d-flex align-items-center py-1 px-2">
-                                        <i class="fas fa-plus me-1"></i> افزایش موجودی
-                                    </button>
-                                </div>
-
-                                <div class="row mt-2">
-                                    <div class="col-12">
-                                        <div id="operationStatusMessage" class="small mt-1" style="display: none;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-                </form>
+
+                    <form id="inventoryForm" class="needs-validation" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div class="card-body p-3">
+
+                            <!-- ناوبری مرحله‌ای -->
+                            <div class="step-indicator mb-3">
+                                <div class="step active" id="step1">
+                                    <span>1</span>
+                                    <div class="step-label">محل نگهداری</div>
+                                </div>
+                                <div class="step" id="step2">
+                                    <span>2</span>
+                                    <div class="step-label">اطلاعات کالا</div>
+                                </div>
+                                <div class="step" id="step3">
+                                    <span>3</span>
+                                    <div class="step-label">افزایش موجودی</div>
+                                </div>
+                            </div>
+
+                            <!-- اطلاعات محل نگهداری -->
+                            <div class="card mb-3 success-animation">
+                                <div class="card-header py-2 d-flex align-items-center" style="background-color: var(--light-bg);">
+                                    <div class="bg-primary bg-opacity-10 p-1 rounded-circle me-2">
+                                        <i class="fas fa-warehouse text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0 fw-bold section-title">اطلاعات محل نگهداری</h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label asp-for="WarehouseId" class="form-label">انبار <span class="text-danger">*</span></label>
+                                            <select asp-for="WarehouseId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Warehouses" id="WarehouseId" required>
+                                                <option value="">-- انتخاب انبار --</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                لطفاً انبار را انتخاب کنید
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label asp-for="ZoneId" class="form-label">قسمت</label>
+                                            <select asp-for="ZoneId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Zones" id="ZoneId">
+                                                <option value="">-- انتخاب قسمت --</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label asp-for="SectionId" class="form-label">بخش</label>
+                                            <select asp-for="SectionId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Sections" id="SectionId">
+                                                <option value="">-- انتخاب بخش --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- اطلاعات کالا -->
+                            <div class="card mb-3">
+                                <div class="card-header py-2 d-flex align-items-center" style="background-color: var(--light-bg);">
+                                    <div class="bg-primary bg-opacity-10 p-1 rounded-circle me-2">
+                                        <i class="fas fa-box text-primary" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0 fw-bold section-title">اطلاعات کالا</h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row g-2">
+                                        <div class="col-md-3">
+                                            <label asp-for="CategoryId" class="form-label">دسته‌بندی <span class="text-danger">*</span></label>
+                                            <select asp-for="CategoryId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Categories" id="CategoryId" required>
+                                                <option value="">-- انتخاب دسته‌بندی --</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                لطفاً دسته‌بندی را انتخاب کنید
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label asp-for="GroupId" class="form-label">گروه</label>
+                                            <select asp-for="GroupId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Groups" id="GroupId">
+                                                <option value="">-- انتخاب گروه --</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label asp-for="StatusId" class="form-label">طبقه</label>
+                                            <select asp-for="StatusId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Statuses" id="StatusId">
+                                                <option value="">-- انتخاب طبقه --</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label asp-for="ProductId" class="form-label">کالا <span class="text-danger">*</span></label>
+                                            <select asp-for="ProductId" class="form-select form-select-sm select2-dropdown" asp-items="Model.Products" id="ProductId" required>
+                                                <option value="">-- انتخاب کالا --</option>
+                                            </select>
+                                            <div class="invalid-feedback">
+                                                لطفاً کالا را انتخاب کنید
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- افزایش موجودی -->
+                            <div class="card border-success success-animation">
+                                <div class="card-header py-2 d-flex align-items-center" style="background-color: rgba(16, 185, 129, 0.05); border-color: rgba(16, 185, 129, 0.2);">
+                                    <div class="bg-success bg-opacity-10 p-1 rounded-circle me-2">
+                                        <i class="fas fa-box-open text-success" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <h6 class="mb-0 fw-bold" style="color: var(--success-color); font-size: 0.85rem;">افزایش موجودی انبار</h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <label for="IncreaseAmount" class="form-label">مقدار افزایشی</label>
+                                            <div class="input-group input-group-sm mb-2">
+                                                <span class="input-group-text bg-light"><i class="fas fa-plus text-muted"></i></span>
+                                                <input type="number" class="form-control" id="IncreaseAmount" min="1" step="1" value="1">
+                                                <span class="input-group-text bg-light">عدد</span>
+                                            </div>
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                برای کالاهای غیر یکتا استفاده می‌شود
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 d-flex align-items-center">
+                                            <div class="form-check mt-2">
+                                                <input class="form-check-input" type="checkbox" id="IsUnique" />
+                                                <label class="form-check-label" for="IsUnique">
+                                                    <i class="fas fa-fingerprint me-1"></i>
+                                                    کالای یکتا (کد یکتا به صورت خودکار ایجاد می‌شود)
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- دکمه‌های اقدام -->
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <a asp-area="WarehouseManagement" asp-controller="WarehouseManagementHome" asp-action="Index"
+                                           class="btn btn-outline-secondary btn-sm d-flex align-items-center py-1 px-3">
+                                            <i class="fas fa-arrow-right me-1"></i> بازگشت  
+                                        </a>
+
+                                        <button type="button" id="btnAddInventory" class="btn btn-success btn-sm d-flex align-items-center py-1 px-3">
+                                            <i class="fas fa-plus me-1"></i> افزایش موجودی
+                                        </button>
+                                    </div>
+
+                                    <!-- پیام وضعیت -->
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <div id="operationStatusMessage" class="status-message" style="display: none;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -193,14 +537,36 @@
     <script src="~/lib/select2/js/select2.min.js"></script>
     <script src="~/js/MenuJs.js"></script>
     <script>
-           $(function () {
-            // initialize select2
+        $(function () {
+            // Initialize Select2
             $('.select2-dropdown').select2({
                 dir: 'rtl',
                 placeholder: '-- انتخاب کنید --',
-                allowClear: true
+                allowClear: true,
+                width: '100%'
             });
 
+            // Initialize step indicator
+            function updateStepIndicator() {
+                const warehouseSelected = $('#WarehouseId').val();
+                const productSelected = $('#ProductId').val();
+
+                if (warehouseSelected && productSelected) {
+                    $('#step1').addClass('completed');
+                    $('#step2').addClass('completed');
+                    $('#step3').addClass('active');
+                } else if (warehouseSelected) {
+                    $('#step1').addClass('completed');
+                    $('#step2').addClass('active');
+                    $('#step3').removeClass('active');
+                } else {
+                    $('#step1').addClass('active');
+                    $('#step2').removeClass('active');
+                    $('#step3').removeClass('active');
+                }
+            }
+
+            // Populate dropdown function
             function populateDropdown(selector, data, defaultText) {
                 var dropdown = $(selector);
                 dropdown.empty().append($('<option>').text(defaultText).attr('value', ''));
@@ -208,143 +574,189 @@
                     data.forEach(i => dropdown.append($('<option>').text(i.text).attr('value', i.value)));
                 }
                 dropdown.trigger('change');
+                updateStepIndicator();
             }
 
-            function populateUniqueCodes(data) {
-                var select = $('#UniqueCodesSelect');
-                select.empty();
-                if (Array.isArray(data)) {
-                    data.forEach(function(item) {
-                        select.append($('<option>', { value: item.id, text: item.uniqueCode }));
-                    });
-                }
-                select.trigger('change');
-            }
-
+            // Show status message
             function showStatusMessage(msg, isSuccess) {
                 var statusDiv = $('#operationStatusMessage');
-                statusDiv.removeClass('alert-success alert-danger')
-                    .addClass(isSuccess ? 'alert alert-success' : 'alert alert-danger')
-                    .text(msg).slideDown();
-                setTimeout(() => statusDiv.slideUp(), 5000);
+                statusDiv.removeClass('success error')
+                    .addClass(isSuccess ? 'success' : 'error')
+                    .html(`<i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'} me-2"></i> ${msg}`)
+                    .slideDown();
+
+                if (isSuccess) {
+                    setTimeout(() => {
+                        statusDiv.slideUp();
+                    }, 50000);
+                }
             }
 
-            // وابستگی‌ها
+            // Show/hide loading overlay
+            function setLoadingState(loading) {
+                if (loading) {
+                    $('#formLoading').addClass('active');
+                } else {
+                    $('#formLoading').removeClass('active');
+                }
+            }
+
+            // Dependency handling
             $('#CategoryId').change(function () {
                 populateDropdown('#GroupId', [], '-- انتخاب گروه --');
                 populateDropdown('#StatusId', [], '-- انتخاب وضعیت --');
                 populateDropdown('#ProductId', [], '-- انتخاب کالا --');
-                populateUniqueCodes([]);
                 var catId = $(this).val();
                 if (catId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetGroups', { categoryId: catId }, data => populateDropdown('#GroupId', data, '-- انتخاب گروه --'));
+                    setLoadingState(true);
+                    $.get('/WarehouseManagement/InventoryOperation/GetGroups', { categoryId: catId }, data => {
+                        populateDropdown('#GroupId', data, '-- انتخاب گروه --');
+                        setLoadingState(false);
+                    }).fail(() => setLoadingState(false));
                 }
             });
 
             $('#GroupId').change(function () {
                 populateDropdown('#StatusId', [], '-- انتخاب وضعیت --');
                 populateDropdown('#ProductId', [], '-- انتخاب کالا --');
-                populateUniqueCodes([]);
                 var groupId = $(this).val();
                 if (groupId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetStatuses', { groupId: groupId }, data => populateDropdown('#StatusId', data, '-- انتخاب وضعیت --'));
+                    setLoadingState(true);
+                    $.get('/WarehouseManagement/InventoryOperation/GetStatuses', { groupId: groupId }, data => {
+                        populateDropdown('#StatusId', data, '-- انتخاب وضعیت --');
+                        setLoadingState(false);
+                    }).fail(() => setLoadingState(false));
                 }
             });
 
             $('#StatusId').change(function () {
                 populateDropdown('#ProductId', [], '-- انتخاب کالا --');
-                populateUniqueCodes([]);
                 var statusId = $(this).val();
                 if (statusId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetProducts', { statusId: statusId }, data => populateDropdown('#ProductId', data, '-- انتخاب کالا --'));
-                }
-            });
-
-            $('#ProductId').change(function () {
-                populateUniqueCodes([]);
-                var productId = $(this).val();
-                if (productId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetUniqueCodes', { productId: productId }, function(data) {
-                        populateUniqueCodes(data);
-                    });
+                    setLoadingState(true);
+                    $.get('/WarehouseManagement/InventoryOperation/GetProducts', { statusId: statusId }, data => {
+                        populateDropdown('#ProductId', data, '-- انتخاب کالا --');
+                        setLoadingState(false);
+                    }).fail(() => setLoadingState(false));
                 }
             });
 
             $('#WarehouseId').change(function () {
-                populateDropdown('#ZoneId', [], '-- انتخاب ناحیه --');
+                populateDropdown('#ZoneId', [], '-- انتخاب قسمت --');
                 populateDropdown('#SectionId', [], '-- انتخاب بخش --');
                 var warehouseId = $(this).val();
                 if (warehouseId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetZones', { warehouseId: warehouseId }, data => populateDropdown('#ZoneId', data, '-- انتخاب ناحیه --'));
+                    setLoadingState(true);
+                    $.get('/WarehouseManagement/InventoryOperation/GetZones', { warehouseId: warehouseId }, data => {
+                        populateDropdown('#ZoneId', data, '-- انتخاب قسمت --');
+                        setLoadingState(false);
+                    }).fail(() => setLoadingState(false));
                 }
+                updateStepIndicator();
             });
 
             $('#ZoneId').change(function () {
                 populateDropdown('#SectionId', [], '-- انتخاب بخش --');
                 var zoneId = $(this).val();
                 if (zoneId) {
-                    $.get('/WarehouseManagement/InventoryOperation/GetSections', { zoneId: zoneId }, data => populateDropdown('#SectionId', data, '-- انتخاب بخش --'));
+                    setLoadingState(true);
+                    $.get('/WarehouseManagement/InventoryOperation/GetSections', { zoneId: zoneId }, data => {
+                        populateDropdown('#SectionId', data, '-- انتخاب بخش --');
+                        setLoadingState(false);
+                    }).fail(() => setLoadingState(false));
                 }
             });
 
-            // دکمه افزایش موجودی
-            $('#btnAddInventory').click(function () {
-                var uniqueCodes = $('#UniqueCodesSelect').val() || [];
-                var increaseAmount = parseInt($('#IncreaseAmount').val());
+            // Product selection updates step indicator
+            $('#ProductId').change(updateStepIndicator);
 
-                // اگر کد یکتا انتخاب شده باشد، مقدار افزایشی را نادیده بگیریم
-                if (uniqueCodes.length > 0) {
-                    increaseAmount = 0;
+            // Unique product condition
+            $('#IsUnique').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $('#IncreaseAmount').prop('disabled', true).val('1');
+                    $('.form-text').html('<i class="fas fa-fingerprint me-1"></i> کد یکتا به صورت خودکار ایجاد خواهد شد');
+                } else {
+                    $('#IncreaseAmount').prop('disabled', false).val('1');
+                    $('.form-text').html('<i class="fas fa-info-circle me-1"></i> برای کالاهای غیر یکتا استفاده می‌شود');
                 }
+            });
 
-                if (uniqueCodes.length === 0 && (isNaN(increaseAmount) || increaseAmount <= 0)) {
-                    showStatusMessage('لطفاً مقدار افزایشی معتبر وارد کنید.', false);
-                    return;
-                }
+                // Add inventory button
+        $('#btnAddInventory').click(function () {
+            // Form validation
+            if (!$('#WarehouseId').val()) {
+                showStatusMessage('لطفاً انبار را انتخاب کنید', false);
+                $('#WarehouseId').focus();
+                return;
+            }
 
-                var data = {
-                    WarehouseId: $('#WarehouseId').val(),
-                    ZoneId: $('#ZoneId').val(),
-                    SectionId: $('#SectionId').val(),
-                    CategoryId: $('#CategoryId').val(),
-                    GroupId: $('#GroupId').val(),
-                    StatusId: $('#StatusId').val(),
-                    ProductId: $('#ProductId').val(),
-                    Quantity: increaseAmount,
-                    UniqueCodes: uniqueCodes,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                };
+            if (!$('#ProductId').val()) {
+                showStatusMessage('لطفاً کالا را انتخاب کنید', false);
+                $('#ProductId').focus();
+                return;
+            }
 
-                if (!data.WarehouseId || !data.ProductId) {
-                    showStatusMessage('لطفاً ابتدا انبار و کالا را انتخاب کنید.', false);
-                    return;
-                }
+            var isUnique = $('#IsUnique').is(':checked');
+            var increaseAmount = parseInt($('#IncreaseAmount').val());
 
-                $('#btnAddInventory').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> در حال افزایش...');
+            if (!isUnique && (isNaN(increaseAmount) || increaseAmount <= 0)) {
+                showStatusMessage('لطفاً مقدار افزایشی معتبر وارد کنید.', false);
+                $('#IncreaseAmount').focus();
+                return;
+            }
 
-                $.ajax({
-                    url: '@Url.Action("Add", "InventoryOperation", new { area = "WarehouseManagement" })',
-                    type: 'POST',
-                    data: data,
-                    success: function (response) {
-                        if (response.success) {
-                            showStatusMessage('موجودی با موفقیت افزایش یافت.', true);
-                            $('#IncreaseAmount').val('1');
-                            $('#UniqueCodesSelect').val(null).trigger('change');
-                        } else {
-                            showStatusMessage(response.message || 'خطا در افزایش موجودی.', false);
+            var data = {
+                WarehouseId: $('#WarehouseId').val(),
+                ZoneId: $('#ZoneId').val(),
+                SectionId: $('#SectionId').val(),
+                CategoryId: $('#CategoryId').val(),
+                GroupId: $('#GroupId').val(),
+                StatusId: $('#StatusId').val(),
+                ProductId: $('#ProductId').val(),
+                Quantity: isUnique ? 0 : increaseAmount,
+                IsUnique: isUnique,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+
+            $('#btnAddInventory').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span> در حال افزایش...');
+            setLoadingState(true);
+
+            $.ajax({
+                url: '@Url.Action("Add", "InventoryOperation", new { area = "WarehouseManagement" })',
+                type: 'POST',
+                data: data,
+                success: function (response) {
+                    if (response.success) {
+                        // پیام موفقیت
+                        var msg = 'موجودی با موفقیت افزایش یافت.';
+                        // اگر کالای یکتا، کد یکتا را هم نمایش بده
+                        if (isUnique && response.uniqueCode) {
+                            msg += ` کد یکتا: <strong>${response.uniqueCode}</strong>`;
                         }
-                    },
-                    error: function () {
-                        showStatusMessage('خطا در ارتباط با سرور.', false);
-                    },
-                    complete: function () {
-                        $('#btnAddInventory').prop('disabled', false).html('<i class="fas fa-plus me-1"></i> افزایش موجودی');
+                        showStatusMessage(msg, true);
+
+                        // Reset فرم
+                        $('#IncreaseAmount').val('1').prop('disabled', false);
+                        $('#IsUnique').prop('checked', false);
+
+                      
+                    } else {
+                        showStatusMessage(response.message || 'خطا در افزایش موجودی.', false);
                     }
-                });
+                },
+                error: function (xhr, status, error) {
+                    showStatusMessage('خطا در ارتباط با سرور. لطفاً دوباره تلاش کنید.', false);
+                },
+                complete: function () {
+                    $('#btnAddInventory').prop('disabled', false).html('<i class="fas fa-plus me-1"></i> افزایش موجودی');
+                    setLoadingState(false);
+                }
             });
         });
 
 
+            // Initial step indicator setup
+            updateStepIndicator();
+        });
     </script>
 }

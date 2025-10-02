@@ -65,10 +65,10 @@
                             <!-- وضعیت -->
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label asp-for="Status" class="form-label fw-bold mb-1 small">
+                                    <label asp-for="ItemStatus" class="form-label fw-bold mb-1 small">
                                         <i class="fas fa-info-circle me-1 text-muted"></i> وضعیت
                                     </label>
-                                    <select asp-for="Status" class="form-select form-select-sm" required>
+                                    <select asp-for="ItemStatus" class="form-select form-select-sm" required>
                                         <option value="">-- انتخاب وضعیت --</option>
                                         @foreach (ProductItemStatus status in Enum.GetValues(typeof(ProductItemStatus)))
                                         {
@@ -77,10 +77,10 @@
                                             .First()
                                             .GetCustomAttribute<DisplayAttribute>();
                                             var displayName = displayAttr?.Name ?? status.ToString();
-                                            <option value="@status" selected="@(Model.Status == status ? "selected" : null)">@displayName</option>
+                                            <option value="@status" selected="@(Model.ItemStatus == status ? "selected" : null)">@displayName</option>
                                         }
                                     </select>
-                                    <span asp-validation-for="Status" class="text-danger small mt-1 d-block"></span>
+                                    <span asp-validation-for="ItemStatus" class="text-danger small mt-1 d-block"></span>
                                 </div>
                             </div>
                         </div>
