@@ -40,6 +40,11 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+            modelBuilder.Entity<ReceiptOrIssueItemUniqueCode>()
+      .ToTable("ReceiptOrIssueItemUniqueCode"); // بدون s
+
+
             base.OnModelCreating(modelBuilder);
             // --- Project mapping for Consumed ---
             modelBuilder.Entity<ConversionConsumedItem>()

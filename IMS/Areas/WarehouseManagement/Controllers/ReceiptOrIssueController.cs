@@ -105,7 +105,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             try
             {
                 var dto = MapViewModelToDto(model);
-                // تغییر: دریافت Result و Errors از سرویس
+                // دریافت Result و Errors از سرویس
                 var (createdDto, errors) = await _service.CreateAsync(dto);
 
                 if (errors != null && errors.Any())
@@ -114,12 +114,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     return Json(new { success = false, errors });
                 }
 
-                // موفقیت
-                return Json(new { success = true, documentId = createdDto!.Id });
+                // موفقیت، ارسال اطلاعات آیتم‌ها با SelectedUniqueCode
+                return Json(new
+                {
+                    success = true,
+                    documentId = createdDto!.Id,
+                    items = createdDto.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        i.Quantity,
+                        i.SelectedUniqueCode, // اینجا اضافه شد
+                        i.ProductName
+                    })
+                });
             }
             catch (InvalidOperationException ex)
             {
-                // پیام فارسی برای خطاهای عملیات نامعتبر
                 string message = ex.Message;
 
                 if (message.Contains("متوقف شده است"))

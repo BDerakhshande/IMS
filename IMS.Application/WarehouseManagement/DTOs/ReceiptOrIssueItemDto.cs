@@ -16,13 +16,13 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public int? StatusId { get; set; }
         public int ProductId { get; set; }
         // مبدأ
-        public int? SourceWarehouseId { get; set; }         // انبار مبدأ
-        public int? SourceZoneId { get; set; }              // قسمت مبدأ (اختیاری)
-        public int? SourceSectionId { get; set; }           // بخش مبدأ (اختیاری)
+        public int? SourceWarehouseId { get; set; }         
+        public int? SourceZoneId { get; set; }             
+        public int? SourceSectionId { get; set; }           
 
         // مقصد
-        public int? DestinationWarehouseId { get; set; }    // انبار مقصد
-        public int? DestinationZoneId { get; set; }         // قسمت مقصد (اختیاری)
+        public int? DestinationWarehouseId { get; set; }   
+        public int? DestinationZoneId { get; set; }        
         public int? DestinationSectionId { get; set; }
 
 
@@ -40,15 +40,19 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? DestinationWarehouseName { get; set; }
         public string? DestinationZoneName { get; set; }
         public string? DestinationSectionName { get; set; }
-        // اطلاعات پروژه
+    
         public int? ProjectId { get; set; }
         public string? ProjectTitle { get; set; }
 
 
-        public int? PurchaseRequestId { get; set; }      // ارتباط به درخواست خرید
-        public string? PurchaseRequestTitle { get; set; } // عنوان درخواست خرید
+        public int? PurchaseRequestId { get; set; }    
+        public string? PurchaseRequestTitle { get; set; } 
 
 
         public List<string> UniqueCodes { get; set; } = new List<string>();
+
+
+   
+        public string? SelectedUniqueCode { get; set; }
     }
 }
