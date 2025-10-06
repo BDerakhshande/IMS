@@ -428,7 +428,7 @@
 }
 
 .border-0 {
-  border: 0 !important;
+    border-radius: 8px;
 }
 
 .border-top {
