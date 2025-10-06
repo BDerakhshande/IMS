@@ -14,7 +14,11 @@ namespace IMS.Models.ProMan
 
         public string? Description { get; set; }
 
- 
+        // فیلد برای نمایش کد یکتای انتخاب‌شده
+        public string? SelectedUniqueCode { get; set; }
+
+        //  لیست کدهای یکتا برای نمایش در Dropdown (در صورت نیاز)
+        public List<string> AvailableUniqueCodes { get; set; } = new();
         public List<ReceiptOrIssueItemViewModel> Items { get; set; } = new();
     }
 }

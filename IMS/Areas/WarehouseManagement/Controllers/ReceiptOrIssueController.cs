@@ -64,6 +64,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return View(model);
         }
 
+
+
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ReceiptOrIssueViewModel model)
@@ -105,7 +108,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             try
             {
                 var dto = MapViewModelToDto(model);
-                // تغییر: دریافت Result و Errors از سرویس
+                // دریافت Result و Errors از سرویس
                 var (createdDto, errors) = await _service.CreateAsync(dto);
 
                 if (errors != null && errors.Any())
@@ -114,12 +117,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     return Json(new { success = false, errors });
                 }
 
-                // موفقیت
-                return Json(new { success = true, documentId = createdDto!.Id });
+                // موفقیت، ارسال اطلاعات آیتم‌ها با SelectedUniqueCode
+                return Json(new
+                {
+                    success = true,
+                    documentId = createdDto!.Id,
+                    items = createdDto.Items.Select(i => new
+                    {
+                        i.ProductId,
+                        i.Quantity,
+                        i.SelectedUniqueCode, // اینجا اضافه شد
+                        i.ProductName
+                    })
+                });
             }
             catch (InvalidOperationException ex)
             {
-                // پیام فارسی برای خطاهای عملیات نامعتبر
                 string message = ex.Message;
 
                 if (message.Contains("متوقف شده است"))
@@ -372,11 +385,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-
-
-
-
         private ReceiptOrIssueDto MapViewModelToDto(ReceiptOrIssueViewModel vm)
         {
             return new ReceiptOrIssueDto
@@ -406,9 +414,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 }).ToList()
             };
         }
-
-
-
 
 
         private async Task<ReceiptOrIssueViewModel> MapDtoToViewModelAsync(ReceiptOrIssueDto dto)
@@ -520,8 +525,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
 
 
-
-
         private DateTime ParsePersianDate(string persianDate)
         {
             var parts = persianDate.Split('/');
@@ -532,6 +535,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 int.Parse(parts[2]),
                 0, 0, 0, 0);
         }
+
+
 
         private string ConvertToPersianDateString(DateTime date)
         {
@@ -804,22 +809,43 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(new { exists });
         }
 
-
-
         [HttpGet]
-        public async Task<IActionResult> GetUniqueCodes(int productId)
+        public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
         {
-            var codes = await _context.ProductItems
+            // گرفتن ProductItems مرتبط با محصول به همراه روابط لازم
+            var productItems = await _context.ProductItems
+                .Include(pi => pi.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
                 .Where(pi => pi.ProductId == productId)
+                .ToListAsync();
+
+            // ساخت لیست خروجی
+            var result = productItems
+                .Where(pi => pi.Product.IsUnique) // فقط آیتم‌های یکتا
                 .Select(pi => new
                 {
                     pi.Id,
-                    pi.UniqueCode
+                    pi.UniqueCode,
+                    pi.Sequence,
+                    CategoryCode = pi.Product.Status?.Group?.Category?.Code ?? "",
+                    GroupCode = pi.Product.Status?.Group?.Code ?? "",
+                    StatusCode = pi.Product.Status?.Code ?? "",
+                    ProductCode = pi.Product?.Code ?? "",
+                    DisplayHierarchyByCode = // همیشه سلسله مراتب
+                        $"C{pi.Product.Status?.Group?.Category?.Code ?? ""}G{pi.Product.Status?.Group?.Code ?? ""}S{pi.Product.Status?.Code ?? ""}P{pi.Product?.Code ?? ""}_{pi.Sequence}"
                 })
-                .ToListAsync();
+                .ToList();
 
-            return Json(codes);
+            return Json(result);
         }
+
+
+
+
+
+
 
     }
 }
