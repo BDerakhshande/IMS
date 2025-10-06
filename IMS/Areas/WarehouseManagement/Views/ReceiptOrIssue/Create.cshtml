@@ -5,123 +5,218 @@
     ViewData["Title"] = "ایجاد رسید / حواله / انتقال";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
-
 <style>
-    /* هماهنگی Select2 با Bootstrap */
-    .select2-container {
-        width: 100% !important;
-        font-size: 0.85rem;
+ /* ===============================
+   🎯 هماهنگی Select2 با Bootstrap
+   =============================== */
+.select2-container {
+    width: 100% !important;
+    font-size: 0.8rem; /* کوچک‌تر و استاندارد */
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    height: 32px;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection__rendered {
+    color: #212529;
+    line-height: 1.5;
+    font-size: 0.8rem;
+    padding-right: 30px;
+    padding-left: 10px;
+    white-space: normal !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection__clear {
+    right: 8px !important;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem; /* کمی بزرگ‌تر برای دیدن ضربدر */
+    color: #999;
+    cursor: pointer;
+    z-index: 2;
+}
+
+.select2-container--bootstrap-5 .select2-selection__arrow {
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+}
+
+/* راست‌چین برای RTL */
+select.form-select[dir="rtl"],
+.select2-container[dir="rtl"] .select2-selection--single {
+    direction: rtl;
+    text-align: right;
+    padding-right: 1rem;
+    padding-left: 2rem;
+    font-size: 0.8rem;
+}
+
+/* حذف ظاهر پیش‌فرض مرورگر */
+select.form-select,
+select.select2-hidden-accessible {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none !important;
+    font-size: 0.8rem;
+}
+
+/* ===============================
+   جدول فشرده
+   =============================== */
+.table-sm-custom {
+    font-size: 0.8rem;
+    position: relative;
+}
+
+.table-sm-custom .form-select,
+.table-sm-custom .form-control,
+.table-sm-custom .select2-container .select2-selection--single {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    height: auto;
+}
+
+.table-sm-custom .accordion-button {
+    font-size: 0.8rem;
+}
+
+.table-sm-custom .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* دکمه آیکون */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+/* ===============================
+   کنترل لایه‌بندی منوی اصلی و محتوا
+   =============================== */
+.main-navbar, .navbar {
+    z-index: 1020 !important;
+    position: relative;
+    font-size: 0.85rem;
+}
+
+.card,
+.card-body,
+.table-responsive,
+.accordion,
+.accordion-body {
+    position: relative;
+    z-index: 1030 !important;
+    font-size: 0.85rem;
+}
+
+/* حل مشکل اسکرول و نمایش dropdown */
+.select2-container--bootstrap-5 {
+    z-index: 1035 !important;
+    font-size: 0.8rem;
+}
+
+.select2-container--open {
+    z-index: 1036 !important;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    z-index: 1037 !important;
+    font-size: 0.8rem;
+}
+
+.accordion-body,
+.card-body {
+    overflow: visible !important;
+}
+
+.table-responsive {
+    overflow: visible !important;
+}
+
+.table-sm-custom tr {
+    position: relative;
+}
+
+.table-sm-custom td {
+    position: relative;
+    overflow: visible !important;
+}
+
+.table-sm-custom .select2-container--open {
+    z-index: 1038 !important;
+}
+
+.table-sm-custom .select2-dropdown {
+    z-index: 1039 !important;
+}
+
+/* حل مشکل در modal و offcanvas */
+.modal,
+.offcanvas {
+    overflow: visible !important;
+}
+
+.modal-content,
+.offcanvas-body {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* 🔹 اصلاح محل آیکون ضربدر در حالت RTL */
+.select2-container--bootstrap-5[dir="rtl"] .select2-selection__clear {
+    position: absolute;
+    left: 0.75rem;
+    right: auto !important;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 0.9rem;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* 🔹 جلوگیری از افتادن متن روی ضربدر */
+.select2-container--bootstrap-5[dir="rtl"] .select2-selection--single .select2-selection__rendered {
+    padding-left: 1.5rem;
+    padding-right: 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* راه حل جایگزین برای dropdown در سطرهای پایین */
+.select2-container--bootstrap-5 .select2-dropdown {
+    transform: translateZ(0);
+    will-change: transform;
+    position: absolute !important;
+    font-size: 0.8rem;
+}
+    /* ===============================
+           حذف فلش آکاردئون و راست‌چین کردن متن
+           =============================== */
+    .accordion-button::after {
+        display: none; /* حذف فلش */
     }
 
-    .select2-container--bootstrap-5 .select2-selection--single {
-        height: 32px;
-        padding: 0.25rem 0.5rem;
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-        display: flex;
-        align-items: center;
-    }
-
-    .select2-container--bootstrap-5 .select2-selection__rendered {
-        color: #212529;
-        line-height: 1.5;
-        font-size: 0.82rem;
-        padding-right: 30px;
-        padding-left: 10px;
-    }
-
-    .select2-container--bootstrap-5 .select2-selection__clear {
-        right: 8px !important;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    .select2-container--bootstrap-5 .select2-selection__arrow {
-        right: 4px;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-
-    /* راست‌چین برای RTL */
-    select.form-select[dir="rtl"],
-    .select2-container[dir="rtl"] .select2-selection--single {
-        direction: rtl;
-        text-align: right;
+    .accordion-button {
+        text-align: right; /* متن راست‌چین */
+        justify-content: flex-start;
         padding-right: 1rem;
-        padding-left: 2rem;
     }
-
-    /* حذف ظاهر پیش‌فرض مرورگر */
-    select.form-select,
-    select.select2-hidden-accessible {
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-        background-image: none !important;
-    }
-
-    /* جدول فشرده */
-    .table-sm-custom {
-        font-size: 0.85rem;
-    }
-
-        .table-sm-custom .form-select,
-        .table-sm-custom .form-control,
-        .table-sm-custom .select2-container .select2-selection--single {
-            font-size: 0.85rem;
-            padding: 0.25rem 0.5rem;
-            height: auto;
-        }
-
-        .table-sm-custom .accordion-button {
-            font-size: 0.82rem;
-        }
-
-        .table-sm-custom .btn-sm {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.8rem;
-        }
-
-    .btn-icon {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-    }
-    /* === کنترل لایه‌بندی منوی اصلی و محتوای صفحه === */
-
-    /* منوی اصلی فقط در سطح خودش بالا باشد */
-    .main-navbar, .navbar {
-        z-index: 1020 !important; /* نه خیلی زیاد که روی dropdown بیفته */
-        position: relative;
-    }
-
-    /* محتوا و آکاردئون‌ها */
-    .card,
-    .card-body,
-    .table-responsive,
-    .accordion,
-    .accordion-body {
-        position: relative;
-        z-index: 1030 !important; /* بالاتر از منو */
-    }
-
-    .select2-container--bootstrap-5 .select2-dropdown {
-        z-index: 2000 !important;
-    }
-
-    .select2-selection__rendered {
-        white-space: normal !important;
-    }
-
-    .accordion-body, .card-body {
-        overflow: visible !important;
-    }
-
-
 </style>
 
 <link href="~/lib/bootstrap-5.1.3-dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -446,28 +541,64 @@
             initSelect2($('select.select2-purchase-request'), 'انتخاب درخواست خرید');
             initSelect2($('select.category-select, select.warehouse-select'), 'جستجو و انتخاب');
         });
+
+
+
+
+                  // اصلاح تابع initSelect2 برای تنظیم فونت
         function initSelect2($elements, placeholder) {
-          $elements.each(function () {
-            const $el = $(this);
-            if ($el.hasClass('select2-hidden-accessible')) {
-              $el.select2('destroy');
-            }
-            $el.select2({
-              theme: 'bootstrap-5',
-              placeholder: placeholder,
-              allowClear: true,
-              dir: 'rtl',
-              language: 'fa',
-              width: '100%',
-              dropdownParent: getDropdownParent($el)
+            $elements.each(function () {
+                const $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: placeholder,
+                    allowClear: true,
+                    dir: 'rtl',
+                    language: 'fa',
+                    width: '100%',
+                    dropdownParent: getDropdownParent($el),
+                    templateResult: function (data) {
+                        if (!data.id) return data.text;
+                        return $('<span style="font-size: 0.85rem;">' + data.text + '</span>');
+                    },
+                    templateSelection: function (data) {
+                        if (!data.id) return data.text;
+                        return $('<span style="font-size: 0.85rem;">' + data.text + '</span>');
+                    }
+                });
             });
-          });
         }
 
-        function getDropdownParent($el) {
-          if ($el.closest('.modal').length) return $el.closest('.modal');
-          if ($el.closest('.offcanvas').length) return $el.closest('.offcanvas');
-          return $(document.body);
+
+      
+
+                    function getDropdownParent($el) {
+            // اگر داخل modal باشد
+            const $modal = $el.closest('.modal');
+            if ($modal.length) {
+                $modal.css('overflow', 'visible');
+                return $modal;
+            }
+
+            // اگر داخل offcanvas باشد
+            const $offcanvas = $el.closest('.offcanvas');
+            if ($offcanvas.length) {
+                $offcanvas.css('overflow', 'visible');
+                return $offcanvas;
+            }
+
+            // اگر داخل table-responsive باشد، از body استفاده کن
+            const $tableResponsive = $el.closest('.table-responsive');
+            if ($tableResponsive.length) {
+                $tableResponsive.css('overflow', 'visible');
+                return $(document.body);
+            }
+
+            // fallback: همیشه body
+            return $(document.body);
         }
 
 
@@ -828,45 +959,23 @@
                 error: () => alert('خطا در بارگذاری کالاها. لطفاً دوباره تلاش کنید.')
             });
                 });
-
-                  $(document).on("change", ".product-select", function () {
+            // ==========================
+             $(document).on("change", ".product-select", function () {
             const rowIndex = $(this).data("index");
             const productId = $(this).val();
             const $uniqueSelect = $(`select[name="Items[${rowIndex}].UniqueCodes"]`);
+            const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
 
-            // تخریب Select2 قبلی اگر وجود داشت
+            // پاکسازی و تخریب Select2 قبلی
             if ($uniqueSelect.hasClass('select2-hidden-accessible')) {
                 $uniqueSelect.select2('destroy');
             }
-
-            // پاکسازی همه گزینه‌ها به جز گزینه پیش‌فرض
             $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
 
-            if (productId) {
-                $.get(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes?productId=${productId}`, function (data) {
-                    if (data && data.length > 0) {
-                        data.forEach(item => {
-                            if (typeof item === 'string' || typeof item === 'number') {
-                                $uniqueSelect.append(`<option value="${item}">${item}</option>`);
-                            } else if (item.id !== undefined && item.uniqueCode !== undefined) {
-                                $uniqueSelect.append(`<option value="${item.id}">${item.uniqueCode}</option>`);
-                            }
-                        });
-                    }
+            // بازگرداندن حالت فعال به تعداد
+            $quantityInput.val('').prop('disabled', false).removeClass('disabled-quantity');
 
-                    $uniqueSelect.select2({
-                        theme: 'bootstrap-5',
-                        placeholder: 'کد یکتا را انتخاب کنید',
-                        allowClear: true,
-                        dir: 'rtl',
-                        dropdownParent: $uniqueSelect.closest('.accordion-body').length
-                            ? $uniqueSelect.closest('.accordion-body')
-                            : $(document.body)
-                    });
-                }).fail(() => {
-                    console.error("❌ خطا در دریافت کدهای یکتا");
-                });
-            } else {
+            if (!productId) {
                 $uniqueSelect.select2({
                     theme: 'bootstrap-5',
                     placeholder: 'ابتدا کالا را انتخاب کنید',
@@ -876,8 +985,49 @@
                         ? $uniqueSelect.closest('.accordion-body')
                         : $(document.body)
                 });
+                return;
+            }
+
+            // درخواست AJAX برای دریافت کدهای یکتا
+            $.get(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes?productId=${productId}`, function (data) {
+                console.log("Received unique codes:", data); // لاگ برای بررسی داده‌ها
+
+                if (data && data.length > 0) {
+                            data.forEach(item => {
+           $uniqueSelect.append(`<option value="${item.id}">${item.displayHierarchyByCode}</option>`);
+        });
+
+                }
+
+                // Initialize یا Re-initialize Select2
+                $uniqueSelect.select2({
+                    theme: 'bootstrap-5',
+                    placeholder: 'کد یکتا را انتخاب کنید',
+                    allowClear: true,
+                    dir: 'rtl',
+                    dropdownParent: $uniqueSelect.closest('.accordion-body').length
+                        ? $uniqueSelect.closest('.accordion-body')
+                        : $(document.body)
+                });
+            }).fail(() => {
+                console.error("❌ خطا در دریافت کدهای یکتا");
+            });
+        });
+
+
+
+                      $(document).on("change", ".unique-codes-select", function () {
+            const $this = $(this);
+            const rowIndex = $this.data("index");
+            const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
+
+            if ($this.val()) {
+                $quantityInput.val(1).prop('disabled', true).addClass('disabled-quantity');
+            } else {
+                $quantityInput.val('').prop('disabled', false).removeClass('disabled-quantity');
             }
         });
+
 
 
 
@@ -895,8 +1045,50 @@
             $row.remove();
             $errorRow.remove();
         });
+                      // === finalizeRow: نمایش خلاصه آکاردئون و بستن آن ===
+        function finalizeRow($row, index, prefix) {
+            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text() || 'انتخاب نشده';
+            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text() || 'انتخاب نشده';
+            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text() || 'انتخاب نشده';
+            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text() || 'انتخاب نشده';
 
-                   $(document).on('click', '.save-item', function () {
+            // دریافت uniqueCodes به صورت آرایه
+            let uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val() || [];
+            if (!Array.isArray(uniqueCodes)) uniqueCodes = [uniqueCodes];
+            const uniqueCodesText = uniqueCodes.length > 0 ? uniqueCodes.join(', ') : 'بدون کد یکتا';
+
+            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText} (${uniqueCodesText})`;
+
+            // === خلاصه مبدا ===
+            const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+            const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text() || 'انتخاب نشده';
+            const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text() || 'انتخاب نشده';
+            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+            // === خلاصه مقصد ===
+            const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+            const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text() || 'انتخاب نشده';
+            const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text() || 'انتخاب نشده';
+            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+            // === نمایش خلاصه و بستن آکاردئون ===
+            const updateAccordion = ($collapse, summary) => {
+                const $header = $collapse.siblings('.accordion-header').find('.accordion-button');
+                $header.html(summary).css({
+                    'text-align': 'right',
+                    'justify-content': 'flex-start',
+                    'direction': 'rtl'
+                });
+                bootstrap.Collapse.getOrCreateInstance($collapse[0]).hide();
+            };
+
+            updateAccordion($row.find(`#productCollapse_${index}`), productSummary);
+            updateAccordion($row.find(`#sourceCollapse_${index}`), sourceSummary);
+            updateAccordion($row.find(`#destCollapse_${index}`), destSummary);
+        }
+
+        // === save-item handler ===
+        $(document).on('click', '.save-item', function () {
             const $row = $(this).closest('tr.align-middle');
             const index = $row.data('index');
             const prefix = 'Items';
@@ -910,7 +1102,10 @@
             const destWarehouseId = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"]`).val();
             const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
             const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
-            const uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val(); // اصلاح‌شده
+
+            // دریافت uniqueCodes به صورت آرایه
+            let uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val() || [];
+            if (!Array.isArray(uniqueCodes)) uniqueCodes = [uniqueCodes];
 
             let errors = [];
             if (!productId) errors.push('کالا انتخاب نشده است.');
@@ -921,9 +1116,7 @@
             if (!destWarehouseId) errors.push('انبار مقصد انتخاب نشده است.');
             if (!destZoneId) errors.push('قسمت مقصد انتخاب نشده است.');
             if (!destSectionId) errors.push('بخش مقصد انتخاب نشده است.');
-            if (uniqueCodes && uniqueCodes.some(code => code.trim() === '')) {
-                errors.push('کدهای یکتا نمی‌توانند خالی باشند.');
-            }
+        
 
             const $errorRow = $(`tr.validation-row[data-index="${index}"]`);
             const $errorBox = $errorRow.find('.error-message-list');
@@ -931,17 +1124,18 @@
             if (errors.length > 0) {
                 $errorBox.html(`<ul>${errors.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
                 $errorRow.show();
-                return;
+                return; // اگر خطا بود آکاردئون باز می‌ماند و خطا نمایش داده می‌شود
             } else {
                 $errorBox.empty();
                 $errorRow.hide();
             }
 
             if (!purchaseRequestId) {
-                finalizeRow($row, index, prefix);
+                finalizeRow($row, index, prefix); // اگر مشکلی نبود خلاصه نمایش داده می‌شود و آکاردئون بسته می‌شود
                 return;
             }
 
+            // بررسی وجود محصول در درخواست خرید
             $.get('/WarehouseManagement/ReceiptOrIssue/CheckProductInPurchaseRequest', { productId, purchaseRequestId }, function (response) {
                 if (!response.exists) {
                     $errorBox.html('<ul><li>این کالا در درخواست خرید انتخاب شده وجود ندارد.</li></ul>');
@@ -952,40 +1146,7 @@
             }).fail(() => alert('خطا در ارتباط با سرور.'));
         });
 
-                   function finalizeRow($row, index, prefix) {
-            const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text() || 'انتخاب نشده';
-            const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text() || 'انتخاب نشده';
-            const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text() || 'انتخاب نشده';
-            const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text() || 'انتخاب نشده';
-            const uniqueCodes = $row.find(`select[name="${prefix}[${index}].UniqueCodes"]`).val() || [];
-            const uniqueCodesText = uniqueCodes.length > 0 ? uniqueCodes.join(', ') : 'بدون کد یکتا';
-            const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText} (${uniqueCodesText})`;
 
-            const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text() || 'انتخاب نشده';
-            const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text() || 'انتخاب نشده';
-            const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text() || 'انتخاب نشده';
-            const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
-
-            const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text() || 'انتخاب نشده';
-            const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text() || 'انتخاب نشده';
-            const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text() || 'انتخاب نشده';
-            const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
-
-            const $productCollapse = $row.find(`#productCollapse_${index}`);
-            const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
-            $productHeader.html(productSummary);
-            bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
-
-            const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-            const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
-            $sourceHeader.html(sourceSummary);
-            bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
-
-            const $destCollapse = $row.find(`#destCollapse_${index}`);
-            const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
-            $destHeader.html(destSummary);
-            bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
-        }
 
         $('#receiptIssueForm').submit(function (e) {
             e.preventDefault();

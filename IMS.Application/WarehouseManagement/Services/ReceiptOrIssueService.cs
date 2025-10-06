@@ -220,7 +220,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
 
         public async Task<(ReceiptOrIssueDto? Result, List<string> Errors)> CreateAsync(
-      ReceiptOrIssueDto dto, CancellationToken cancellationToken = default)
+        ReceiptOrIssueDto dto, CancellationToken cancellationToken = default)
         {
             if (dto == null)
                 throw new ArgumentNullException(nameof(dto));
@@ -265,8 +265,10 @@ namespace IMS.Application.WarehouseManagement.Services
 
                 if (item.ProductId <= 0)
                     errors.Add($"شناسه کالا معتبر نیست.");
-                if (item.Quantity <= 0)
+        
+                if (!item.UniqueCodes.Any() && item.Quantity <= 0)
                     errors.Add($"تعداد برای کالا {productName} باید بیشتر از صفر باشد.");
+
 
                 var purchaseRequestItem = purchaseRequestItems
                     .FirstOrDefault(pri => pri.ProductId == item.ProductId && pri.PurchaseRequestId == item.PurchaseRequestId);
@@ -443,7 +445,7 @@ namespace IMS.Application.WarehouseManagement.Services
                         if (sourceInventory == null || destinationInventory == null)
                             throw new InvalidOperationException($"موجودی مبدأ یا مقصد برای کالای {productName} یافت نشد.");
                         sourceInventory.Quantity -= item.Quantity;
-                        if (sourceInventory.Quantity <= 0)
+                        if (sourceInventory.Quantity < 0)
                             throw new InvalidOperationException($"موجودی کالا {productName} در انبار مبدأ به صفر یا کمتر رسید.");
                         destinationInventory.Quantity += item.Quantity;
                         if (destinationInventory.Quantity <= 0)
@@ -951,6 +953,8 @@ namespace IMS.Application.WarehouseManagement.Services
 
             return result;
         }
+
+
         public List<SelectListItem> GetZonesByWarehouse(int warehouseId)
         {
             return _dbContext.StorageZones
@@ -973,6 +977,8 @@ namespace IMS.Application.WarehouseManagement.Services
                 }).ToList();
 
         }
+
+
         public async Task<List<SelectListItem>> GetGroupsByCategoryAsync(int categoryId)
         {
             return await _dbContext.Groups
