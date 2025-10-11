@@ -812,40 +812,178 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
         {
-            // گرفتن ProductItems مرتبط با محصول به همراه روابط لازم
-            var productItems = await _context.ProductItems
+            var inventoryQuery = _context.Inventories
+                .AsNoTracking()
+                .Include(i => i.InventoryItems)
+                .Include(i => i.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
+                .Where(i => i.ProductId == productId);
+
+            if (sourceWarehouseId.HasValue)
+                inventoryQuery = inventoryQuery.Where(i => i.WarehouseId == sourceWarehouseId.Value);
+
+            var inventoryCodes = await inventoryQuery
+                .SelectMany(i => i.InventoryItems
+                    .Where(ii => !string.IsNullOrWhiteSpace(ii.UniqueCode))
+                    .Select(ii => new
+                    {
+                        id = ii.UniqueCode,
+                        text =
+                            "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+                            "G" + (i.Product.Status.Group.Code ?? "NA") +
+                            "S" + (i.Product.Status.Code ?? "NA") +
+                            "P" + (i.Product.Code ?? "NA") + "_" + (ii.UniqueCode ?? "NA"),
+                        hierarchy =
+                            "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+                            "G" + (i.Product.Status.Group.Code ?? "NA") +
+                            "S" + (i.Product.Status.Code ?? "NA") +
+                            "P" + (i.Product.Code ?? "NA") +
+                            " (" + (ii.UniqueCode ?? "NA") + ")"
+                    }))
+                .ToListAsync();
+
+            // اگر موجودی در انبار نداشت، از ProductItems بگیر
+            if (!inventoryCodes.Any())
+            {
+                var productItems = await _context.ProductItems
+                    .AsNoTracking()
+                    .Include(pi => pi.Product)
+                        .ThenInclude(p => p.Status)
+                            .ThenInclude(s => s.Group)
+                                .ThenInclude(g => g.Category)
+                    .Where(pi => pi.ProductId == productId && !string.IsNullOrWhiteSpace(pi.UniqueCode))
+                    .Select(pi => new
+                    {
+                        id = pi.UniqueCode,
+                        text =
+                            "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+                            "G" + (pi.Product.Status.Group.Code ?? "NA") +
+                            "S" + (pi.Product.Status.Code ?? "NA") +
+                            "P" + (pi.Product.Code ?? "NA") + "_" + (pi.UniqueCode ?? "NA"),
+                        hierarchy =
+                            "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+                            "G" + (pi.Product.Status.Group.Code ?? "NA") +
+                            "S" + (pi.Product.Status.Code ?? "NA") +
+                            "P" + (pi.Product.Code ?? "NA") +
+                            " (" + (pi.UniqueCode ?? "NA") + ")"
+                    })
+                    .ToListAsync();
+
+                return Json(productItems);
+            }
+
+            return Json(inventoryCodes);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueCodeDetails(string uniqueCodeId)
+        {
+            if (string.IsNullOrWhiteSpace(uniqueCodeId))
+                return BadRequest("کد یکتا نامعتبر است.");
+
+            var inventoryItem = await _context.InventoryItems
+                .AsNoTracking()
+                .Where(ii => ii.UniqueCode == uniqueCodeId)
+                .Include(ii => ii.Inventory)
+                    .ThenInclude(inv => inv.Product)
+                        .ThenInclude(p => p.Status)
+                            .ThenInclude(s => s.Group)
+                                .ThenInclude(g => g.Category)
+                .Include(ii => ii.Inventory.Zone)
+                .Include(ii => ii.Inventory.Section)
+                .Select(ii => new
+                {
+                    ii.UniqueCode,
+                    WarehouseId = ii.Inventory.WarehouseId,
+                    ZoneId = ii.Inventory.ZoneId,
+                    ZoneName = ii.Inventory.Zone!.Name,
+                    SectionId = ii.Inventory.SectionId,
+                    SectionName = ii.Inventory.Section!.Name,
+                    ProductCode = ii.Inventory.Product.Code,
+                    CategoryCode = ii.Inventory.Product.Status.Group.Category.Code,
+                    GroupCode = ii.Inventory.Product.Status.Group.Code,
+                    StatusCode = ii.Inventory.Product.Status.Code
+                })
+                .FirstOrDefaultAsync();
+
+            if (inventoryItem != null)
+            {
+                var fullText =
+                    "C" + (inventoryItem.CategoryCode ?? "NA") +
+                    "G" + (inventoryItem.GroupCode ?? "NA") +
+                    "S" + (inventoryItem.StatusCode ?? "NA") +
+                    "P" + (inventoryItem.ProductCode ?? "NA") + "_" + (inventoryItem.UniqueCode ?? "NA");
+
+                var hierarchy =
+                    "C" + (inventoryItem.CategoryCode ?? "NA") +
+                    "G" + (inventoryItem.GroupCode ?? "NA") +
+                    "S" + (inventoryItem.StatusCode ?? "NA") +
+                    "P" + (inventoryItem.ProductCode ?? "NA") +
+                    "(Warehouse:" + inventoryItem.WarehouseId +
+                    ", Zone:" + inventoryItem.ZoneName +
+                    ", Section:" + inventoryItem.SectionName +
+                    ", UniqueCode:" + inventoryItem.UniqueCode + ")";
+
+                return Json(new
+                {
+                    sourceWarehouseId = inventoryItem.WarehouseId,
+                    sourceZoneId = inventoryItem.ZoneId,
+                    sourceSectionId = inventoryItem.SectionId,
+                    projectId = (int?)null,
+                    hierarchy,
+                    uniqueCode = inventoryItem.UniqueCode,
+                    text = fullText
+                });
+            }
+
+            var productItem = await _context.ProductItems
+                .AsNoTracking()
+                .Where(pi => pi.UniqueCode == uniqueCodeId)
                 .Include(pi => pi.Product)
                     .ThenInclude(p => p.Status)
                         .ThenInclude(s => s.Group)
                             .ThenInclude(g => g.Category)
-                .Where(pi => pi.ProductId == productId)
-                .ToListAsync();
-
-            // ساخت لیست خروجی
-            var result = productItems
-                .Where(pi => pi.Product.IsUnique) // فقط آیتم‌های یکتا
                 .Select(pi => new
                 {
-                    pi.Id,
                     pi.UniqueCode,
-                    pi.Sequence,
-                    CategoryCode = pi.Product.Status?.Group?.Category?.Code ?? "",
-                    GroupCode = pi.Product.Status?.Group?.Code ?? "",
-                    StatusCode = pi.Product.Status?.Code ?? "",
-                    ProductCode = pi.Product?.Code ?? "",
-                    DisplayHierarchyByCode = // همیشه سلسله مراتب
-                        $"C{pi.Product.Status?.Group?.Category?.Code ?? ""}G{pi.Product.Status?.Group?.Code ?? ""}S{pi.Product.Status?.Code ?? ""}P{pi.Product?.Code ?? ""}_{pi.Sequence}"
+                    pi.ProjectId,
+                    ProductCode = pi.Product.Code,
+                    CategoryCode = pi.Product.Status.Group.Category.Code,
+                    GroupCode = pi.Product.Status.Group.Code,
+                    StatusCode = pi.Product.Status.Code
                 })
-                .ToList();
+                .FirstOrDefaultAsync();
 
-            return Json(result);
+            if (productItem == null)
+                return NotFound();
+
+            var fullTextProd =
+                "C" + (productItem.CategoryCode ?? "NA") +
+                "G" + (productItem.GroupCode ?? "NA") +
+                "S" + (productItem.StatusCode ?? "NA") +
+                "P" + (productItem.ProductCode ?? "NA") + "_" + (productItem.UniqueCode ?? "NA");
+
+            var hierarchyProd =
+                "C" + (productItem.CategoryCode ?? "NA") +
+                "G" + (productItem.GroupCode ?? "NA") +
+                "S" + (productItem.StatusCode ?? "NA") +
+                "P" + (productItem.ProductCode ?? "NA") +
+                "(UniqueCode:" + (productItem.UniqueCode ?? "NA") + ")";
+
+            return Json(new
+            {
+                sourceWarehouseId = (int?)null,
+                sourceZoneId = (int?)null,
+                sourceSectionId = (int?)null,
+                projectId = productItem.ProjectId,
+                hierarchy = hierarchyProd,
+                uniqueCode = productItem.UniqueCode,
+                text = fullTextProd
+            });
         }
-
-
-
-
-
-
 
     }
 }

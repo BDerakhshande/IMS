@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
 
         // مبدأ
         public int? SourceWarehouseId { get; set; }
-        // برای ارتباط با انبار مبدأ اگر نیاز باشد:
+    
         public Warehouse? SourceWarehouse { get; set; }
 
         public int? SourceZoneId { get; set; }
@@ -54,7 +55,15 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int? ProjectId { get; set; }
         public string? ProjectTitle { get; set; }
 
+      
+        [NotMapped] 
+        public string? SourceWarehouseName { get; set; }
 
+        [NotMapped]
+        public string? SourceZoneName { get; set; }
+
+        [NotMapped]
+        public string? SourceSectionName { get; set; }
 
         public int? PurchaseRequestId { get; set; }      // ارتباط به درخواست خرید
         public string? PurchaseRequestTitle { get; set; } // عنوان درخواست خرید
