@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ using IMS.Domain.ProjectManagement.Enums;
 
 namespace IMS.Domain.ProjectManagement.Entities
 {
+
+    [Table("Projects", Schema = "dbo")]
     public class Project
     {
         public int Id { get; set; }

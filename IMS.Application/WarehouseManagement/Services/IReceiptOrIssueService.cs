@@ -12,7 +12,7 @@ namespace IMS.Application.WarehouseManagement.Services
     {
         Task<ReceiptOrIssueDto?> GetByIdAsync(int id);
 
-
+     
         Task<List<ReceiptOrIssueDto>> GetAllAsync(int? warehouseId = null);
 
         Task<(ReceiptOrIssueDto? Result, List<string> Errors)> CreateAsync(

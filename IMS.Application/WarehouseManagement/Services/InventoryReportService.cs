@@ -10,16 +10,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Application.WarehouseManagement.Services
 {
-    public class InventoryReportService: IInventoryReportService
+    public class InventoryReportService : IInventoryReportService
     {
-        private IWarehouseDbContext _dbContext;
-        public InventoryReportService(IWarehouseDbContext dbContext) 
+        private readonly IWarehouseDbContext _dbContext;
+
+        public InventoryReportService(IWarehouseDbContext dbContext)
         {
             _dbContext = dbContext;
         }
 
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
+            // کوئری پایه
             var query = from i in _dbContext.Inventories
                         join p in _dbContext.Products on i.ProductId equals p.Id
                         join s in _dbContext.Statuses on p.StatusId equals s.Id
@@ -42,6 +44,7 @@ namespace IMS.Application.WarehouseManagement.Services
                             Section = sec
                         };
 
+            // فیلترها
             if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 var warehouseIds = filter.Warehouses
@@ -70,8 +73,15 @@ namespace IMS.Application.WarehouseManagement.Services
                 query = query.Where(x => x.Product.Name.Contains(search));
             }
 
+            if (filter.UniqueCode != null && filter.UniqueCode.Any())
+            {
+                query = query.Where(x => x.Inventory.InventoryItems
+                    .Any(ii => filter.UniqueCode.Contains(ii.UniqueCode)));
+            }
+
             var list = await query.ToListAsync();
 
+            // فیلتر پیشرفته انبار، زون و بخش
             if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 list = list.Where(i =>
@@ -83,99 +93,84 @@ namespace IMS.Application.WarehouseManagement.Services
                 ).ToList();
             }
 
+            // گروه‌بندی نتایج
             var groupedResults = list
-      .GroupBy(i => new
-      {
-          i.Inventory.WarehouseId,
-          WarehouseName = i.Warehouse.Name,
-          ZoneId = i.Inventory.ZoneId,
-          ZoneName = i.Zone?.Name,
-          SectionId = i.Inventory.SectionId,
-          SectionName = i.Section?.Name,
-          CategoryId = i.Category.Id,
-          CategoryName = i.Category.Name,
-          GroupId = i.Group.Id,
-          GroupName = i.Group.Name,
-          StatusId = i.Status.Id,
-          StatusName = i.Status.Name,
-          ProductId = i.Product.Id,
-          ProductName = i.Product.Name
-      })
-      .Select(g => new InventoryReportResultDto
-      {
-          WarehouseId = g.Key.WarehouseId,
-          WarehouseName = g.Key.WarehouseName,
-          ZoneId = g.Key.ZoneId,
-          ZoneName = g.Key.ZoneName,
-          SectionId = g.Key.SectionId,
-          SectionName = g.Key.SectionName,
-          CategoryId = g.Key.CategoryId,
-          CategoryName = g.Key.CategoryName,
-          GroupId = g.Key.GroupId,
-          GroupName = g.Key.GroupName,
-          StatusId = g.Key.StatusId,
-          StatusName = g.Key.StatusName,
-          ProductId = g.Key.ProductId,
-          ProductName = g.Key.ProductName,
-          Quantity = g.Sum(x => x.Inventory.Quantity)
-      })
-      .ToList();
+                .GroupBy(i => new
+                {
+                    i.Inventory.WarehouseId,
+                    WarehouseName = i.Warehouse.Name,
+                    ZoneId = i.Inventory.ZoneId,
+                    ZoneName = i.Zone?.Name,
+                    SectionId = i.Inventory.SectionId,
+                    SectionName = i.Section?.Name,
+                    CategoryId = i.Category.Id,
+                    CategoryName = i.Category.Name,
+                    GroupId = i.Group.Id,
+                    GroupName = i.Group.Name,
+                    StatusId = i.Status.Id,
+                    StatusName = i.Status.Name,
+                    ProductId = i.Product.Id,
+                    ProductName = i.Product.Name
+                })
+                .Select(g => new InventoryReportResultDto
+                {
+                    WarehouseId = g.Key.WarehouseId,
+                    WarehouseName = g.Key.WarehouseName,
+                    ZoneId = g.Key.ZoneId,
+                    ZoneName = g.Key.ZoneName,
+                    SectionId = g.Key.SectionId,
+                    SectionName = g.Key.SectionName,
+                    CategoryId = g.Key.CategoryId,
+                    CategoryName = g.Key.CategoryName,
+                    GroupId = g.Key.GroupId,
+                    GroupName = g.Key.GroupName,
+                    StatusId = g.Key.StatusId,
+                    StatusName = g.Key.StatusName,
+                    ProductId = g.Key.ProductId,
+                    ProductName = g.Key.ProductName,
+                    Quantity = g.Sum(x => x.Inventory.Quantity),
+                    UniqueCodes = _dbContext.InventoryItems
+                        .Where(ii => g.Select(x => x.Inventory.Id).Contains(ii.InventoryId))
+                        .Select(ii => ii.UniqueCode)
+                        .ToList()
+                })
+                .ToList();
 
             return groupedResults;
         }
 
-
-
-
+        #region SelectListItem Methods
 
         public async Task<List<SelectListItem>> GetZonesByWarehouseIdAsync(int warehouseId)
         {
             return await _dbContext.StorageZones
                 .Where(z => z.WarehouseId == warehouseId)
-                .Select(z => new SelectListItem
-                {
-                    Value = z.Id.ToString(),
-                    Text = z.Name
-                })
+                .OrderBy(z => z.Name)
+                .Select(z => new SelectListItem { Value = z.Id.ToString(), Text = z.Name })
                 .ToListAsync();
         }
-
 
         public async Task<List<SelectListItem>> GetAllZonesAsync()
         {
             return await _dbContext.StorageZones
                 .OrderBy(z => z.Name)
-                .Select(z => new SelectListItem
-                {
-                    Value = z.Id.ToString(),
-                    Text = z.Name
-                })
+                .Select(z => new SelectListItem { Value = z.Id.ToString(), Text = z.Name })
                 .ToListAsync();
         }
-
 
         public async Task<List<SelectListItem>> GetAllSectionsAsync()
         {
             return await _dbContext.StorageSections
                 .OrderBy(s => s.Name)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToListAsync();
         }
-
 
         public async Task<List<SelectListItem>> GetAllGroupsAsync()
         {
             return await _dbContext.Groups
                 .OrderBy(g => g.Name)
-                .Select(g => new SelectListItem
-                {
-                    Value = g.Id.ToString(),
-                    Text = g.Name
-                })
+                .Select(g => new SelectListItem { Value = g.Id.ToString(), Text = g.Name })
                 .ToListAsync();
         }
 
@@ -183,11 +178,7 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             return await _dbContext.Statuses
                 .OrderBy(s => s.Name)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToListAsync();
         }
 
@@ -195,27 +186,18 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             return await _dbContext.Products
                 .OrderBy(p => p.Name)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.Name
-                })
+                .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
                 .ToListAsync();
         }
 
         public async Task<List<SelectListItem>> GetSectionsByZoneIdsAsync(List<int> zoneIds)
         {
-            if (zoneIds == null || zoneIds.Count == 0)
-                return new List<SelectListItem>();
+            if (zoneIds == null || zoneIds.Count == 0) return new List<SelectListItem>();
 
             return await _dbContext.StorageSections
                 .Where(s => zoneIds.Contains(s.ZoneId))
                 .OrderBy(s => s.Name)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                })
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 .ToListAsync();
         }
 
@@ -224,11 +206,8 @@ namespace IMS.Application.WarehouseManagement.Services
             return await _dbContext.Groups
                 .Where(g => g.CategoryId == categoryId)
                 .OrderBy(g => g.Name)
-                .Select(g => new SelectListItem
-                {
-                    Value = g.Id.ToString(),
-                    Text = g.Name
-                }).ToListAsync();
+                .Select(g => new SelectListItem { Value = g.Id.ToString(), Text = g.Name })
+                .ToListAsync();
         }
 
         public async Task<List<SelectListItem>> GetStatusesByGroupIdAsync(int groupId)
@@ -236,11 +215,8 @@ namespace IMS.Application.WarehouseManagement.Services
             return await _dbContext.Statuses
                 .Where(s => s.GroupId == groupId)
                 .OrderBy(s => s.Name)
-                .Select(s => new SelectListItem
-                {
-                    Value = s.Id.ToString(),
-                    Text = s.Name
-                }).ToListAsync();
+                .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
+                .ToListAsync();
         }
 
         public async Task<List<SelectListItem>> GetProductsByStatusIdAsync(int statusId)
@@ -248,12 +224,11 @@ namespace IMS.Application.WarehouseManagement.Services
             return await _dbContext.Products
                 .Where(p => p.StatusId == statusId)
                 .OrderBy(p => p.Name)
-                .Select(p => new SelectListItem
-                {
-                    Value = p.Id.ToString(),
-                    Text = p.Name
-                }).ToListAsync();
+                .Select(p => new SelectListItem { Value = p.Id.ToString(), Text = p.Name })
+                .ToListAsync();
         }
+
+        #endregion
 
         public async Task<byte[]> ExportReportToExcelAsync(InventoryReportFilterDto filter)
         {
@@ -262,6 +237,7 @@ namespace IMS.Application.WarehouseManagement.Services
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Inventory Report");
 
+            // ستون‌ها
             worksheet.Cell(1, 1).Value = "نام انبار";
             worksheet.Cell(1, 2).Value = "قسمت";
             worksheet.Cell(1, 3).Value = "بخش";
@@ -270,6 +246,7 @@ namespace IMS.Application.WarehouseManagement.Services
             worksheet.Cell(1, 6).Value = "طبقه";
             worksheet.Cell(1, 7).Value = "کالا";
             worksheet.Cell(1, 8).Value = "موجودی";
+            worksheet.Cell(1, 9).Value = "کدهای یکتا"; // ستون جدید
 
             int row = 2;
             foreach (var item in data)
@@ -282,14 +259,13 @@ namespace IMS.Application.WarehouseManagement.Services
                 worksheet.Cell(row, 6).Value = item.StatusName;
                 worksheet.Cell(row, 7).Value = item.ProductName;
                 worksheet.Cell(row, 8).Value = item.Quantity;
+                worksheet.Cell(row, 9).Value = string.Join(", ", item.UniqueCodes);
                 row++;
             }
 
             var total = data.Sum(x => x.Quantity);
-
             worksheet.Cell(row, 7).Value = "جمع کل:";
-            worksheet.Cell(row, 8).Value = total;  // به جای استفاده از فرمول
-
+            worksheet.Cell(row, 8).Value = total;
 
             worksheet.Columns().AdjustToContents();
 
@@ -298,6 +274,21 @@ namespace IMS.Application.WarehouseManagement.Services
             return stream.ToArray();
         }
 
+
+
+        public async Task<List<SelectListItem>> GetUniqueCodesByProductIdAsync(int productId)
+        {
+            return await _dbContext.InventoryItems
+                .Where(ii => ii.Inventory.ProductId == productId && !string.IsNullOrWhiteSpace(ii.UniqueCode))
+                .OrderBy(ii => ii.UniqueCode)
+                .Select(ii => new SelectListItem
+                {
+                    Value = ii.UniqueCode,
+                    Text = ii.UniqueCode
+                })
+                .Distinct()
+                .ToListAsync();
+        }
 
 
     }

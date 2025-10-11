@@ -538,42 +538,75 @@ select.select2-hidden-accessible {
             initSelect2($('select.select2-project'), 'انتخاب پروژه');
             initSelect2($('select.select2-purchase-request'), 'انتخاب درخواست خرید');
             initSelect2($('select.category-select, select.warehouse-select'), 'جستجو و انتخاب');
-            $('.unique-codes-select').select2({
+                  $('.unique-codes-select').each(function () {
+            const $select = $(this);
+
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+
+            $select.select2({
+                theme: 'bootstrap-5',
                 placeholder: "انتخاب کد یکتا...",
+                allowClear: true,
+                dir: 'rtl',
+                language: 'fa',
+                width: '100%',
+                dropdownParent: $select.closest('.accordion-body').length ? $select.closest('.accordion-body') : $(document.body),
                 ajax: {
                     url: '/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes',
-                    data: function (params) {
-                        const row = $(this).closest('tr');
+                    data: function () {
+                        // ← اینجا از $select استفاده کن (closure)، نه $(this)
+                        const row = $select.closest('tr');
                         const productId = row.find('.product-select').val();
                         const sourceWarehouseId = row.find('.source-warehouse-select').val();
+                        if (!productId) return false; // جلوگیری از درخواست وقتی productId وجود ندارد
                         return { productId, sourceWarehouseId };
                     },
+                    transport: function (params, success, failure) {
+                        if (!params.data) return; // وقتی data=false برگردانده شد، درخواست نده
+                        return $.ajax(params).then(success).catch(failure);
+                    },
                     processResults: function (data) {
-                        // پاک‌سازی داده‌ها قبل از نمایش
-                        const cleanData = data.map(item => ({
-                            id: item.id,
-                            text: item.text && item.text !== 'undefined' ? item.text : `[کد نامشخص ${item.id}]`,
-                            hierarchy: item.hierarchy || ''
-                        }));
-                        console.log("✅ Cleaned data before binding to Select2:", cleanData);
+                        const cleanData = (data || []).map(item => {
+                            const display = item.displayHierarchyByCode;
+                            const text = item.text;
+                            const id = item.id ?? '';
+
+                            const textValue =
+                                (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                                    ? display
+                                    : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                                        ? text
+                                        : String(id);
+
+                            return {
+                                id: String(id),
+                                text: textValue,
+                                hierarchy: item.hierarchy || ''
+                            };
+                        });
+                        console.log("✅ Cleaned & normalized unique codes before binding to Select2:", cleanData);
                         return { results: cleanData };
-                    }
+                    },
+                    cache: true
                 },
                 templateResult: function (data) {
-                    if (!data.id) return data.text;
-                    // نمایش ساختار سلسله‌مراتبی در dropdown
-                    return $('<div>').html(`
-                        <strong>${data.text}</strong><br>
-                        <small class="text-muted">${data.hierarchy || ''}</small>
-                    `);
+                    if (!data || !data.id) return data && data.text ? data.text : '';
+                    const $node = $('<div class="d-flex flex-column"><span class="fw-bold small"></span><small class="text-muted"></small></div>');
+                    $node.find('span').text(data.text);
+                    $node.find('small').text(data.hierarchy || '');
+                    return $node;
                 },
                 templateSelection: function (data) {
-                    // نمایش متن انتخاب‌شده در فیلد
-                    return data.text || `[کد نامشخص ${data.id}]`;
+                    if (!data) return '';
+                    return data.text || `کد ${data.id || ''}`;
                 },
-                minimumInputLength: 0,
-                width: '100%'
+                escapeMarkup: function (m) { return m; },
+                minimumInputLength: 0
             });
+        });
+
 
         });
 
@@ -1028,9 +1061,21 @@ select.select2-hidden-accessible {
                 console.log("Received unique codes:", data); // لاگ برای بررسی داده‌ها
 
                 if (data && data.length > 0) {
-                            data.forEach(item => {
-           $uniqueSelect.append(`<option value="${item.id}">${item.displayHierarchyByCode}</option>`);
+                                       data.forEach(item => {
+            const display = item.displayHierarchyByCode;
+            const text = item.text;
+            const fallback = item.hierarchy || item.id;
+            const safeText = (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                ? display
+                : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                    ? text
+                    : fallback;
+
+            const opt = new Option(safeText, item.id, false, false);
+            $uniqueSelect.append(opt);
         });
+
+
 
                 }
 
@@ -1048,8 +1093,9 @@ select.select2-hidden-accessible {
                 console.error("❌ خطا در دریافت کدهای یکتا");
             });
         });
-        // =============== Helper: پاک‌سازی متن ===============
-        function sanitizeText(t, idFallback) {
+
+
+                function sanitizeText(t, idFallback) {
             if (t === undefined || t === null) return `کد ${idFallback}`;
             if (typeof t !== 'string') t = String(t);
             t = t.trim();
@@ -1058,35 +1104,24 @@ select.select2-hidden-accessible {
             return t;
         }
 
-        // =============== هندلر تغییر (با دیباگ کامل) ===============
         $(document).on("change", ".unique-codes-select", async function () {
             const $this = $(this);
             const rowIndex = $this.data("index");
 
             if ($this.data('processing')) {
-                console.log("🔁 change already processing for this select — skipping");
+                console.log("🔁 change already processing — skipping");
                 return;
             }
             $this.data('processing', true);
 
             console.groupCollapsed(`🟦 [Change Triggered] Row ${rowIndex}`);
             try {
-                // -------------------------------
-                // مرحله ۱: خواندن داده از Select2
-                // -------------------------------
                 const selArr = $this.select2 ? $this.select2('data') : [];
                 const selectedData = (selArr && selArr.length) ? selArr[0] : {};
-                console.log("1️⃣ selectedData raw from select2:", selectedData);
-
-                // fallback متن از option
                 const optionSelectedText = $this.find('option:selected').text();
-                console.log("🔍 optionSelectedText fallback:", optionSelectedText);
 
                 const uniqueCodeId = selectedData?.id ?? $this.val();
                 let uniqueCodeText = sanitizeText(selectedData?.text ?? optionSelectedText, uniqueCodeId);
-
-                console.log("2️⃣ resolved initial uniqueCodeText before server fetch:", uniqueCodeText);
-                console.log("🔹 uniqueCodeId:", uniqueCodeId);
 
                 if (!uniqueCodeId) {
                     console.warn("⚠️ No uniqueCodeId selected — resetting row");
@@ -1095,119 +1130,60 @@ select.select2-hidden-accessible {
                     return;
                 }
 
-                // -------------------------------
-                // مرحله ۲: درخواست به سرور
-                // -------------------------------
-                console.log("⏳ Fetching details from server...");
                 const data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
-                console.log("3️⃣ Server response data:", data);
-
-                // -------------------------------
-                // مرحله ۳: نهایی‌سازی متن
-                // -------------------------------
-                if (data && typeof data.text === 'string' && data.text.trim() && !["undefined", "null"].includes(data.text.toLowerCase())) {
+                if (data && data.text) {
                     uniqueCodeText = data.text;
-                } else {
-                    console.warn("⚠️ Server text missing or invalid — keeping sanitized text:", uniqueCodeText);
                 }
-
                 uniqueCodeText = sanitizeText(uniqueCodeText, uniqueCodeId);
-                console.log("4️⃣ final uniqueCodeText after server fetch:", uniqueCodeText);
 
-                // -------------------------------
-                // مرحله ۴: بررسی و به‌روزرسانی option
-                // -------------------------------
+                // Update option
                 const existingOption = $this.find(`option[value='${uniqueCodeId}']`);
-                console.log("5️⃣ existingOption found:", existingOption.length ? true : false);
-
                 if (existingOption.length) {
-                    console.log("✏️ Updating existing option text to:", uniqueCodeText);
                     existingOption.text(uniqueCodeText);
-                    existingOption.val(uniqueCodeId);
-
-                    // لاگ بررسی وضعیت DOM بعد از آپدیت
-                    console.log("🧩 option text after update:", existingOption.text());
                 } else {
-                    console.log("➕ Appending new option:", { id: uniqueCodeId, text: uniqueCodeText });
                     const newOption = new Option(uniqueCodeText, uniqueCodeId, true, true);
                     $this.append(newOption);
                 }
 
-                // -------------------------------
-                // مرحله ۵: بررسی وضعیت قبل از refresh
-                // -------------------------------
-                console.log("🧠 select2('data') before refresh:", $this.select2('data'));
-                console.log("🧠 current <option> list before refresh:",
-                    $this.find('option').map((i, o) => ({ val: o.value, text: $(o).text() })).get()
-                );
+                // Refresh Select2
+                $this.val(uniqueCodeId).trigger('change.select2');
+                $this.trigger({ type: 'select2:select', params: { data: { id: uniqueCodeId, text: uniqueCodeText } } });
 
-                // -------------------------------
-                // مرحله ۶: Refresh کردن Select2
-                // -------------------------------
-                console.log("6️⃣ Refreshing Select2 with correct text...");
-
-                // تنظیم مقدار و داده جدید
-                $this.val(uniqueCodeId);
-                $this.select2({
-                    data: [{ id: uniqueCodeId, text: uniqueCodeText }]
-                });
-
-                // شبیه‌سازی انتخاب برای آپدیت UI
-                $this.trigger({
-                    type: 'select2:select',
-                    params: {
-                        data: { id: uniqueCodeId, text: uniqueCodeText }
-                    }
-                });
-
-                // -------------------------------
-                // مرحله ۷: بررسی وضعیت بعد از refresh
-                // -------------------------------
                 setTimeout(() => {
-                    console.log("🧩 select2('data') after refresh:", $this.select2('data'));
-                    console.log("🧩 current <option> list after refresh:",
-                        $this.find('option').map((i, o) => ({ val: o.value, text: $(o).text() })).get()
-                    );
-
-                    // متن در UI
                     const displayedText = $this.next('.select2-container').find('.select2-selection__rendered').text();
                     console.log("🧩 displayed text in UI:", displayedText);
                 }, 300);
 
-
-                // -------------------------------
-                // مرحله ۸: بروزرسانی سایر فیلدها
-                // -------------------------------
+                // Quantity
                 const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
                 $quantityInput.val(1).prop('disabled', true).addClass('disabled-quantity');
 
                 const setDependentSelect = async ($select, value, name) => {
                     if ($select.length) {
-                        console.log(`🔹 Setting ${name} to:`, value);
-                        $select.val(value).trigger('change');
+                        $select.val(value ?? "").trigger('change');
+                        if (!value) {
+                            if ($select.find('option[value=""]').length === 0) {
+                                $select.append(new Option("بدون پروژه", "", true, true));
+                            }
+                        }
                         return new Promise(resolve => setTimeout(resolve, 100));
-                    } else {
-                        console.log(`🔹 ${name} select not found`);
                     }
                 };
 
                 await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId, "sourceWarehouse");
                 await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId, "sourceZone");
                 await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId, "sourceSection");
+                await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId, "project");
 
-                // نمایش یا آپدیت hierarchy
+                // Hierarchy display
                 let $hierarchyDisplay = $(`#hierarchy-display-${rowIndex}`);
                 if ($hierarchyDisplay.length === 0) {
-                    console.log("🆕 Creating hierarchy display...");
                     $this.closest('.row').after(`
-                        <div id="hierarchy-display-${rowIndex}"
-                             class="text-end text-info small mt-1 fw-bold"
-                             style="font-size: 0.85rem;">
+                        <div id="hierarchy-display-${rowIndex}" class="text-end text-info small mt-1 fw-bold" style="font-size:0.85rem;">
                             ${data?.hierarchy || uniqueCodeText}
                         </div>
                     `);
                 } else {
-                    console.log("🔄 Updating hierarchy display with:", data?.hierarchy || uniqueCodeText);
                     $hierarchyDisplay.text(data?.hierarchy || uniqueCodeText).show();
                 }
 

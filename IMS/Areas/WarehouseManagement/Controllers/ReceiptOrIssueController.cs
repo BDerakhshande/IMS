@@ -146,13 +146,23 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex); // یا از ILogger استفاده کن
                 return Json(new
                 {
                     success = false,
-                    errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." }
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
                 });
             }
+
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex); // یا از ILogger استفاده کن
+            //    return Json(new
+            //    {
+            //        success = false,
+            //        errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." }
+            //    });
+            //}
         }
 
 
@@ -827,21 +837,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var inventoryCodes = await inventoryQuery
                 .SelectMany(i => i.InventoryItems
                     .Where(ii => !string.IsNullOrWhiteSpace(ii.UniqueCode))
-                    .Select(ii => new
-                    {
-                        id = ii.UniqueCode,
-                        text =
-                            "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
-                            "G" + (i.Product.Status.Group.Code ?? "NA") +
-                            "S" + (i.Product.Status.Code ?? "NA") +
-                            "P" + (i.Product.Code ?? "NA") + "_" + (ii.UniqueCode ?? "NA"),
-                        hierarchy =
-                            "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
-                            "G" + (i.Product.Status.Group.Code ?? "NA") +
-                            "S" + (i.Product.Status.Code ?? "NA") +
-                            "P" + (i.Product.Code ?? "NA") +
-                            " (" + (ii.UniqueCode ?? "NA") + ")"
-                    }))
+                .Select(ii => new
+                {
+                    id = ii.UniqueCode.ToString(), 
+                    text =
+        "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (i.Product.Status.Group.Code ?? "NA") +
+        "S" + (i.Product.Status.Code ?? "NA") +
+        "P" + (i.Product.Code ?? "NA") + "_" + (ii.UniqueCode ?? "NA"),
+                    hierarchy =
+        "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (i.Product.Status.Group.Code ?? "NA") +
+        "S" + (i.Product.Status.Code ?? "NA") +
+        "P" + (i.Product.Code ?? "NA") +
+        " (" + (ii.UniqueCode ?? "NA") + ")"
+                })
+)
                 .ToListAsync();
 
             // اگر موجودی در انبار نداشت، از ProductItems بگیر
@@ -854,21 +865,22 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                             .ThenInclude(s => s.Group)
                                 .ThenInclude(g => g.Category)
                     .Where(pi => pi.ProductId == productId && !string.IsNullOrWhiteSpace(pi.UniqueCode))
-                    .Select(pi => new
-                    {
-                        id = pi.UniqueCode,
-                        text =
-                            "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
-                            "G" + (pi.Product.Status.Group.Code ?? "NA") +
-                            "S" + (pi.Product.Status.Code ?? "NA") +
-                            "P" + (pi.Product.Code ?? "NA") + "_" + (pi.UniqueCode ?? "NA"),
-                        hierarchy =
-                            "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
-                            "G" + (pi.Product.Status.Group.Code ?? "NA") +
-                            "S" + (pi.Product.Status.Code ?? "NA") +
-                            "P" + (pi.Product.Code ?? "NA") +
-                            " (" + (pi.UniqueCode ?? "NA") + ")"
-                    })
+                   .Select(pi => new
+                   {
+                       id = pi.UniqueCode.ToString(),
+                       text =
+        "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (pi.Product.Status.Group.Code ?? "NA") +
+        "S" + (pi.Product.Status.Code ?? "NA") +
+        "P" + (pi.Product.Code ?? "NA") + "_" + (pi.UniqueCode ?? "NA"),
+                       hierarchy =
+        "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (pi.Product.Status.Group.Code ?? "NA") +
+        "S" + (pi.Product.Status.Code ?? "NA") +
+        "P" + (pi.Product.Code ?? "NA") +
+        " (" + (pi.UniqueCode ?? "NA") + ")"
+                   })
+
                     .ToListAsync();
 
                 return Json(productItems);
@@ -909,8 +921,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 })
                 .FirstOrDefaultAsync();
 
+            int? projectId = null;
+
             if (inventoryItem != null)
             {
+                // تلاش برای گرفتن ProjectId از ProductItems
+                projectId = await _context.ProductItems
+                    .Where(pi => pi.UniqueCode == uniqueCodeId)
+                    .Select(pi => (int?)pi.ProjectId)
+                    .FirstOrDefaultAsync();
+
                 var fullText =
                     "C" + (inventoryItem.CategoryCode ?? "NA") +
                     "G" + (inventoryItem.GroupCode ?? "NA") +
@@ -932,7 +952,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     sourceWarehouseId = inventoryItem.WarehouseId,
                     sourceZoneId = inventoryItem.ZoneId,
                     sourceSectionId = inventoryItem.SectionId,
-                    projectId = (int?)null,
+                    projectId,
                     hierarchy,
                     uniqueCode = inventoryItem.UniqueCode,
                     text = fullText

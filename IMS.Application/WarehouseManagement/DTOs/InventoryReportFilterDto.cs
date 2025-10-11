@@ -25,6 +25,11 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string? ProductSearch { get; set; } 
 
         public List<InventoryReportResultDto>? Items { get; set; }
+        // ✅ اضافه کردن فیلتر کد یکتا
+        public string? UniqueCode { get; set; }
+        // 👇 اضافه کن
+        public List<string>? UniqueCodes { get; set; }
+
     }
     public class WarehouseFilter
     {

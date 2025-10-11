@@ -30,5 +30,9 @@ namespace IMS.Application.WarehouseManagement.DTOs
         public string ProductName { get; set; }
 
         public decimal Quantity { get; set; }
+
+
+        public List<string> UniqueCodes { get; set; } = new List<string>();
+
     }
 }
