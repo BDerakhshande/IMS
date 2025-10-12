@@ -352,3 +352,9 @@ body {
         width: 100%;
     }
 }
+
+@media (min-width: 1400px) {
+    .system-header {
+        width: 1285px;
+    }
+}
