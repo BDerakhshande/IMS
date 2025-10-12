@@ -23,7 +23,7 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             string generatedUniqueCode = null;
 
-            // پیدا کردن موجودی موجود
+            // 🧩 بررسی موجودی در انبار موردنظر
             var existingInventory = await _context.Inventories
                 .Include(i => i.InventoryItems)
                 .FirstOrDefaultAsync(i =>
@@ -34,7 +34,6 @@ namespace IMS.Application.WarehouseManagement.Services
 
             if (existingInventory == null)
             {
-                // اگر موجودی هنوز وجود ندارد، یک رکورد جدید بسازیم
                 existingInventory = new Inventory
                 {
                     ProductId = dto.ProductId,
@@ -48,29 +47,22 @@ namespace IMS.Application.WarehouseManagement.Services
 
             if (dto.IsUnique)
             {
-                // پیدا کردن آخرین شماره موجود برای UniqueCode در همان موجودی
-                int lastCode = existingInventory.InventoryItems
-                                 .Select(i => int.TryParse(i.UniqueCode, out var n) ? n : 0)
-                                 .DefaultIfEmpty(0)
-                                 .Max();
+                // 🔢 پیدا کردن آخرین شماره کد یکتا برای این محصول در کل سیستم
+                int? lastCode = await _context.ProductItems
+                    .Where(pi => pi.ProductId == dto.ProductId)
+                    .MaxAsync(pi => (int?)Convert.ToInt32(pi.UniqueCode));
 
-                int newCode = lastCode + 1;
+                int newCode = (lastCode ?? 0) + 1;
                 generatedUniqueCode = newCode.ToString();
 
-                // تعیین شماره ترتیبی Sequence بر اساس آخرین ProductItem موجود برای همان محصول
-                // ابتدا داده‌ها را از دیتابیس بگیریم و سپس در حافظه پردازش کنیم
-                var productItems = await _context.ProductItems
+                // 🔢 تعیین Sequence
+                int? lastSequence = await _context.ProductItems
                     .Where(pi => pi.ProductId == dto.ProductId)
-                    .ToListAsync();
+                    .MaxAsync(pi => (int?)pi.Sequence);
 
-                int lastSequence = productItems
-                    .Select(pi => pi.Sequence)
-                    .DefaultIfEmpty(0)
-                    .Max();
+                int newSequence = (lastSequence ?? 0) + 1;
 
-                int newSequence = lastSequence + 1;
-
-                // اضافه کردن به InventoryItem
+                // ➕ افزودن آیتم به InventoryItem
                 var item = new InventoryItem
                 {
                     UniqueCode = generatedUniqueCode,
@@ -78,23 +70,23 @@ namespace IMS.Application.WarehouseManagement.Services
                 };
                 existingInventory.InventoryItems.Add(item);
 
-                // اضافه کردن به ProductItem با مقادیر پیش‌فرض وضعیت و پروژه
+                // ➕ افزودن به ProductItem
                 var productItem = new ProductItem
                 {
                     ProductId = dto.ProductId,
                     UniqueCode = generatedUniqueCode,
                     Sequence = newSequence,
                     ProductItemStatus = ProductItemStatus.Ready,
-                    ProjectId = null // یا مقدار دلخواه
+                    ProjectId = null
                 };
                 _context.ProductItems.Add(productItem);
 
-                // افزایش موجودی کلی
+                // 📈 افزایش موجودی
                 existingInventory.Quantity += 1;
             }
             else
             {
-                // ===== حالت کالاهای غیر یکتا =====
+                // کالاهای غیر یکتا
                 if (dto.Quantity <= 0)
                     throw new InvalidOperationException("برای کالاهای عادی باید مقدار افزایشی معتبر وارد شود.");
 
@@ -104,6 +96,8 @@ namespace IMS.Application.WarehouseManagement.Services
             await _context.SaveChangesAsync(CancellationToken.None);
             return (true, generatedUniqueCode);
         }
+
+
 
         public async Task<decimal> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId)
         {

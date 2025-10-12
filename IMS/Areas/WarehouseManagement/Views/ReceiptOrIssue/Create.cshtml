@@ -6,9 +6,7 @@
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
 <style>
- /* ===============================
-   🎯 هماهنگی Select2 با Bootstrap
-   =============================== */
+
 .select2-container {
     width: 100% !important;
     font-size: 0.8rem; /* کوچک‌تر و استاندارد */
@@ -540,6 +538,76 @@ select.select2-hidden-accessible {
             initSelect2($('select.select2-project'), 'انتخاب پروژه');
             initSelect2($('select.select2-purchase-request'), 'انتخاب درخواست خرید');
             initSelect2($('select.category-select, select.warehouse-select'), 'جستجو و انتخاب');
+                  $('.unique-codes-select').each(function () {
+            const $select = $(this);
+
+            if ($select.hasClass('select2-hidden-accessible')) {
+                $select.select2('destroy');
+            }
+
+            $select.select2({
+                theme: 'bootstrap-5',
+                placeholder: "انتخاب کد یکتا...",
+                allowClear: true,
+                dir: 'rtl',
+                language: 'fa',
+                width: '100%',
+                dropdownParent: $select.closest('.accordion-body').length ? $select.closest('.accordion-body') : $(document.body),
+                ajax: {
+                    url: '/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes',
+                    data: function () {
+                        // ← اینجا از $select استفاده کن (closure)، نه $(this)
+                        const row = $select.closest('tr');
+                        const productId = row.find('.product-select').val();
+                        const sourceWarehouseId = row.find('.source-warehouse-select').val();
+                        if (!productId) return false; // جلوگیری از درخواست وقتی productId وجود ندارد
+                        return { productId, sourceWarehouseId };
+                    },
+                    transport: function (params, success, failure) {
+                        if (!params.data) return; // وقتی data=false برگردانده شد، درخواست نده
+                        return $.ajax(params).then(success).catch(failure);
+                    },
+                    processResults: function (data) {
+                        const cleanData = (data || []).map(item => {
+                            const display = item.displayHierarchyByCode;
+                            const text = item.text;
+                            const id = item.id ?? '';
+
+                            const textValue =
+                                (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                                    ? display
+                                    : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                                        ? text
+                                        : String(id);
+
+                            return {
+                                id: String(id),
+                                text: textValue,
+                                hierarchy: item.hierarchy || ''
+                            };
+                        });
+                        console.log("✅ Cleaned & normalized unique codes before binding to Select2:", cleanData);
+                        return { results: cleanData };
+                    },
+                    cache: true
+                },
+                templateResult: function (data) {
+                    if (!data || !data.id) return data && data.text ? data.text : '';
+                    const $node = $('<div class="d-flex flex-column"><span class="fw-bold small"></span><small class="text-muted"></small></div>');
+                    $node.find('span').text(data.text);
+                    $node.find('small').text(data.hierarchy || '');
+                    return $node;
+                },
+                templateSelection: function (data) {
+                    if (!data) return '';
+                    return data.text || `کد ${data.id || ''}`;
+                },
+                escapeMarkup: function (m) { return m; },
+                minimumInputLength: 0
+            });
+        });
+
+
         });
 
 
@@ -960,7 +1028,7 @@ select.select2-hidden-accessible {
             });
                 });
             // ==========================
-             $(document).on("change", ".product-select", function () {
+         $(document).on("change", ".product-select", function () {
             const rowIndex = $(this).data("index");
             const productId = $(this).val();
             const $uniqueSelect = $(`select[name="Items[${rowIndex}].UniqueCodes"]`);
@@ -993,9 +1061,21 @@ select.select2-hidden-accessible {
                 console.log("Received unique codes:", data); // لاگ برای بررسی داده‌ها
 
                 if (data && data.length > 0) {
-                            data.forEach(item => {
-           $uniqueSelect.append(`<option value="${item.id}">${item.displayHierarchyByCode}</option>`);
+                                       data.forEach(item => {
+            const display = item.displayHierarchyByCode;
+            const text = item.text;
+            const fallback = item.hierarchy || item.id;
+            const safeText = (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                ? display
+                : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                    ? text
+                    : fallback;
+
+            const opt = new Option(safeText, item.id, false, false);
+            $uniqueSelect.append(opt);
         });
+
+
 
                 }
 
@@ -1015,19 +1095,107 @@ select.select2-hidden-accessible {
         });
 
 
+                function sanitizeText(t, idFallback) {
+            if (t === undefined || t === null) return `کد ${idFallback}`;
+            if (typeof t !== 'string') t = String(t);
+            t = t.trim();
+            if (!t || t.toLowerCase() === 'undefined' || t.toLowerCase() === 'null')
+                return `کد ${idFallback}`;
+            return t;
+        }
 
-                      $(document).on("change", ".unique-codes-select", function () {
+        $(document).on("change", ".unique-codes-select", async function () {
             const $this = $(this);
             const rowIndex = $this.data("index");
-            const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
 
-            if ($this.val()) {
+            if ($this.data('processing')) {
+                console.log("🔁 change already processing — skipping");
+                return;
+            }
+            $this.data('processing', true);
+
+            console.groupCollapsed(`🟦 [Change Triggered] Row ${rowIndex}`);
+            try {
+                const selArr = $this.select2 ? $this.select2('data') : [];
+                const selectedData = (selArr && selArr.length) ? selArr[0] : {};
+                const optionSelectedText = $this.find('option:selected').text();
+
+                const uniqueCodeId = selectedData?.id ?? $this.val();
+                let uniqueCodeText = sanitizeText(selectedData?.text ?? optionSelectedText, uniqueCodeId);
+
+                if (!uniqueCodeId) {
+                    console.warn("⚠️ No uniqueCodeId selected — resetting row");
+                    $this.data('processing', false);
+                    console.groupEnd();
+                    return;
+                }
+
+                const data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
+                if (data && data.text) {
+                    uniqueCodeText = data.text;
+                }
+                uniqueCodeText = sanitizeText(uniqueCodeText, uniqueCodeId);
+
+                // Update option
+                const existingOption = $this.find(`option[value='${uniqueCodeId}']`);
+                if (existingOption.length) {
+                    existingOption.text(uniqueCodeText);
+                } else {
+                    const newOption = new Option(uniqueCodeText, uniqueCodeId, true, true);
+                    $this.append(newOption);
+                }
+
+                // Refresh Select2
+                $this.val(uniqueCodeId).trigger('change.select2');
+                $this.trigger({ type: 'select2:select', params: { data: { id: uniqueCodeId, text: uniqueCodeText } } });
+
+                setTimeout(() => {
+                    const displayedText = $this.next('.select2-container').find('.select2-selection__rendered').text();
+                    console.log("🧩 displayed text in UI:", displayedText);
+                }, 300);
+
+                // Quantity
+                const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
                 $quantityInput.val(1).prop('disabled', true).addClass('disabled-quantity');
-            } else {
-                $quantityInput.val('').prop('disabled', false).removeClass('disabled-quantity');
+
+                const setDependentSelect = async ($select, value, name) => {
+                    if ($select.length) {
+                        $select.val(value ?? "").trigger('change');
+                        if (!value) {
+                            if ($select.find('option[value=""]').length === 0) {
+                                $select.append(new Option("بدون پروژه", "", true, true));
+                            }
+                        }
+                        return new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                };
+
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId, "sourceWarehouse");
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId, "sourceZone");
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId, "sourceSection");
+                await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId, "project");
+
+                // Hierarchy display
+                let $hierarchyDisplay = $(`#hierarchy-display-${rowIndex}`);
+                if ($hierarchyDisplay.length === 0) {
+                    $this.closest('.row').after(`
+                        <div id="hierarchy-display-${rowIndex}" class="text-end text-info small mt-1 fw-bold" style="font-size:0.85rem;">
+                            ${data?.hierarchy || uniqueCodeText}
+                        </div>
+                    `);
+                } else {
+                    $hierarchyDisplay.text(data?.hierarchy || uniqueCodeText).show();
+                }
+
+                console.log("✅ Change event completed successfully");
+            } catch (err) {
+                console.error("🚨 Error fetching unique code details:", err);
+                alert("خطا در بارگذاری جزئیات کد یکتا. لطفاً دوباره تلاش کنید.");
+            } finally {
+                $this.data('processing', false);
+                console.groupEnd();
             }
         });
-
 
 
 

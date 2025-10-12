@@ -24,7 +24,9 @@ namespace IMS.Infrastructure.Persistence.ProjectManagement
         {
             base.OnModelCreating(modelBuilder);
 
-        
+
+            modelBuilder.Entity<Project>()
+                .ToTable("Projects", "dbo");
 
             modelBuilder.Entity<Project>()
                 .HasOne(p => p.Employer)

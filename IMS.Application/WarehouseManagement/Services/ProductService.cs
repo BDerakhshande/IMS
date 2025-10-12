@@ -296,14 +296,16 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task DeleteAsync(int id)
         {
+            // پیدا کردن محصول همراه با Inventories و InventoryItems
             var product = await _context.Products
                 .Include(p => p.Inventories)
+                    .ThenInclude(i => i.InventoryItems)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
                 throw new Exception("محصول مورد نظر یافت نشد.");
 
-            // بررسی عملیات انجام شده
+            // بررسی اینکه آیا عملیات مرتبط با محصول انجام شده
             bool hasOperations = await _context.conversionConsumedItems.AnyAsync(c => c.ProductId == id)
                 || await _context.conversionProducedItems.AnyAsync(c => c.ProductId == id)
                 || await _context.ReceiptOrIssueItems.AnyAsync(r => r.ProductId == id);
@@ -311,7 +313,21 @@ namespace IMS.Application.WarehouseManagement.Services
             if (hasOperations)
                 throw new Exception("امکان حذف این کالا وجود ندارد زیرا با این کالا عملیات انجام شده است.");
 
-          
+            // حذف همه ProductItems مرتبط
+            var productItems = await _context.ProductItems
+                .Where(pi => pi.ProductId == id)
+                .ToListAsync();
+
+            if (productItems.Any())
+                _context.ProductItems.RemoveRange(productItems);
+
+            // حذف همه InventoryItems مرتبط با این Inventories
+            var inventoryItems = product.Inventories
+                .SelectMany(i => i.InventoryItems)
+                .ToList();
+
+            if (inventoryItems.Any())
+                _context.InventoryItems.RemoveRange(inventoryItems);
 
             // حذف Inventories
             if (product.Inventories?.Any() == true)
@@ -320,6 +336,7 @@ namespace IMS.Application.WarehouseManagement.Services
             // حذف خود محصول
             _context.Products.Remove(product);
 
+            // ذخیره تغییرات
             await _context.SaveChangesAsync(CancellationToken.None);
         }
 

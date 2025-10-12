@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using DocumentFormat.OpenXml.InkML;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
 using IMS.Models.ProMan;
@@ -204,6 +205,105 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
                 CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
             };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
+        {
+            var inventoryQuery = _dbContext.Inventories
+                .AsNoTracking()
+                .Include(i => i.InventoryItems)
+                .Include(i => i.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
+                .Where(i => i.ProductId == productId);
+
+            if (sourceWarehouseId.HasValue)
+                inventoryQuery = inventoryQuery.Where(i => i.WarehouseId == sourceWarehouseId.Value);
+
+            var inventoryCodes = await inventoryQuery
+                .SelectMany(i => i.InventoryItems
+                    .Where(ii => !string.IsNullOrWhiteSpace(ii.UniqueCode))
+                .Select(ii => new
+                {
+                    id = ii.UniqueCode.ToString(),
+                    text =
+        "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (i.Product.Status.Group.Code ?? "NA") +
+        "S" + (i.Product.Status.Code ?? "NA") +
+        "P" + (i.Product.Code ?? "NA") + "_" + (ii.UniqueCode ?? "NA"),
+                    hierarchy =
+        "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (i.Product.Status.Group.Code ?? "NA") +
+        "S" + (i.Product.Status.Code ?? "NA") +
+        "P" + (i.Product.Code ?? "NA") +
+        " (" + (ii.UniqueCode ?? "NA") + ")"
+                })
+)
+                .ToListAsync();
+
+            // اگر موجودی در انبار نداشت، از ProductItems بگیر
+            if (!inventoryCodes.Any())
+            {
+                var productItems = await _dbContext.ProductItems
+                    .AsNoTracking()
+                    .Include(pi => pi.Product)
+                        .ThenInclude(p => p.Status)
+                            .ThenInclude(s => s.Group)
+                                .ThenInclude(g => g.Category)
+                    .Where(pi => pi.ProductId == productId && !string.IsNullOrWhiteSpace(pi.UniqueCode))
+                   .Select(pi => new
+                   {
+                       id = pi.UniqueCode.ToString(),
+                       text =
+        "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (pi.Product.Status.Group.Code ?? "NA") +
+        "S" + (pi.Product.Status.Code ?? "NA") +
+        "P" + (pi.Product.Code ?? "NA") + "_" + (pi.UniqueCode ?? "NA"),
+                       hierarchy =
+        "C" + (pi.Product.Status.Group.Category.Code ?? "NA") +
+        "G" + (pi.Product.Status.Group.Code ?? "NA") +
+        "S" + (pi.Product.Status.Code ?? "NA") +
+        "P" + (pi.Product.Code ?? "NA") +
+        " (" + (pi.UniqueCode ?? "NA") + ")"
+                   })
+
+                    .ToListAsync();
+
+                return Json(productItems);
+            }
+
+            return Json(inventoryCodes);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueCodeDetails(string uniqueCodeId)
+        {
+            if (string.IsNullOrWhiteSpace(uniqueCodeId))
+                return BadRequest("کد یکتا نامعتبر است.");
+
+            var productItem = await _dbContext.ProductItems
+                .AsNoTracking()
+                .Where(pi => pi.UniqueCode == uniqueCodeId)
+                .Select(pi => new
+                {
+                    pi.UniqueCode,
+                    pi.ProjectId,
+                    ProductCode = pi.Product.Code
+                })
+                .FirstOrDefaultAsync();
+
+            if (productItem == null)
+                return NotFound();
+
+            return Json(new
+            {
+                uniqueCode = productItem.UniqueCode,
+                projectId = productItem.ProjectId,
+                text = productItem.UniqueCode
+            });
         }
 
 
