@@ -83,8 +83,10 @@ body {
 .system-header {
     background-color: #1a4a5a;
     color: var(--light-text);
-    padding: 0.75rem 1.5rem;
+    padding: 1.2rem 1.5rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 .header-content {
@@ -248,6 +250,8 @@ body {
     padding: 1rem 2rem;
     margin-top: 2rem;
     position: sticky;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
 }
 
 .footer-links {

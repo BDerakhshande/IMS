@@ -1,0 +1,343 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <title> نرم‌افزار حسابداری اختصاصی شرکت</title>
+    <style>
+
+        @@font -face {
+            font-family: 'Vazirmatn';
+            src: url('/vazirmatn/Vazirmatn-RD-Medium.woff2') format('woff2');
+        }
+
+        :root {
+            --bg-dark: #1a4a5a;
+            --bg-card: #1a3a45;
+            --text-light: #f8fafc;
+            --primary: white;
+            --muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Vazirmatn';
+            font-weight: 600;
+        }
+
+        body {
+            background-color: var(--primary);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 5%;
+            background: rgba(26, 74, 90, 1);
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 999;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+            header h1 {
+                font-size: 1.4rem;
+                margin-left: 460px;
+                font-weight: 600;
+            }
+
+        .login-logo {
+            display: block;
+            width: 60px;
+            height: auto;
+            margin: 0 auto 20px;
+            margin-right: -50px;
+            position: relative;
+            top: 8px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            transition: color 0.3s;
+        }
+
+            nav a:hover {
+                color: var(--text-light);
+            }
+
+        .cta-btn {
+            background: white;
+            padding: 0.7rem 1.4rem;
+            border-radius: 12px;
+            color: #1a4a5a;
+            font-weight: 600;
+            text-decoration: none;
+            transition: 0.3s;
+            margin-left: -60px;
+        }
+
+            .cta-btn:hover {
+                transform: scale(1.05);
+            }
+
+        /* Hero Section */
+        .hero {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4rem 5%;
+            padding-top: 50px;
+            padding-bottom: 10px;
+        }
+
+
+        .hero-text {
+            flex: 1;
+            min-width: 300px;
+            text-align: right;
+            direction: rtl;
+        }
+
+            .hero-text h1 {
+                font-size: 2.8rem;
+                line-height: 1.3;
+                margin-bottom: 1rem;
+                color: #1a4a5a;
+            }
+
+            .hero-text p {
+                color: var(--bg-card);
+                margin-bottom: 2rem;
+                font-size: 1.1rem;
+                font-weight: 600;
+            }
+
+        .hero img {
+            flex: 1;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Features */
+        .features {
+            background: rgba(26, 74, 90, 1);
+            padding: 4rem 5%;
+            text-align: center;
+            border-radius: 20px;
+            margin: 3rem 5%;
+        }
+
+            .features h2 {
+                font-size: 2rem;
+                margin-bottom: 2rem;
+                color: var(--text-light);
+            }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: #1a4a5a;
+            border-radius: 16px;
+            padding: 2rem;
+            transition: 0.3s;
+            border: 1px solid white;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                border-color: var(--primary);
+            }
+
+            .card h3 {
+                color: var(--primary);
+                margin-bottom: 1rem;
+            }
+
+            .card p {
+                color: white;
+                max-width: 800px;
+                margin: 0 auto 1.5rem;
+                font-size: 1.05rem;
+                line-height: 1.8;
+            }
+
+        /* About Company */
+        .about-company {
+            padding: 4rem 5%;
+            text-align: center;
+            background: rgba(26, 74, 90, 1);
+            border-radius: 20px;
+            margin: 3rem 5%;
+        }
+
+            .about-company h2 {
+                font-size: 2rem;
+                margin-bottom: 1.5rem;
+                color: var(--text-light);
+            }
+
+            .about-company p {
+                color: white;
+                max-width: 800px;
+                margin: 0 auto 1.5rem;
+                font-size: 1.05rem;
+                line-height: 1.8;
+            }
+
+            .about-company .internal-features {
+                margin-top: 2.5rem;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+                gap: 1.5rem;
+            }
+
+            .about-company .internal-feature {
+                background: #1a4a5a;
+                border-radius: 14px;
+                padding: 1.5rem;
+                border: 1px solid white;
+                transition: 0.3s;
+            }
+
+                .about-company .internal-feature:hover {
+                    border-color: var(--primary);
+                    transform: translateY(-4px);
+                }
+
+                .about-company .internal-feature h4 {
+                    color: var(--primary);
+                    margin-bottom: 0.8rem;
+                }
+
+        /* Footer */
+
+        footer {
+            background: rgba(26, 74, 90, 1);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #1e293b;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .footer-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        @@media (max-width: 768px) {
+            .hero
+
+        {
+            text-align: center;
+        }
+
+        .hero img {
+            margin-top: 2rem;
+        }
+
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a href="/Home/Index" class="cta-btn">
+            <i class="fas fa-sign-in-alt"></i> ورود به سیستم
+        </a>
+        <h1>نرم افزار یکپارچه صدرا تجهیز مهرگان</h1>
+        <img src="~/image/logo.png" alt="Logo" class="login-logo">
+
+    </header>
+    <section class="hero">
+        <div class="hero-text">
+            <h1>کنترل مالی هوشمند </h1>
+            <p>سامانه مدیریت مالی صدرا تجهیز مهرگان برای افزایش دقت، سرعت و امنیت در فرآیندهای حسابداری شرکت طراحی و توسعه داده شده است</p>
+        </div>
+    </section>
+
+    <section class="features">
+        <h2>ویژگی‌های اصلی سیستم</h2>
+        <div class="feature-cards">
+            <div class="card">
+                <h3>💡 یکپارچگی کامل سیستم‌ها</h3>
+                <p>اتصال هوشمند بین بخش‌های حسابداری، انبار، تدارکات و مدیریت پروژه برای جلوگیری از خطا و دوباره‌کاری</p>
+            </div>
+            <div class="card">
+                <h3>⚙️ اتوماسیون فرآیندها</h3>
+                <p>ثبت، تأیید و گزارش‌دهی خودکار عملیات مالی و انباری با کاهش خطای انسانی و افزایش سرعت</p>
+            </div>
+            <div class="card">
+                <h3>📊 گزارش‌گیری تحلیلی</h3>
+                <p>نمایش بلادرنگ اطلاعات مالی، موجودی و وضعیت پروژه‌ها در قالب نمودار و داشبورد مدیریتی</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-company">
+        <h2>درباره سیستم و امکانات داخلی</h2>
+
+        <div class="internal-features">
+            <div class="internal-feature">
+                <h4>📦 سیستم انبارداری</h4>
+                <p>مدیریت کالا ها و انبار، کنترل موجودی، گزارش های موجودی، تراکنش کالا و پروژه و ارتباط مستقیم با بخش حسابداری و تدارکات</p>
+            </div>
+            <div class="internal-feature">
+                <h4>📋 مدیریت پروژه</h4>
+                <p>برنامه‌ریزی، پایش و تحلیل پروژه‌ها با امکان ثبت هزینه‌ها، زمان‌بندی فعالیت‌ها و گزارش پیشرفت لحظه‌ای</p>
+            </div>
+            <div class="internal-feature">
+                <h4>🚚 سیستم تدارکات</h4>
+                <p>ثبت درخواست خرید، سفارش‌گذاری و مدیریت فرآیند تأمین کالا با اتصال کامل به انبار و حسابداری</p>
+            </div>
+            <div class="internal-feature">
+                <h4>🧾 سیستم حسابداری</h4>
+                <p>ثبت، کنترل و تحلیل تمامی تراکنش‌های مالی، صدور اسناد، ترازنامه‌ها و گزارش‌های مدیریتی به‌صورت دقیق و خودکار</p>
+            </div>
+        </div>
+
+        <a href="/Home/Index" class="cta-btn" style="margin-top: 2rem; display:inline-block;"> <i class="fas fa-sign-in-alt"></i> دسترسی به سیستم </a>
+    </section>
+
+    <footer>
+        <div class="footer-info">
+            <span>نسخه ۱.۱.۰</span>
+            <span>© ۱۴۰۴ کلیه حقوق محفوظ است</span>
+        </div>
+    </footer>
+
+</body>
+</html>
