@@ -18,7 +18,6 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             _dbContext = dbContext;
         }
-
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
             // کوئری پایه
@@ -44,17 +43,7 @@ namespace IMS.Application.WarehouseManagement.Services
                             Section = sec
                         };
 
-            // فیلترها
-            if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
-            {
-                var warehouseIds = filter.Warehouses
-                    .Where(w => w.WarehouseId > 0)
-                    .Select(w => w.WarehouseId)
-                    .ToList();
-
-                query = query.Where(x => warehouseIds.Contains(x.Inventory.WarehouseId));
-            }
-
+            // اعمال فیلترهای ساده
             if (filter.CategoryId.HasValue)
                 query = query.Where(x => x.Category.Id == filter.CategoryId.Value);
 
@@ -79,9 +68,10 @@ namespace IMS.Application.WarehouseManagement.Services
                     .Any(ii => filter.UniqueCode.Contains(ii.UniqueCode)));
             }
 
+            // اجرای کوئری اصلی
             var list = await query.ToListAsync();
 
-            // فیلتر پیشرفته انبار، زون و بخش
+            // فیلتر پیشرفته بر اساس Warehouses، Zone و Section
             if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
             {
                 list = list.Where(i =>
@@ -93,7 +83,13 @@ namespace IMS.Application.WarehouseManagement.Services
                 ).ToList();
             }
 
-            // گروه‌بندی نتایج
+            // دریافت تمام InventoryItems مربوطه برای کدهای یکتا بعد از تغییرات
+            var inventoryIds = list.Select(x => x.Inventory.Id).ToList();
+            var inventoryItems = await _dbContext.InventoryItems
+                .Where(ii => inventoryIds.Contains(ii.InventoryId))
+                .ToListAsync();
+
+            // گروه‌بندی نتایج و جمع‌آوری UniqueCodes
             var groupedResults = list
                 .GroupBy(i => new
                 {
@@ -129,7 +125,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
                     Quantity = g.Sum(x => x.Inventory.Quantity),
-                    UniqueCodes = _dbContext.InventoryItems
+                    UniqueCodes = inventoryItems
                         .Where(ii => g.Select(x => x.Inventory.Id).Contains(ii.InventoryId))
                         .Select(ii => ii.UniqueCode)
                         .ToList()
@@ -138,6 +134,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
             return groupedResults;
         }
+
 
         #region SelectListItem Methods
 

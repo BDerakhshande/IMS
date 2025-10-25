@@ -51,8 +51,11 @@ namespace IMS.Application.WarehouseManagement.DTOs
 
         public List<string> UniqueCodes { get; set; } = new List<string>();
 
-
-   
         public string? SelectedUniqueCode { get; set; }
+
+
+
+        public List<UniqueCodeHierarchyDto> UniqueCodeHierarchy { get; set; } = new();
+
     }
 }

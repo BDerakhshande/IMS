@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using IMS.Application.WarehouseManagement.DTOs;
+using IMS.Domain.WarehouseManagement.Entities;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace IMS.Application.WarehouseManagement.Services
@@ -30,8 +31,7 @@ namespace IMS.Application.WarehouseManagement.Services
         Task<List<SelectListItem>> GetProductsByStatus(int statusId);
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 
-        Task<(ReceiptOrIssueDto? Result, List<string> Errors)> UpdateAsync(
-            int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken = default);
+        Task<(ReceiptOrIssue? entity, List<string> errors)> UpdateAsync(int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken);
 
     }
 }

@@ -178,17 +178,26 @@
                     <tr>
                         <td>
                             @{
-                                var parts = new[]
-                                {
+                                var parts = new List<string>
+                    {
                     item.Category?.Name ?? "—",
                     item.Group?.Name ?? "—",
                     item.Status?.Name ?? "—",
                     item.Product?.Name ?? "—"
                     };
-                                var combined = string.Join(" | ", parts.Where(p => p != "—"));
+                                if (item.UniqueCodes != null && item.UniqueCodes.Count > 0)
+                                {
+                                    parts.AddRange(((List<IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItemUniqueCode>)item.UniqueCodes)
+                                    .Select(uc => uc.UniqueCode));
+                                }
+
+
+
+                                var combined = string.Join(" | ", parts.Where(p => !string.IsNullOrEmpty(p) && p != "—"));
                             }
                             @combined
                         </td>
+
                         <td>
                             @{
                                 var srcParts = new[]

@@ -314,10 +314,49 @@
                                                             <option value="@product.Value" selected="@(product.Value == Model.Items[i].ProductId.ToString())">@product.Text</option>
                                                         }
                                                     </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100"> کد یکتا</label>
+                                                    <div class="d-flex align-items-center mb-2">
+
+
+                                                        <div class="flex-grow-1">
+                                                            @if (Model.Items[i].AvailableUniqueCodes != null && Model.Items[i].AvailableUniqueCodes.Any())
+                                                            {
+                                                                <select asp-for="Items[i].SelectedUniqueCode"
+                                                                        class="form-select form-select-sm select2 unique-codes-select text-end"
+                                                                        data-index="@i"
+                                                                        style="min-height: 36px;">
+                                                                    <option value="">انتخاب کد یکتا</option>
+                                                                    @foreach (var option in Model.Items[i].AvailableUniqueCodes)
+                                                                    {
+                                                                        <option value="@option.Value"
+                                                                                selected="@(option.Value == Model.Items[i].SelectedUniqueCode)">
+                                                                            @option.Text
+                                                                        </option>
+                                                                    }
+                                                                </select>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="border rounded px-2 bg-light text-end d-flex align-items-center"
+                                                                     style="font-size: 0.85rem; min-height: 36px;">
+                                                                    @if (!string.IsNullOrEmpty(Model.Items[i].SelectedUniqueCode))
+                                                                    {
+                                                                        <span class="text-dark fw-bold">
+                                                                            @Model.Items[i].SelectedUniqueCode
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">کد یکتا ثبت نشده است</span>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </td>
                                 <td style="width: 120px;">
                                     <input asp-for="Items[i].Quantity"
@@ -498,21 +537,21 @@
     <script type="text/html" id="CategoryTemplateOptions">
         @foreach (var category in ViewBag.Categories as IEnumerable<SelectListItem> ?? new List<SelectListItem>())
         {
-                <option value="@category.Value">@category.Text</option>
+                                <option value="@category.Value">@category.Text</option>
         }
     </script>
 
     <script type="text/html" id="ProjectTemplateOptions">
         @foreach (var project in Model.Items.FirstOrDefault()?.AvailableProjects ?? new List<SelectListItem>())
         {
-                <option value="@project.Value">@project.Text</option>
+                                <option value="@project.Value">@project.Text</option>
         }
     </script>
 
     <script type="text/html" id="PurchaseRequestTemplateOptions">
         @foreach (var purchaseRequest in Model.Items.FirstOrDefault()?.AvailablePurchaseRequests ?? new List<SelectListItem>())
         {
-                <option value="@purchaseRequest.Value">@purchaseRequest.Text</option>
+                                <option value="@purchaseRequest.Value">@purchaseRequest.Text</option>
         }
     </script>
 
@@ -526,8 +565,9 @@
             zones: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones)),
             sections: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections)),
             projects: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects)),
-            purchaseRequests: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests))
-                };
+            purchaseRequests: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests)),
+            uniqueCodes: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items.FirstOrDefault()?.AvailableUniqueCodes ?? new List<SelectListItem>()))
+                                                };
 
         $(document).ready(function () {
             // فعال‌سازی Select2 برای تمام دراپ‌داون‌ها
@@ -640,6 +680,214 @@
                 });
             });
 
+            $(document).on("change", ".product-select", function () {
+                const rowIndex = $(this).data("index");
+                const productId = $(this).val();
+                const $uniqueSelect = $(`select[name="Items[${rowIndex}].SelectedUniqueCode"]`);
+                const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
+
+                // ذخیره مقدار قبلی Quantity قبل از reset
+                const previousQuantity = $quantityInput.val();
+
+                // پاکسازی و تخریب Select2 قبلی (اگر وجود دارد)
+                if ($uniqueSelect.hasClass('select2-hidden-accessible')) {
+                    $uniqueSelect.select2('destroy');
+                }
+                $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
+
+                // بازگرداندن حالت اولیه quantity
+                $quantityInput.prop('disabled', false).removeClass('disabled-quantity');
+
+                const $uniqueContainer = $uniqueSelect.closest('.d-flex.align-items-center.mb-2');
+                const $placeholder = $uniqueContainer.find('.border.rounded.px-2.bg-light');
+
+                // اگر محصول انتخاب نشده باشد
+                if (!productId) {
+                    $uniqueSelect.addClass('d-none').hide();
+                    if ($placeholder.length) {
+                        $placeholder.show().find('span').text('کد یکتا ثبت نشده است');
+                    }
+                    // مقدار قبلی Quantity حفظ شود
+                    $quantityInput.val(previousQuantity || '');
+                    return;
+                }
+
+                // 📦 درخواست AJAX برای دریافت کدهای یکتا
+                $.get(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes?productId=${productId}`, function (data) {
+                    console.log("✅ Received unique codes:", data);
+
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            const display = item.displayHierarchyByCode;
+                            const text = item.text;
+                            const fallback = item.hierarchy || item.id;
+                            const safeText = (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                                ? display
+                                : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                                    ? text
+                                    : fallback;
+
+                            const opt = new Option(safeText, item.id, false, false);
+                            $uniqueSelect.append(opt);
+                        });
+
+                        $uniqueSelect.removeClass('d-none').show();
+                        if ($placeholder.length) $placeholder.hide();
+                        initSelect2($uniqueSelect, 'کد یکتا را انتخاب کنید');
+
+                    } else {
+                        // اگر هیچ کد یکتایی موجود نیست
+                        $uniqueSelect.addClass('d-none').hide();
+                        if ($placeholder.length) {
+                            $placeholder.show().find('span').text('کد یکتا موجود نیست');
+                        } else {
+                            const placeholderHtml = `
+                            <div class="border rounded px-2 bg-light text-end d-flex align-items-center"
+                                 style="font-size: 0.85rem; min-height: 36px;">
+                                 <span class="text-muted">کد یکتا موجود نیست</span>
+                            </div>`;
+                            $uniqueContainer.find('.flex-grow-1').html(placeholderHtml);
+                        }
+                    }
+                }).fail(() => {
+                    console.error("❌ خطا در دریافت کدهای یکتا");
+                    $uniqueSelect.addClass('d-none').hide();
+                    if ($placeholder.length) {
+                        $placeholder.show().find('span').text('خطا در بارگذاری کدهای یکتا');
+                    }
+                });
+            });
+
+            function sanitizeText(t, idFallback) {
+                if (t === undefined || t === null) return `کد ${idFallback}`;
+                if (typeof t !== 'string') t = String(t);
+                t = t.trim();
+                if (!t || t.toLowerCase() === 'undefined' || t.toLowerCase() === 'null')
+                    return `کد ${idFallback}`;
+                return t;
+            }
+
+            async function setDependentSelect($select, value) {
+                if ($select.length) {
+                    $select.val(value ?? "").trigger('change');
+                    $select.siblings(`input[type="hidden"][name="${$select.attr('name')}"]`).remove();
+                    if (value !== undefined && value !== null) {
+                        $select.after(`<input type="hidden" name="${$select.attr('name')}" value="${value}" />`);
+                        $select.prop("disabled", true).addClass("disabled-field");
+                    } else {
+                        $select.prop("disabled", false).removeClass("disabled-field");
+                    }
+                    return new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            $(document).on("change", ".unique-codes-select", async function () {
+                const $this = $(this);
+                const rowIndex = $this.data("index");
+
+                if ($this.data('processing')) {
+                    console.log("🔁 change already processing — skipping");
+                    return;
+                }
+                $this.data('processing', true);
+
+                console.groupCollapsed(`🟦 [Change Triggered] Row ${rowIndex}`);
+                try {
+                    const selArr = $this.select2 ? $this.select2('data') : [];
+                    const selectedData = (selArr && selArr.length) ? selArr[0] : {};
+                    const optionSelectedText = $this.find('option:selected').text();
+
+                    const uniqueCodeId = selectedData?.id ?? $this.val();
+                    let uniqueCodeText = sanitizeText(selectedData?.text ?? optionSelectedText, uniqueCodeId);
+
+                    let data = {};
+                    if (uniqueCodeId) {
+                        try {
+                            data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
+                            if (data && data.text) uniqueCodeText = data.text;
+                        } catch (err) {
+                            console.warn("⚠️ خطا در بارگذاری جزئیات کد یکتا:", err);
+                        }
+                    } else {
+                        console.log("ℹ️ هیچ کد یکتایی انتخاب نشده — ادامه بدون اطلاعات خودکار");
+                    }
+
+                    uniqueCodeText = sanitizeText(uniqueCodeText, uniqueCodeId);
+
+                    // Update option
+                    if (uniqueCodeId) {
+                        const existingOption = $this.find(`option[value='${uniqueCodeId}']`);
+                        if (existingOption.length) {
+                            existingOption.text(uniqueCodeText);
+                        } else {
+                            const newOption = new Option(uniqueCodeText, uniqueCodeId, true, true);
+                            $this.append(newOption);
+                        }
+                        $this.val(uniqueCodeId).trigger('change.select2');
+                        $this.trigger({ type: 'select2:select', params: { data: { id: uniqueCodeId, text: uniqueCodeText } } });
+                    }
+
+                    // 🎯 مدیریت Quantity
+                    const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
+                    const previousQuantity = $quantityInput.data("previous") || $quantityInput.val();
+
+                    if (uniqueCodeId) {
+                        // اگر کد یکتا انتخاب شده، مقدار را ۱ کن و قفل کن
+                        $quantityInput
+                            .data("previous", previousQuantity) // ذخیره مقدار قبلی
+                            .val(1)
+                            .prop('disabled', true)
+                            .addClass('disabled-quantity');
+                    } else {
+                        // اگر کد یکتا برداشته شد، مقدار قبلی را بازگردان
+                        const restoredQuantity = (previousQuantity && parseFloat(previousQuantity) > 0)
+                            ? previousQuantity
+                            : '';
+
+                        $quantityInput
+                            .val(restoredQuantity)
+                            .prop('disabled', false)
+                            .removeClass('disabled-quantity');
+                    }
+
+                    // Helper برای فیلدهای وابسته
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId);
+
+                    // استایل فیلدهای غیرفعال
+                    $(".disabled-field").css({
+                        "background-color": "#f3f3f3",
+                        "color": "#777",
+                        "pointer-events": "none"
+                    });
+
+                    // نمایش سلسله‌مراتب
+                    let $hierarchyDisplay = $(`#hierarchy-display-${rowIndex}`);
+                    if ($hierarchyDisplay.length === 0) {
+                        $this.closest('.row').after(`
+                        <div id="hierarchy-display-${rowIndex}"
+                             class="text-end text-info small mt-1 fw-bold"
+                             style="font-size:0.85rem;">
+                            ${data?.hierarchy || uniqueCodeText}
+                        </div>
+                    `);
+                    } else {
+                        $hierarchyDisplay.text(data?.hierarchy || uniqueCodeText).toggle(!!uniqueCodeId);
+                    }
+
+                    console.log("✅ Change event completed successfully (optional unique code)");
+                } catch (err) {
+                    console.error("🚨 Error in unique code processing:", err);
+                    alert("خطا در بارگذاری جزئیات کد یکتا. لطفاً دوباره تلاش کنید.");
+                } finally {
+                    $this.data('processing', false);
+                    console.groupEnd();
+                }
+            });
+
+
             // مدیریت تغییر انبار
             $(document).on('change', '.warehouse-select', function () {
                 const $this = $(this);
@@ -691,6 +939,7 @@
                 });
             });
 
+
             // تابع کمکی برای بزرگ کردن حرف اول
             function capitalize(str) {
                 return str.charAt(0).toUpperCase() + str.slice(1);
@@ -709,143 +958,155 @@
                 const rowCount = tableBody.find('tr.align-middle').length;
 
                 const template = `
-                            <tr class="align-middle" data-index="${rowCount}">
-                                <td>
-                                    <div class="accordion" id="productAccordion_${rowCount}">
-                                        <div class="accordion-item border-0">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
-                                                    انتخاب کالا و مشخصات آن
-                                                </button>
-                                            </h2>
-                                            <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
-                                                <div class="accordion-body p-2">
-                                                    <label class="form-label small text-muted mb-1 text-end w-100">دسته‌بندی</label>
-                                                    <select name="Items[${rowCount}].CategoryId" class="form-select form-select-sm category-select select2 item-select text-end" data-index="${rowCount}">
-                                                        <option value="">انتخاب دسته‌بندی</option>
-                                                        ${$('#CategoryTemplateOptions').html() || '<option value="">دسته‌بندی در دسترس نیست</option>'}
-                                                    </select>
-                                                    <label class="form-label small text-muted mb-1 text-end w-100">گروه</label>
-                                                    <select name="Items[${rowCount}].GroupId" class="form-select form-select-sm group-select select2 item-select mt-2 text-end" data-index="${rowCount}" disabled>
-                                                        <option value="">انتخاب گروه</option>
-                                                    </select>
-                                                    <label class="form-label small text-muted mb-1 text-end w-100">طبقه</label>
-                                                    <select name="Items[${rowCount}].StatusId" class="form-select form-select-sm status-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
-                                                        <option value="">انتخاب طبقه</option>
-                                                    </select>
-                                                    <label class="form-label small text-muted mb-1 text-end w-100">کالا</label>
-                                                    <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
-                                                        <option value="">انتخاب کالا</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td style="width: 120px;">
-                                    <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control form-control-sm text-end" />
-                                    <span class="text-danger small d-block mt-1 text-end"></span>
-                                </td>
-                                <td>
-                                    <div class="accordion" id="sourceAccordion_${rowCount}">
-                                        <div class="accordion-item border-0">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
-                                                    مشخصات مبدا
-                                                </button>
-                                            </h2>
-                                            <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
-                                                <div class="accordion-body p-2">
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="source">
-                                                            <option value="">انتخاب انبار</option>
-                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                                        <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="source" disabled>
-                                                            <option value="">انتخاب قسمت</option>
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                    <div>
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                                        <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="source" disabled>
-                                                            <option value="">انتخاب بخش</option>
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="accordion" id="destAccordion_${rowCount}">
-                                        <div class="accordion-item border-0">
-                                            <h2 class="accordion-header">
-                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
-                                                    مشخصات مقصد
-                                                </button>
-                                            </h2>
-                                            <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
-                                                <div class="accordion-body p-2">
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
-                                                        <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="destination">
-                                                            <option value="">انتخاب انبار</option>
-                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
-                                                        <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="destination" disabled>
-                                                            <option value="">انتخاب قسمت</option>
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                    <div>
-                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
-                                                        <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="destination" disabled>
-                                                            <option value="">انتخاب بخش</option>
-                                                        </select>
-                                                        <span class="text-danger small d-block mt-1 text-end"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project text-end" data-index="${rowCount}">
-                                        <option value="">انتخاب پروژه...</option>
-                                        ${$('#ProjectTemplateOptions').html() || '<option value="">پروژه در دسترس نیست</option>'}
-                                    </select>
-                                    <span class="text-danger small d-block text-end"></span>
-                                </td>
-                                <td>
-                                    <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request text-end" data-index="${rowCount}">
-                                        <option value="">انتخاب درخواست...</option>
-                                        ${$('#PurchaseRequestTemplateOptions').html() || '<option value="">درخواست در دسترس نیست</option>'}
-                                    </select>
-                                    <span class="text-danger small d-block text-end"></span>
-                                </td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
-                                            <i class="bi bi-check-lg"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        `;
+                                                            <tr class="align-middle" data-index="${rowCount}">
+                                                                <td>
+                                                                    <div class="accordion" id="productAccordion_${rowCount}">
+                                                                        <div class="accordion-item border-0">
+                                                                            <h2 class="accordion-header">
+                                                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#productCollapse_${rowCount}">
+                                                                                    انتخاب کالا و مشخصات آن
+                                                                                </button>
+                                                                            </h2>
+                                                                            <div id="productCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${rowCount}">
+                                                                                <div class="accordion-body p-2">
+                                                                                    <label class="form-label small text-muted mb-1 text-end w-100">دسته‌بندی</label>
+                                                                                    <select name="Items[${rowCount}].CategoryId" class="form-select form-select-sm category-select select2 item-select text-end" data-index="${rowCount}">
+                                                                                        <option value="">انتخاب دسته‌بندی</option>
+                                                                                        ${$('#CategoryTemplateOptions').html() || '<option value="">دسته‌بندی در دسترس نیست</option>'}
+                                                                                    </select>
+                                                                                    <label class="form-label small text-muted mb-1 text-end w-100">گروه</label>
+                                                                                    <select name="Items[${rowCount}].GroupId" class="form-select form-select-sm group-select select2 item-select mt-2 text-end" data-index="${rowCount}" disabled>
+                                                                                        <option value="">انتخاب گروه</option>
+                                                                                    </select>
+                                                                                    <label class="form-label small text-muted mb-1 text-end w-100">طبقه</label>
+                                                                                    <select name="Items[${rowCount}].StatusId" class="form-select form-select-sm status-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
+                                                                                        <option value="">انتخاب طبقه</option>
+                                                                                    </select>
+                                                                                    <label class="form-label small text-muted mb-1 text-end w-100">کالا</label>
+                                                                                    <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
+                                                                                        <option value="">انتخاب کالا</option>
+                                                                                    </select>
+                                                                                    <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا</label>
+                                                                                    <div class="d-flex align-items-center mb-2">
+                                                                                        <div class="flex-grow-1">
+                                                                                            <select name="Items[${rowCount}].SelectedUniqueCode"
+                                                                                                    class="form-select form-select-sm select2 unique-codes-select text-end d-none"
+                                                                                                    data-index="${rowCount}"
+                                                                                                    style="min-height: 36px;">
+                                                                                                <option value="">انتخاب کد یکتا</option>
+                                                                                            </select>
+                                                                                           
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td style="width: 120px;">
+                                                                    <input name="Items[${rowCount}].Quantity" type="number" min="1" class="form-control form-control-sm text-end" />
+                                                                    <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="accordion" id="sourceAccordion_${rowCount}">
+                                                                        <div class="accordion-item border-0">
+                                                                            <h2 class="accordion-header">
+                                                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#sourceCollapse_${rowCount}">
+                                                                                    مشخصات مبدا
+                                                                                </button>
+                                                                            </h2>
+                                                                            <div id="sourceCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#sourceAccordion_${rowCount}">
+                                                                                <div class="accordion-body p-2">
+                                                                                    <div class="mb-2">
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                                                        <select name="Items[${rowCount}].SourceWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="source">
+                                                                                            <option value="">انتخاب انبار</option>
+                                                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                    <div class="mb-2">
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                                                        <select name="Items[${rowCount}].SourceZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="source" disabled>
+                                                                                            <option value="">انتخاب قسمت</option>
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                                                        <select name="Items[${rowCount}].SourceSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="source" disabled>
+                                                                                            <option value="">انتخاب بخش</option>
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <div class="accordion" id="destAccordion_${rowCount}">
+                                                                        <div class="accordion-item border-0">
+                                                                            <h2 class="accordion-header">
+                                                                                <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#destCollapse_${rowCount}">
+                                                                                    مشخصات مقصد
+                                                                                </button>
+                                                                            </h2>
+                                                                            <div id="destCollapse_${rowCount}" class="accordion-collapse collapse" data-bs-parent="#destAccordion_${rowCount}">
+                                                                                <div class="accordion-body p-2">
+                                                                                    <div class="mb-2">
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">انبار</label>
+                                                                                        <select name="Items[${rowCount}].DestinationWarehouseId" class="form-select form-select-sm warehouse-select select2 text-end" data-index="${rowCount}" data-type="destination">
+                                                                                            <option value="">انتخاب انبار</option>
+                                                                                            ${buildOptions(viewBagData.warehouses, 'انتخاب انبار')}
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                    <div class="mb-2">
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">قسمت</label>
+                                                                                        <select name="Items[${rowCount}].DestinationZoneId" class="form-select form-select-sm zone-select select2 text-end" data-index="${rowCount}" data-type="destination" disabled>
+                                                                                            <option value="">انتخاب قسمت</option>
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                    <div>
+                                                                                        <label class="form-label small text-muted mb-1 text-end w-100">بخش</label>
+                                                                                        <select name="Items[${rowCount}].DestinationSectionId" class="form-select form-select-sm section-select select2 text-end" data-type="destination" disabled>
+                                                                                            <option value="">انتخاب بخش</option>
+                                                                                        </select>
+                                                                                        <span class="text-danger small d-block mt-1 text-end"></span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td>
+                                                                    <select name="Items[${rowCount}].ProjectId" class="form-select form-select-sm select2-project text-end" data-index="${rowCount}">
+                                                                        <option value="">انتخاب پروژه...</option>
+                                                                        ${$('#ProjectTemplateOptions').html() || '<option value="">پروژه در دسترس نیست</option>'}
+                                                                    </select>
+                                                                    <span class="text-danger small d-block text-end"></span>
+                                                                </td>
+                                                                <td>
+                                                                    <select name="Items[${rowCount}].PurchaseRequestId" class="form-select form-select-sm select2-purchase-request text-end" data-index="${rowCount}">
+                                                                        <option value="">انتخاب درخواست...</option>
+                                                                        ${$('#PurchaseRequestTemplateOptions').html() || '<option value="">درخواست در دسترس نیست</option>'}
+                                                                    </select>
+                                                                    <span class="text-danger small d-block text-end"></span>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="d-flex justify-content-center gap-1">
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-success rounded-circle hide-on-print save-item" title="ثبت">
+                                                                            <i class="bi bi-check-lg"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-circle hide-on-print remove-item" title="حذف">
+                                                                            <i class="bi bi-trash"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        `;
 
                 tableBody.append(template);
 
@@ -876,6 +1137,46 @@
                 });
                 $row.remove();
             });
+
+            // === finalizeRow: نمایش خلاصه آکاردئون و بستن آن ===
+            function finalizeRow($row, index, prefix) {
+                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text() || 'انتخاب نشده';
+                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text() || 'انتخاب نشده';
+                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text() || 'انتخاب نشده';
+                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text() || 'انتخاب نشده';
+
+                // دریافت unique code text
+                const uniqueCodeText = $row.find(`select[name="${prefix}[${index}].SelectedUniqueCode"] option:selected`).text() || '';
+
+                const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}${uniqueCodeText ? ` (${uniqueCodeText})` : ''}`;
+
+                // === خلاصه مبدا ===
+                const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+                // === خلاصه مقصد ===
+                const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+                const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text() || 'انتخاب نشده';
+                const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text() || 'انتخاب نشده';
+                const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+                // === نمایش خلاصه و بستن آکاردئون ===
+                const updateAccordion = ($collapse, summary) => {
+                    const $header = $collapse.siblings('.accordion-header').find('.accordion-button');
+                    $header.html(summary).css({
+                        'text-align': 'right',
+                        'justify-content': 'flex-start',
+                        'direction': 'rtl'
+                    });
+                    bootstrap.Collapse.getOrCreateInstance($collapse[0]).hide();
+                };
+
+                updateAccordion($row.find(`#productCollapse_${index}`), productSummary);
+                updateAccordion($row.find(`#sourceCollapse_${index}`), sourceSummary);
+                updateAccordion($row.find(`#destCollapse_${index}`), destSummary);
+            }
 
             // اعتبارسنجی و ذخیره آیتم
             $(document).on('click', '.save-item', function () {
@@ -910,14 +1211,14 @@
                 if (errorMessages.length > 0) {
                     if ($errorBox.length === 0) {
                         $row.after(`
-                                    <tr class="validation-row bg-danger bg-opacity-10" data-index="${index}">
-                                        <td colspan="7" class="p-2">
-                                            <div class="alert alert-danger p-2 mb-0 small error-message-list">
-                                                <ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `);
+                                                                    <tr class="validation-row bg-danger bg-opacity-10" data-index="${index}">
+                                                                        <td colspan="7" class="p-2">
+                                                                            <div class="alert alert-danger p-2 mb-0 small error-message-list">
+                                                                                <ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                `);
                     } else {
                         $errorBox.html(`<ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
                     }
@@ -926,40 +1227,7 @@
                     $row.next(`tr.validation-row[data-index="${index}"]`).remove();
                 }
 
-                // به‌روزرسانی خلاصه‌ها
-                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
-                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
-                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
-                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-                const productSummary = `${categoryText} / ${groupText} / ${statusText} / <strong>${productText}</strong>`;
-
-                const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
-                const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
-                const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
-                const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
-
-                const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
-                const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
-                const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
-                const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
-
-                const projectText = projectId ? $row.find(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text() : "بدون پروژه";
-
-                // بستن آکاردئون‌ها و به‌روزرسانی هدرها
-                const $productCollapse = $row.find(`#productCollapse_${index}`);
-                const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
-                $productHeader.html(`<div dir="rtl" class="w-100"><div class="fw-bold">${productSummary}</div></div>`);
-                bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
-
-                const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-                const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
-                $sourceHeader.html(`<div dir="rtl" class="w-100">${sourceSummary}</div>`);
-                bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
-
-                const $destCollapse = $row.find(`#destCollapse_${index}`);
-                const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
-                $destHeader.html(`<div dir="rtl" class="w-100">${destSummary}</div>`);
-                bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
+                finalizeRow($row, index, prefix);
 
                 $row.removeClass('table-warning').addClass('table-success');
                 $(this).removeClass('btn-outline-success').addClass('btn-success').attr('title', 'ویرایش');

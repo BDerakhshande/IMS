@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using IMS.Application.WarehouseManagement.DTOs;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace IMS.Models.ProMan
 {
     public class ReceiptOrIssueItemViewModel
     {
+
         public int? CategoryId { get; set; }
         public int? GroupId { get; set; }
         public int? StatusId { get; set; }
@@ -36,6 +38,8 @@ namespace IMS.Models.ProMan
         public List<SelectListItem>? AvailableDestinationSections { get; set; }
         public List<SelectListItem> AvailableUniqueCodes { get; set; } = new List<SelectListItem>();
         public List<string> UniqueCodes { get; set; } = new List<string>();
+        public string? SelectedUniqueCode { get; set; }
+        public List<UniqueCodeHierarchyDto> UniqueCodeHierarchy { get; set; } = new List<UniqueCodeHierarchyDto>();
     }
 
 }
