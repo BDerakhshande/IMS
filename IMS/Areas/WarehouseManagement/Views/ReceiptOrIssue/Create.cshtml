@@ -1027,7 +1027,9 @@ select.select2-hidden-accessible {
                 error: () => alert('خطا در بارگذاری کالاها. لطفاً دوباره تلاش کنید.')
             });
                 });
-            // ==========================
+           
+
+
          $(document).on("change", ".product-select", function () {
             const rowIndex = $(this).data("index");
             const productId = $(this).val();
@@ -1123,59 +1125,69 @@ select.select2-hidden-accessible {
                 const uniqueCodeId = selectedData?.id ?? $this.val();
                 let uniqueCodeText = sanitizeText(selectedData?.text ?? optionSelectedText, uniqueCodeId);
 
-                if (!uniqueCodeId) {
-                    console.warn("⚠️ No uniqueCodeId selected — resetting row");
-                    $this.data('processing', false);
-                    console.groupEnd();
-                    return;
+                let data = {};
+                if (uniqueCodeId) {
+                    try {
+                        data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
+                        if (data && data.text) uniqueCodeText = data.text;
+                    } catch (err) {
+                        console.warn("⚠️ خطا در بارگذاری جزئیات کد یکتا:", err);
+                    }
+                } else {
+                    console.log("ℹ️ هیچ کد یکتایی انتخاب نشده — ادامه بدون اطلاعات خودکار");
                 }
 
-                const data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
-                if (data && data.text) {
-                    uniqueCodeText = data.text;
-                }
                 uniqueCodeText = sanitizeText(uniqueCodeText, uniqueCodeId);
 
                 // Update option
-                const existingOption = $this.find(`option[value='${uniqueCodeId}']`);
-                if (existingOption.length) {
-                    existingOption.text(uniqueCodeText);
-                } else {
-                    const newOption = new Option(uniqueCodeText, uniqueCodeId, true, true);
-                    $this.append(newOption);
+                if (uniqueCodeId) {
+                    const existingOption = $this.find(`option[value='${uniqueCodeId}']`);
+                    if (existingOption.length) {
+                        existingOption.text(uniqueCodeText);
+                    } else {
+                        const newOption = new Option(uniqueCodeText, uniqueCodeId, true, true);
+                        $this.append(newOption);
+                    }
+                    $this.val(uniqueCodeId).trigger('change.select2');
+                    $this.trigger({ type: 'select2:select', params: { data: { id: uniqueCodeId, text: uniqueCodeText } } });
                 }
 
-                // Refresh Select2
-                $this.val(uniqueCodeId).trigger('change.select2');
-                $this.trigger({ type: 'select2:select', params: { data: { id: uniqueCodeId, text: uniqueCodeText } } });
-
-                setTimeout(() => {
-                    const displayedText = $this.next('.select2-container').find('.select2-selection__rendered').text();
-                    console.log("🧩 displayed text in UI:", displayedText);
-                }, 300);
-
-                // Quantity
+                // Quantity فقط اگر کد یکتا وجود دارد، ست شود
                 const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
-                $quantityInput.val(1).prop('disabled', true).addClass('disabled-quantity');
+                if (uniqueCodeId) {
+                    $quantityInput.val(1).prop('disabled', true).addClass('disabled-quantity');
+                } else {
+                    $quantityInput.val("").prop('disabled', false).removeClass('disabled-quantity');
+                }
 
-                const setDependentSelect = async ($select, value, name) => {
+                // Helper برای فیلدهای وابسته
+                const setDependentSelect = async ($select, value) => {
                     if ($select.length) {
                         $select.val(value ?? "").trigger('change');
-                        if (!value) {
-                            if ($select.find('option[value=""]').length === 0) {
-                                $select.append(new Option("بدون پروژه", "", true, true));
-                            }
+                        $select.siblings(`input[type="hidden"][name="${$select.attr('name')}"]`).remove();
+                        if (value !== undefined && value !== null) {
+                            $select.after(`<input type="hidden" name="${$select.attr('name')}" value="${value}" />`);
+                            $select.prop("disabled", true).addClass("disabled-field");
+                        } else {
+                            $select.prop("disabled", false).removeClass("disabled-field");
                         }
                         return new Promise(resolve => setTimeout(resolve, 100));
                     }
                 };
 
-                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId, "sourceWarehouse");
-                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId, "sourceZone");
-                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId, "sourceSection");
-                await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId, "project");
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId);
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId);
+                await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId);
+                await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId);
 
-                // Hierarchy display
+                // استایل فیلدهای غیرفعال
+                $(".disabled-field").css({
+                    "background-color": "#f3f3f3",
+                    "color": "#777",
+                    "pointer-events": "none"
+                });
+
+                // نمایش سلسله‌مراتب
                 let $hierarchyDisplay = $(`#hierarchy-display-${rowIndex}`);
                 if ($hierarchyDisplay.length === 0) {
                     $this.closest('.row').after(`
@@ -1184,19 +1196,18 @@ select.select2-hidden-accessible {
                         </div>
                     `);
                 } else {
-                    $hierarchyDisplay.text(data?.hierarchy || uniqueCodeText).show();
+                    $hierarchyDisplay.text(data?.hierarchy || uniqueCodeText).toggle(!!uniqueCodeId);
                 }
 
-                console.log("✅ Change event completed successfully");
+                console.log("✅ Change event completed successfully (optional unique code)");
             } catch (err) {
-                console.error("🚨 Error fetching unique code details:", err);
+                console.error("🚨 Error in unique code processing:", err);
                 alert("خطا در بارگذاری جزئیات کد یکتا. لطفاً دوباره تلاش کنید.");
             } finally {
                 $this.data('processing', false);
                 console.groupEnd();
             }
         });
-
 
 
         $(document).on('click', '.remove-item', function () {

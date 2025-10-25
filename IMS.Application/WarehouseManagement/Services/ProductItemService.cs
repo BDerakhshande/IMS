@@ -131,14 +131,40 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _warehouseContext.ProductItems
+            // پیدا کردن آیتم
+            var productItem = await _warehouseContext.ProductItems
                 .FirstOrDefaultAsync(pi => pi.Id == id);
 
-            if (entity == null) return false;
+            if (productItem == null)
+                return false;
 
-            _warehouseContext.ProductItems.Remove(entity);
-            await _warehouseContext.SaveChangesAsync(CancellationToken.None);
-            return true;
+            // حذف InventoryItems مرتبط با UniqueCode
+            var relatedInventoryItems = await _warehouseContext.InventoryItems
+                .Where(ii => ii.UniqueCode == productItem.UniqueCode)
+                .ToListAsync();
+
+            if (relatedInventoryItems.Any())
+            {
+                _warehouseContext.InventoryItems.RemoveRange(relatedInventoryItems);
+            }
+
+            // حذف خود ProductItem
+            _warehouseContext.ProductItems.Remove(productItem);
+
+            try
+            {
+                await _warehouseContext.SaveChangesAsync(CancellationToken.None);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                // ثبت دقیق ارور برای بررسی
+                Console.WriteLine($"❌ Error deleting ProductItem (ID={id}, UniqueCode={productItem.UniqueCode}): {ex.Message}");
+                if (ex.InnerException != null)
+                    Console.WriteLine($"🔍 Inner: {ex.InnerException.Message}");
+
+                throw; 
+            }
         }
 
         public async Task<List<SelectListItem>> GetProjectsAsync()

@@ -314,10 +314,49 @@
                                                             <option value="@product.Value" selected="@(product.Value == Model.Items[i].ProductId.ToString())">@product.Text</option>
                                                         }
                                                     </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100"> کد یکتا</label>
+                                                    <div class="d-flex align-items-center mb-2">
+
+
+                                                        <div class="flex-grow-1">
+                                                            @if (Model.Items[i].AvailableUniqueCodes != null && Model.Items[i].AvailableUniqueCodes.Any())
+                                                            {
+                                                                <select asp-for="Items[i].SelectedUniqueCode"
+                                                                        class="form-select form-select-sm select2 unique-codes-select text-end"
+                                                                        data-index="@i"
+                                                                        style="min-height: 36px;">
+                                                                    <option value="">انتخاب کد یکتا</option>
+                                                                    @foreach (var option in Model.Items[i].AvailableUniqueCodes)
+                                                                    {
+                                                                        <option value="@option.Value"
+                                                                                selected="@(option.Value == Model.Items[i].SelectedUniqueCode)">
+                                                                            @option.Text
+                                                                        </option>
+                                                                    }
+                                                                </select>
+                                                            }
+                                                            else
+                                                            {
+                                                                <div class="border rounded px-2 bg-light text-end d-flex align-items-center"
+                                                                     style="font-size: 0.85rem; min-height: 36px;">
+                                                                    @if (!string.IsNullOrEmpty(Model.Items[i].SelectedUniqueCode))
+                                                                    {
+                                                                        <span class="text-dark fw-bold">
+                                                                            @Model.Items[i].SelectedUniqueCode
+                                                                        </span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="text-muted">کد یکتا ثبت نشده است</span>
+                                                                    }
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
                                 </td>
                                 <td style="width: 120px;">
                                     <input asp-for="Items[i].Quantity"
@@ -493,7 +532,6 @@
     <script src="~/lib/select2/js/select2.min.js"></script>
     <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
 
-
     <script src="/js/MenuJs.js"></script>
     <script type="text/html" id="CategoryTemplateOptions">
         @foreach (var category in ViewBag.Categories as IEnumerable<SelectListItem> ?? new List<SelectListItem>())
@@ -526,7 +564,8 @@
             zones: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Zones)),
             sections: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Sections)),
             projects: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Projects)),
-            purchaseRequests: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests))
+            purchaseRequests: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.PurchaseRequests)),
+            uniqueCodes: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Items.FirstOrDefault()?.AvailableUniqueCodes ?? new List<SelectListItem>()))
                 };
 
         $(document).ready(function () {
@@ -543,7 +582,6 @@
                         allowClear: true,
                         dir: 'rtl',
                         minimumResultsForSearch: 0,
-
                         width: '100%',
                         dropdownParent: $select.closest('.accordion-body').length ? $select.closest('.accordion-body') : $(document.body)
                     });
@@ -640,6 +678,233 @@
                 });
             });
 
+            // مدیریت تغییر product-select (بهبود sync با unique)
+            $(document).on("change", ".product-select", function () {
+                const rowIndex = $(this).data("index");
+                const productId = $(this).val();
+                const $uniqueSelect = $(`select[name="Items[${rowIndex}].SelectedUniqueCode"]`);
+                const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
+
+                // ذخیره مقدار قبلی Quantity قبل از reset
+                const previousQuantity = $quantityInput.val();
+
+                // پاکسازی و تخریب Select2 قبلی (اگر وجود دارد)
+                if ($uniqueSelect.hasClass('select2-hidden-accessible')) {
+                    $uniqueSelect.select2('destroy');
+                }
+                $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
+
+                // بازگرداندن حالت اولیه quantity
+                $quantityInput.prop('disabled', false).removeClass('disabled-quantity');
+                $quantityInput.val(previousQuantity || '');
+
+                const $uniqueContainer = $uniqueSelect.closest('.d-flex.align-items-center.mb-2');
+                const $placeholder = $uniqueContainer.find('.border.rounded.px-2.bg-light');
+
+                // اگر محصول انتخاب نشده باشد
+                if (!productId) {
+                    $uniqueSelect.addClass('d-none').hide();
+                    if ($placeholder.length) {
+                        $placeholder.show().find('span').text('کد یکتا ثبت نشده است');
+                    }
+                    console.log(`ℹ️ No product selected for row ${rowIndex}, unique hidden`);
+                    return;
+                }
+
+                // 📦 درخواست AJAX برای دریافت کدهای یکتا
+                $.get(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodes?productId=${productId}`, function (data) {
+                    console.log("✅ Received unique codes for row", rowIndex, ":", data);
+
+                    if (data && data.length > 0) {
+                        data.forEach(item => {
+                            const display = item.displayHierarchyByCode;
+                            const text = item.text;
+                            const fallback = item.hierarchy || item.id;
+                            const safeText = (display && String(display).trim() && String(display).toLowerCase() !== 'undefined')
+                                ? display
+                                : (text && String(text).trim() && String(text).toLowerCase() !== 'undefined')
+                                    ? text
+                                    : fallback;
+
+                            const opt = new Option(safeText, item.id, false, false);
+                            $uniqueSelect.append(opt);
+                        });
+
+                        $uniqueSelect.removeClass('d-none').show();
+                        if ($placeholder.length) $placeholder.hide();
+                        initSelect2($uniqueSelect, 'کد یکتا را انتخاب کنید');
+
+                    } else {
+                        // اگر هیچ کد یکتایی موجود نیست
+                        $uniqueSelect.addClass('d-none').hide();
+                        if ($placeholder.length) {
+                            $placeholder.show().find('span').text('کد یکتا موجود نیست (اختیاری)');
+                        } else {
+                            const placeholderHtml = `
+                                        <div class="border rounded px-2 bg-light text-end d-flex align-items-center"
+                                             style="font-size: 0.85rem; min-height: 36px;">
+                                             <span class="text-muted">کد یکتا موجود نیست (اختیاری)</span>
+                                        </div>`;
+                            $uniqueContainer.find('.flex-grow-1').html(placeholderHtml);
+                        }
+                        console.log(`⚠️ No unique codes available for product ${productId} in row ${rowIndex}`);
+                    }
+
+                    // ✅ NEW: Sync quantity اگر unique از قبل انتخاب شده
+                    if ($uniqueSelect.val()) {
+                        console.log(`🔄 Triggering unique change for sync in row ${rowIndex}`);
+                        $uniqueSelect.trigger('change');
+                    }
+                }).fail(() => {
+                    console.error("❌ خطا در دریافت کدهای یکتا برای row", rowIndex);
+                    $uniqueSelect.addClass('d-none').hide();
+                    if ($placeholder.length) {
+                        $placeholder.show().find('span').text('خطا در بارگذاری کدهای یکتا');
+                    }
+                });
+            });
+
+            // تابع کمکی برای sanitize text
+            function sanitizeText(t, idFallback) {
+                if (t === undefined || t === null) return `کد ${idFallback}`;
+                if (typeof t !== 'string') t = String(t);
+                t = t.trim();
+                if (!t || t.toLowerCase() === 'undefined' || t.toLowerCase() === 'null')
+                    return `کد ${idFallback}`;
+                return t;
+            }
+
+            // تابع کمکی برای set dependent select
+            async function setDependentSelect($select, value) {
+                if ($select.length) {
+                    $select.val(value ?? "").trigger('change');
+                    $select.siblings(`input[type="hidden"][name="${$select.attr('name')}"]`).remove();
+                    if (value !== undefined && value !== null) {
+                        $select.after(`<input type="hidden" name="${$select.attr('name')}" value="${value}" />`);
+                        $select.prop("disabled", true).addClass("disabled-field");
+                    } else {
+                        $select.prop("disabled", false).removeClass("disabled-field");
+                    }
+                    return new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }
+
+            // 🔧 FIXED: تابع جدید برای مدیریت hidden quantity
+            function manageQuantityHidden($quantityInput, rowIndex, value, isDisabled) {
+                // حذف hidden قبلی
+                $(`input[type="hidden"][name="Items[${rowIndex}].Quantity"]`).remove();
+
+                if (isDisabled) {
+                    // اضافه کردن hidden با مقدار مشخص
+                    const hiddenValue = value || 1;
+                    $quantityInput.after(`<input type="hidden" name="Items[${rowIndex}].Quantity" value="${hiddenValue}" />`);
+                    console.log(`✅ Hidden quantity added: ${hiddenValue} for row ${rowIndex}`);
+                } else {
+                    console.log(`🔄 Hidden quantity removed for row ${rowIndex}`);
+                }
+                // input اصلی را با مقدار ست کنیم (برای نمایش)
+                $quantityInput.val(value || '');
+            }
+
+            // 🔧 FIXED: Event change برای unique-codes-select (اصلاح اصلی با لاگ)
+            $(document).on("change", ".unique-codes-select", async function () {
+                const $this = $(this);
+                const rowIndex = $this.data("index");
+
+                console.groupCollapsed(`🟦 [Unique Code Change] Row ${rowIndex}`);
+                console.log("▶ Triggered change event");
+
+                if ($this.data('processing')) {
+                    console.log("🔁 Already processing, skipping");
+                    console.groupEnd();
+                    return;
+                }
+                $this.data('processing', true);
+
+                try {
+                    const selArr = $this.select2 ? $this.select2('data') : [];
+                    const selectedData = (selArr && selArr.length) ? selArr[0] : {};
+                    const uniqueCodeId = selectedData?.id ?? $this.val();
+
+                    console.log("Selected data:", selectedData);
+                    console.log("uniqueCodeId:", uniqueCodeId);
+
+                    let data = {};
+                    if (uniqueCodeId) {
+                        try {
+                            data = await $.getJSON(`/WarehouseManagement/ReceiptOrIssue/GetUniqueCodeDetails?uniqueCodeId=${uniqueCodeId}`);
+                            console.log("Fetched unique code details:", data);
+                        } catch (err) {
+                            console.warn("⚠️ خطا در بارگذاری جزئیات کد یکتا:", err);
+                        }
+                    } else {
+                        console.log("ℹ️ No unique code selected (not mandatory now)");
+                    }
+
+                    // 🔧 FIXED: مدیریت Quantity (اصلاح‌شده)
+                    const $quantityInput = $(`input[name="Items[${rowIndex}].Quantity"]`);
+
+                    // previousQuantity را از hidden یا input بخوان (برای edit mode)
+                    let previousQuantity = $quantityInput.data("previous") ??
+                        $(`input[type="hidden"][name="Items[${rowIndex}].Quantity"]`).val() ??
+                        $quantityInput.val() ?? 0;
+
+                    previousQuantity = parseFloat(previousQuantity) || 0;
+                    console.log("Previous Quantity (improved):", previousQuantity);
+
+                    if (uniqueCodeId) {
+                        // ست به 1، disabled، و hidden اضافه
+                        manageQuantityHidden($quantityInput, rowIndex, 1, true);
+                        $quantityInput
+                            .data("previous", previousQuantity)  // ذخیره برای آینده
+                            .prop('disabled', true)
+                            .addClass('disabled-quantity');
+                        console.log("Set Quantity to 1, disabled, and hidden added");
+                    } else {
+                        // برگرد به previous، enabled، hidden حذف
+                        manageQuantityHidden($quantityInput, rowIndex, previousQuantity, false);
+                        $quantityInput
+                            .data("previous", null)  // پاک کردن previous
+                            .prop('disabled', false)
+                            .removeClass('disabled-quantity');
+                        console.log("Restored Quantity:", previousQuantity);
+                    }
+
+                    // آپدیت فیلدهای وابسته
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceWarehouseId"]`), data?.sourceWarehouseId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceZoneId"]`), data?.sourceZoneId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].SourceSectionId"]`), data?.sourceSectionId);
+                    await setDependentSelect($(`select[name="Items[${rowIndex}].ProjectId"]`), data?.projectId);
+
+                    console.log("Updated dependent selects");
+
+                    // نمایش سلسله‌مراتب (اختیاری)
+                    let $hierarchyDisplay = $(`#hierarchy-display-${rowIndex}`);
+                    const displayText = data?.hierarchy || selectedData?.text || $this.find('option:selected').text();
+
+                    if ($hierarchyDisplay.length === 0) {
+                        $this.closest('.row').after(`
+                                    <div id="hierarchy-display-${rowIndex}"
+                                         class="text-end text-info small mt-1 fw-bold"
+                                         style="font-size:0.85rem;">
+                                        ${displayText}
+                                    </div>
+                                `);
+                        console.log("Created hierarchy display:", displayText);
+                    } else {
+                        $hierarchyDisplay.text(displayText).toggle(!!displayText);
+                        console.log("Updated hierarchy display:", displayText);
+                    }
+
+                } catch (err) {
+                    console.error("🚨 Error in unique code processing:", err);
+                    alert("خطا در بارگذاری جزئیات کد یکتا. لطفاً دوباره تلاش کنید.");
+                } finally {
+                    $this.data('processing', false);
+                    console.groupEnd();
+                }
+            });
+
             // مدیریت تغییر انبار
             $(document).on('change', '.warehouse-select', function () {
                 const $this = $(this);
@@ -703,6 +968,26 @@
                 }
             }
 
+            // ✅ NEW: تابع init برای ردیف‌های edit
+            function initEditRows() {
+                console.log("🔄 Starting init for edit rows...");
+                let initializedCount = 0;
+                $('#itemsTable tbody tr[data-index]').each(function () {
+                    const rowIndex = $(this).data('index');
+                    const $uniqueSelect = $(`select[name="Items[${rowIndex}].SelectedUniqueCode"]`);
+                    if ($uniqueSelect.val()) {
+                        // Simulate change برای sync quantity در edit mode
+                        $uniqueSelect.trigger('change');
+                        initializedCount++;
+                        console.log(`🔄 Initialized edit row ${rowIndex} with unique code`);
+                    }
+                });
+                console.log(`✅ Edit rows initialized: ${initializedCount} rows processed`);
+            }
+
+            // فراخوانی init بعد از load کامل select2ها
+            setTimeout(initEditRows, 500);  // تأخیر کوچک برای اطمینان از load select2
+
             // افزودن آیتم جدید
             $('#addItemBtn').on('click', function () {
                 const tableBody = $('#itemsTable tbody');
@@ -737,6 +1022,17 @@
                                                     <select name="Items[${rowCount}].ProductId" class="form-select form-select-sm product-select select2 mt-2 text-end" data-index="${rowCount}" disabled>
                                                         <option value="">انتخاب کالا</option>
                                                     </select>
+                                                    <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا</label>
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <div class="flex-grow-1">
+                                                            <select name="Items[${rowCount}].SelectedUniqueCode"
+                                                                    class="form-select form-select-sm select2 unique-codes-select text-end d-none"
+                                                                    data-index="${rowCount}"
+                                                                    style="min-height: 36px;">
+                                                                <option value="">انتخاب کد یکتا</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -866,16 +1162,64 @@
                         new bootstrap.Collapse(el, { toggle: false });
                     }
                 });
+
+                console.log(`➕ New row added: ${rowCount}`);
             });
 
             // حذف آیتم
             $(document).on('click', '.remove-item', function () {
                 const $row = $(this).closest('tr');
+                const rowIndex = $row.data('index');
                 $row.find('.select2').each(function () {
                     destroySelect2($(this));
                 });
+                // حذف hidden quantity هم
+                $(`input[type="hidden"][name="Items[${rowIndex}].Quantity"]`).remove();
                 $row.remove();
+                console.log(`🗑️ Row ${rowIndex} removed`);
             });
+
+            // === finalizeRow: نمایش خلاصه آکاردئون و بستن آن ===
+            function finalizeRow($row, index, prefix) {
+                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text() || 'انتخاب نشده';
+                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text() || 'انتخاب نشده';
+                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text() || 'انتخاب نشده';
+                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text() || 'انتخاب نشده';
+
+                // دریافت unique code text
+                const uniqueCodeText = $row.find(`select[name="${prefix}[${index}].SelectedUniqueCode"] option:selected`).text() || '';
+
+                const productSummary = `${categoryText} / ${groupText} / ${statusText} / ${productText}${uniqueCodeText ? ` (${uniqueCodeText})` : ''}`;
+
+                // === خلاصه مبدا ===
+                const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text() || 'انتخاب نشده';
+                const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
+
+                // === خلاصه مقصد ===
+                const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text() || 'انتخاب نشده';
+                const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text() || 'انتخاب نشده';
+                const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text() || 'انتخاب نشده';
+                const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
+
+                // === نمایش خلاصه و بستن آکاردئون ===
+                const updateAccordion = ($collapse, summary) => {
+                    const $header = $collapse.siblings('.accordion-header').find('.accordion-button');
+                    $header.html(summary).css({
+                        'text-align': 'right',
+                        'justify-content': 'flex-start',
+                        'direction': 'rtl'
+                    });
+                    bootstrap.Collapse.getOrCreateInstance($collapse[0]).hide();
+                };
+
+                updateAccordion($row.find(`#productCollapse_${index}`), productSummary);
+                updateAccordion($row.find(`#sourceCollapse_${index}`), sourceSummary);
+                updateAccordion($row.find(`#destCollapse_${index}`), destSummary);
+
+                console.log(`📝 Row ${index} finalized with summaries: Product=${productSummary}, Source=${sourceSummary}, Dest=${destSummary}`);
+            }
 
             // اعتبارسنجی و ذخیره آیتم
             $(document).on('click', '.save-item', function () {
@@ -883,9 +1227,12 @@
                 const index = $row.data('index');
                 const prefix = 'Items';
 
-                // استخراج مقادیر
+                // استخراج مقادیر (برای quantity از hidden هم چک کن)
                 const productId = $row.find(`select[name="${prefix}[${index}].ProductId"]`).val();
-                const quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+                let quantity = $row.find(`input[name="${prefix}[${index}].Quantity"]`).val();
+                if (!quantity) {
+                    quantity = $(`input[type="hidden"][name="${prefix}[${index}].Quantity"]`).val() || 0;
+                }
                 const sourceWarehouseId = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"]`).val();
                 const sourceZoneId = $row.find(`select[name="${prefix}[${index}].SourceZoneId"]`).val();
                 const sourceSectionId = $row.find(`select[name="${prefix}[${index}].SourceSectionId"]`).val();
@@ -893,6 +1240,8 @@
                 const destZoneId = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"]`).val();
                 const destSectionId = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"]`).val();
                 const projectId = $row.find(`select[name="${prefix}[${index}].ProjectId"]`).val();
+
+                console.log(`🔍 Validation for row ${index}: Quantity=${quantity}, Product=${productId}`);
 
                 // اعتبارسنجی
                 let errorMessages = [];
@@ -921,55 +1270,34 @@
                     } else {
                         $errorBox.html(`<ul class="mb-0">${errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`);
                     }
+                    console.log(`❌ Validation failed for row ${index}:`, errorMessages);
                     return;
                 } else {
                     $row.next(`tr.validation-row[data-index="${index}"]`).remove();
                 }
 
-                // به‌روزرسانی خلاصه‌ها
-                const categoryText = $row.find(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
-                const groupText = $row.find(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
-                const statusText = $row.find(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
-                const productText = $row.find(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-                const productSummary = `${categoryText} / ${groupText} / ${statusText} / <strong>${productText}</strong>`;
-
-                const sourceWarehouseText = $row.find(`select[name="${prefix}[${index}].SourceWarehouseId"] option:selected`).text();
-                const sourceZoneText = $row.find(`select[name="${prefix}[${index}].SourceZoneId"] option:selected`).text();
-                const sourceSectionText = $row.find(`select[name="${prefix}[${index}].SourceSectionId"] option:selected`).text();
-                const sourceSummary = `${sourceWarehouseText} / ${sourceZoneText} / ${sourceSectionText}`;
-
-                const destWarehouseText = $row.find(`select[name="${prefix}[${index}].DestinationWarehouseId"] option:selected`).text();
-                const destZoneText = $row.find(`select[name="${prefix}[${index}].DestinationZoneId"] option:selected`).text();
-                const destSectionText = $row.find(`select[name="${prefix}[${index}].DestinationSectionId"] option:selected`).text();
-                const destSummary = `${destWarehouseText} / ${destZoneText} / ${destSectionText}`;
-
-                const projectText = projectId ? $row.find(`select[name="${prefix}[${index}].ProjectId"] option:selected`).text() : "بدون پروژه";
-
-                // بستن آکاردئون‌ها و به‌روزرسانی هدرها
-                const $productCollapse = $row.find(`#productCollapse_${index}`);
-                const $productHeader = $productCollapse.siblings('.accordion-header').find('.accordion-button');
-                $productHeader.html(`<div dir="rtl" class="w-100"><div class="fw-bold">${productSummary}</div></div>`);
-                bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
-
-                const $sourceCollapse = $row.find(`#sourceCollapse_${index}`);
-                const $sourceHeader = $sourceCollapse.siblings('.accordion-header').find('.accordion-button');
-                $sourceHeader.html(`<div dir="rtl" class="w-100">${sourceSummary}</div>`);
-                bootstrap.Collapse.getOrCreateInstance($sourceCollapse[0]).hide();
-
-                const $destCollapse = $row.find(`#destCollapse_${index}`);
-                const $destHeader = $destCollapse.siblings('.accordion-header').find('.accordion-button');
-                $destHeader.html(`<div dir="rtl" class="w-100">${destSummary}</div>`);
-                bootstrap.Collapse.getOrCreateInstance($destCollapse[0]).hide();
+                finalizeRow($row, index, prefix);
 
                 $row.removeClass('table-warning').addClass('table-success');
                 $(this).removeClass('btn-outline-success').addClass('btn-success').attr('title', 'ویرایش');
+
+                console.log(`✅ Row ${index} saved successfully`);
             });
 
-            // ارسال فرم
+            // ارسال فرم (بهبود لاگ)
             $('#receiptIssueForm').on('submit', function (e) {
                 e.preventDefault();
                 const form = this;
                 const formData = new FormData(form);
+
+                console.log("📤 Submitting form...");
+
+                // لاگ payload (برای دیباگ، فقط در dev)
+                for (let pair of formData.entries()) {
+                    if (pair[0].includes('Quantity')) {
+                        console.log(`📦 FormData Quantity: ${pair[0]} = ${pair[1]}`);
+                    }
+                }
 
                 $.ajax({
                     url: $(form).attr('action'),
@@ -978,6 +1306,7 @@
                     processData: false,
                     contentType: false,
                     success: function (response) {
+                        console.log("✅ Form submit success:", response);
                         if (response.success) {
                             if (confirm("سند با موفقیت ویرایش شد. آیا می‌خواهید فایل PDF سند را دریافت کنید؟")) {
                                 window.location.href = `/WarehouseManagement/ReceiptOrIssue/Print/${response.documentId}`;
@@ -985,10 +1314,12 @@
                                 window.location.href = '/WarehouseManagement/ReceiptOrIssue/Index';
                             }
                         } else {
+                            console.error("❌ Form submit error:", response.errors);
                             alert("خطا:\n" + (response.errors || []).join('\n'));
                         }
                     },
-                    error: function () {
+                    error: function (xhr, status, error) {
+                        console.error("🚨 AJAX error:", { xhr, status, error });
                         alert('خطا در ارسال اطلاعات به سرور.');
                     }
                 });

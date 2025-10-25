@@ -28,15 +28,36 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IProcurementManagementDbContext _procurementContext;
 
         public ReceiptOrIssueController(IReceiptOrIssueService service, IWarehouseService warehouseService, IProductService productService
-            , ICategoryService categoryService ,IGroupService groupService ,IStatusService statusService , IWarehouseDbContext context, IApplicationDbContext projectContext ,
-            IProjectService projectService , IProcurementManagementDbContext procurementManagementDb)
+            , ICategoryService categoryService, IGroupService groupService, IStatusService statusService, IWarehouseDbContext context, IApplicationDbContext projectContext,
+            IProjectService projectService, IProcurementManagementDbContext procurementManagementDb)
         {
             _service = service;
             _warehouseService = warehouseService;
             _productService = productService;
             _categoryService = categoryService; _groupService = groupService; _statusService = statusService;
             _context = context;
-            _projectContext = projectContext;_projectService = projectService; _procurementContext = procurementManagementDb;
+            _projectContext = projectContext; _projectService = projectService; _procurementContext = procurementManagementDb;
+        }
+
+        // Internal DTO classes for unique codes
+        private class UniqueCodeOption
+        {
+            public string id { get; set; } = string.Empty;
+            public string text { get; set; } = string.Empty;
+            public string hierarchy { get; set; } = string.Empty;
+        }
+
+        private class UniqueCodeDetail
+        {
+            public int? sourceWarehouseId { get; set; }
+            public int? sourceZoneId { get; set; }
+            public int? sourceSectionId { get; set; }
+            public int? projectId { get; set; }
+            public string hierarchy { get; set; } = string.Empty;
+            public string uniqueCode { get; set; } = string.Empty;
+            public string text { get; set; } = string.Empty;
+            public string? zoneName { get; set; }
+            public string? sectionName { get; set; }
         }
 
 
@@ -44,7 +65,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         public async Task<IActionResult> Index()
         {
             var list = await _service.GetAllAsync();
-            return View(list); 
+            return View(list);
         }
 
 
@@ -95,15 +116,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (!model.Type.HasValue)
                 ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
 
-            if (!ModelState.IsValid)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errors = ModelState.Values.SelectMany(v => v.Errors)
-                                              .Select(e => e.ErrorMessage)
-                });
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return Json(new
+            //    {
+            //        success = false,
+            //        errors = ModelState.Values.SelectMany(v => v.Errors)
+            //                                  .Select(e => e.ErrorMessage)
+            //    });
+            //}
 
             try
             {
@@ -199,7 +220,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var categories = await _categoryService.GetAllAsync() ?? new List<CategoryDto>();
 
             var warehouseItems = warehouses.Select(w => new SelectListItem { Value = w.Id.ToString(), Text = w.Name }).ToList();
-            
+
             ViewBag.Warehouses = warehouseItems;
 
             var categoryItems = categories.Select(c => new SelectListItem { Value = c.Id.ToString(), Text = c.Name }).ToList();
@@ -395,33 +416,34 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-        private ReceiptOrIssueDto MapViewModelToDto(ReceiptOrIssueViewModel vm)
+        private ReceiptOrIssueDto MapViewModelToDto(ReceiptOrIssueViewModel model)
         {
             return new ReceiptOrIssueDto
             {
-                Id = vm.Id,
-                DateString = vm.DateString,
-                Date = ParsePersianDate(vm.DateString),
-                Type = vm.Type,
-                Description = vm.Description,
-                DocumentNumber = vm.DocumentNumber,
-                Items = vm.Items.Select(i => new ReceiptOrIssueItemDto
+                Id = model.Id,
+                Date = ParsePersianDate(model.DateString),
+                Type = model.Type,
+                Description = model.Description,
+                DocumentNumber = model.DocumentNumber,
+                Items = model.Items?.Select(i => new ReceiptOrIssueItemDto
                 {
+                    ProductId = i.ProductId,
                     Quantity = i.Quantity,
-                    SourceWarehouseId = i.SourceWarehouseId,
-                    SourceZoneId = i.SourceZoneId,
-                    SourceSectionId = i.SourceSectionId,
-                    DestinationWarehouseId = i.DestinationWarehouseId,
-                    DestinationZoneId = i.DestinationZoneId,
-                    DestinationSectionId = i.DestinationSectionId,
                     CategoryId = i.CategoryId,
                     GroupId = i.GroupId,
                     StatusId = i.StatusId,
-                    ProductId = i.ProductId,
+                    SourceSectionId = i.SourceSectionId,
+                    SourceZoneId = i.SourceZoneId,
+                    SourceWarehouseId = i.SourceWarehouseId,
+                    DestinationSectionId = i.DestinationSectionId,
+                    DestinationZoneId = i.DestinationZoneId,
+                    DestinationWarehouseId = i.DestinationWarehouseId,
                     ProjectId = i.ProjectId,
                     PurchaseRequestId = i.PurchaseRequestId,
-                    UniqueCodes = i.UniqueCodes// جدید
-                }).ToList()
+                    UniqueCodes = i.UniqueCodes?.ToList(), // حفظ مقادیر واقعی
+                    SelectedUniqueCode = i.SelectedUniqueCode,
+                    UniqueCodeHierarchy = i.UniqueCodeHierarchy ?? new List<UniqueCodeHierarchyDto>()
+                }).ToList() ?? new List<ReceiptOrIssueItemDto>()
             };
         }
 
@@ -465,7 +487,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     SourceSectionId = i.SourceSectionId,
                     DestinationSectionId = i.DestinationSectionId,
 
-                    // --- پروژه ---
+                    // پروژه
                     ProjectId = i.ProjectId,
                     ProjectTitle = i.ProjectId.HasValue && projectTitles.ContainsKey(i.ProjectId.Value)
                         ? projectTitles[i.ProjectId.Value]
@@ -474,10 +496,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     {
                         Value = p.Id.ToString(),
                         Text = p.ProjectName,
-                        Selected = (p.Id == i.ProjectId)
+                        Selected = p.Id == i.ProjectId
                     }).ToList(),
 
-                    // --- درخواست خرید ---
+                    // درخواست خرید
                     PurchaseRequestId = i.PurchaseRequestId,
                     PurchaseRequestTitle = i.PurchaseRequestId.HasValue && purchaseRequestTitles.ContainsKey(i.PurchaseRequestId.Value)
                         ? purchaseRequestTitles[i.PurchaseRequestId.Value]
@@ -486,11 +508,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     {
                         Value = pr.Id.ToString(),
                         Text = pr.Title,
-                        Selected = (pr.Id == i.PurchaseRequestId)
-                    }).ToList()
+                        Selected = pr.Id == i.PurchaseRequestId
+                    }).ToList(),
+
+                    // Unique Codes
+                    UniqueCodes = i.UniqueCodes ?? new List<string>(),
+                    SelectedUniqueCode = i.SelectedUniqueCode,
+                    UniqueCodeHierarchy = i.UniqueCodeHierarchy ?? new List<UniqueCodeHierarchyDto>()
                 };
 
-                // --- تعیین اطلاعات مبدأ ---
+                // تعیین اطلاعات مبدأ
                 if (i.SourceSectionId.HasValue)
                 {
                     var section = await _warehouseService.GetSectionByIdAsync(i.SourceSectionId.Value);
@@ -508,7 +535,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     item.SourceWarehouseId = i.SourceWarehouseId;
                 }
 
-                // --- تعیین اطلاعات مقصد ---
+                // تعیین اطلاعات مقصد
                 if (i.DestinationSectionId.HasValue)
                 {
                     var section = await _warehouseService.GetSectionByIdAsync(i.DestinationSectionId.Value);
@@ -526,14 +553,73 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     item.DestinationWarehouseId = i.DestinationWarehouseId;
                 }
 
+                // بارگذاری اطلاعات کد یکتا انتخاب‌شده برای نمایش فرمت کامل و پر کردن لیست دراپ‌داون
+                if (item.UniqueCodes.Any() && item.ProductId > 0)
+                {
+                    // برای هر UniqueCode، جزئیات را بارگذاری کن (چون multiple ممکن است)
+                    item.AvailableUniqueCodes = new List<SelectListItem>();
+                    foreach (var uc in item.UniqueCodes)
+                    {
+                        var details = await GetUniqueCodeDetailsInternal(uc);
+                        if (details != null)
+                        {
+                            // به‌روزرسانی فیلدهای مبدأ بر اساس کد یکتا (اولویت به inventory)
+                            if (details.sourceWarehouseId.HasValue)
+                            {
+                                item.SourceWarehouseId = details.sourceWarehouseId;
+                                item.SourceZoneId = details.sourceZoneId;
+                                item.SourceSectionId = details.sourceSectionId;
+                            }
+
+                            // به‌روزرسانی پروژه اگر موجود باشد
+                            if (details.projectId.HasValue)
+                            {
+                                item.ProjectId = details.projectId;
+                                item.ProjectTitle = projectTitles.GetValueOrDefault(details.projectId.Value);
+                            }
+
+                            // اضافه کردن به لیست با فرمت کامل
+                            item.AvailableUniqueCodes.Add(new SelectListItem
+                            {
+                                Value = details.uniqueCode,
+                                Text = details.text, // فرمت C G S P _ code
+                                Selected = true
+                            });
+                        }
+                    }
+
+                    // بارگذاری لیست کامل کدهای یکتا برای دراپ‌داون (اختیاری، برای انتخاب جدید)
+                    if (item.ProductId > 0)
+                    {
+                        var allCodes = await GetUniqueCodesInternal(item.ProductId, item.SourceWarehouseId);
+                        foreach (var code in allCodes.Where(c => !item.AvailableUniqueCodes.Any(uc => uc.Value == c.id)))
+                        {
+                            item.AvailableUniqueCodes.Add(new SelectListItem
+                            {
+                                Value = code.id,
+                                Text = code.text,
+                                Selected = false
+                            });
+                        }
+                    }
+                }
+                else if (item.ProductId > 0)
+                {
+                    // اگر کد یکتا انتخاب نشده، لیست را بر اساس محصول بارگذاری کن
+                    var codes = await GetUniqueCodesInternal(item.ProductId, item.SourceWarehouseId);
+                    item.AvailableUniqueCodes = codes.Select(c => new SelectListItem
+                    {
+                        Value = c.id,
+                        Text = c.text,
+                        Selected = false
+                    }).ToList();
+                }
+
                 viewModel.Items.Add(item);
             }
 
             return viewModel;
         }
-
-
-
 
         private DateTime ParsePersianDate(string persianDate)
         {
@@ -637,9 +723,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         public async Task<IActionResult> Edit(ReceiptOrIssueViewModel model)
         {
             if (model.Items == null || !model.Items.Any())
-            {
                 ModelState.AddModelError("Items", "باید حداقل یک آیتم وارد کنید.");
-            }
 
             bool exists = await _context.ReceiptOrIssues
                 .AnyAsync(r => r.DocumentNumber == model.DocumentNumber && r.Id != model.Id);
@@ -665,40 +749,29 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return Json(new
                 {
                     success = false,
-                    errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)
+                    errors = ModelState.Values
+                                .SelectMany(v => v.Errors)
+                                .Select(e => e.ErrorMessage)
                 });
             }
 
             try
             {
                 var dto = MapViewModelToDto(model);
-                var updatedDto = await _service.UpdateAsync(dto.Id, dto);
+                var (result, errors) = await _service.UpdateAsync(dto.Id, dto, HttpContext.RequestAborted);
 
-                //if (updatedDto == null)
-                //{
-                //    return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
-                //}
+                if (errors.Any())
+                    return Json(new { success = false, errors });
 
-                return Json(new { success = true, documentId = dto.Id });
+                if (result == null)
+                    return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
+
+                return Json(new { success = true, documentId = result.Id });
             }
-            catch (Exception ex)
+            catch
             {
-                // اگر خطای خاص نداشتن آیتم یا هر خطای دیگر
-                if (ex.Message.Contains("Items collection cannot be empty"))
-                {
-                    return Json(new { success = false, errors = new[] { "باید حداقل یک آیتم وارد کنید." } });
-                }
-
-                // اگر پیام خطا مربوط به موجودی ناکافی کالا بود
-                if (ex.Message.Contains("موجودی کالا"))
-                {
-                    return Json(new { success = false, errors = new[] { ex.Message } });
-                }
-
-                // سایر خطاهای پیش‌بینی نشده
                 return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
             }
-
         }
 
 
@@ -819,8 +892,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(new { exists });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
+        private async Task<List<UniqueCodeOption>> GetUniqueCodesInternal(int productId, int? sourceWarehouseId = null)
         {
             var inventoryQuery = _context.Inventories
                 .AsNoTracking()
@@ -837,9 +909,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var inventoryCodes = await inventoryQuery
                 .SelectMany(i => i.InventoryItems
                     .Where(ii => !string.IsNullOrWhiteSpace(ii.UniqueCode))
-                .Select(ii => new
+                .Select(ii => new UniqueCodeOption
                 {
-                    id = ii.UniqueCode.ToString(), 
+                    id = ii.UniqueCode.ToString(),
                     text =
         "C" + (i.Product.Status.Group.Category.Code ?? "NA") +
         "G" + (i.Product.Status.Group.Code ?? "NA") +
@@ -851,8 +923,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         "S" + (i.Product.Status.Code ?? "NA") +
         "P" + (i.Product.Code ?? "NA") +
         " (" + (ii.UniqueCode ?? "NA") + ")"
-                })
-)
+                }))
                 .ToListAsync();
 
             // اگر موجودی در انبار نداشت، از ProductItems بگیر
@@ -865,7 +936,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                             .ThenInclude(s => s.Group)
                                 .ThenInclude(g => g.Category)
                     .Where(pi => pi.ProductId == productId && !string.IsNullOrWhiteSpace(pi.UniqueCode))
-                   .Select(pi => new
+                   .Select(pi => new UniqueCodeOption
                    {
                        id = pi.UniqueCode.ToString(),
                        text =
@@ -883,18 +954,23 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
                     .ToListAsync();
 
-                return Json(productItems);
+                return productItems;
             }
 
-            return Json(inventoryCodes);
+            return inventoryCodes;
         }
 
-
         [HttpGet]
-        public async Task<IActionResult> GetUniqueCodeDetails(string uniqueCodeId)
+        public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
+        {
+            var codes = await GetUniqueCodesInternal(productId, sourceWarehouseId);
+            return Json(codes);
+        }
+
+        private async Task<UniqueCodeDetail?> GetUniqueCodeDetailsInternal(string uniqueCodeId)
         {
             if (string.IsNullOrWhiteSpace(uniqueCodeId))
-                return BadRequest("کد یکتا نامعتبر است.");
+                return null;
 
             var inventoryItem = await _context.InventoryItems
                 .AsNoTracking()
@@ -947,16 +1023,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     ", Section:" + inventoryItem.SectionName +
                     ", UniqueCode:" + inventoryItem.UniqueCode + ")";
 
-                return Json(new
+                return new UniqueCodeDetail
                 {
                     sourceWarehouseId = inventoryItem.WarehouseId,
                     sourceZoneId = inventoryItem.ZoneId,
                     sourceSectionId = inventoryItem.SectionId,
-                    projectId,
-                    hierarchy,
+                    projectId = projectId,
+                    hierarchy = hierarchy,
                     uniqueCode = inventoryItem.UniqueCode,
-                    text = fullText
-                });
+                    text = fullText,
+                    zoneName = inventoryItem.ZoneName,
+                    sectionName = inventoryItem.SectionName
+                };
             }
 
             var productItem = await _context.ProductItems
@@ -978,7 +1056,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 .FirstOrDefaultAsync();
 
             if (productItem == null)
-                return NotFound();
+                return null;
 
             var fullTextProd =
                 "C" + (productItem.CategoryCode ?? "NA") +
@@ -993,16 +1071,26 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 "P" + (productItem.ProductCode ?? "NA") +
                 "(UniqueCode:" + (productItem.UniqueCode ?? "NA") + ")";
 
-            return Json(new
+            return new UniqueCodeDetail
             {
-                sourceWarehouseId = (int?)null,
-                sourceZoneId = (int?)null,
-                sourceSectionId = (int?)null,
+                sourceWarehouseId = null,
+                sourceZoneId = null,
+                sourceSectionId = null,
                 projectId = productItem.ProjectId,
                 hierarchy = hierarchyProd,
                 uniqueCode = productItem.UniqueCode,
                 text = fullTextProd
-            });
+            };
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUniqueCodeDetails(string uniqueCodeId)
+        {
+            var details = await GetUniqueCodeDetailsInternal(uniqueCodeId);
+            if (details == null)
+                return NotFound();
+
+            return Json(details);
         }
 
     }
