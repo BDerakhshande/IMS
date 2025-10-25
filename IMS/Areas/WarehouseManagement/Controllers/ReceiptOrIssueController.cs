@@ -440,7 +440,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     DestinationWarehouseId = i.DestinationWarehouseId,
                     ProjectId = i.ProjectId,
                     PurchaseRequestId = i.PurchaseRequestId,
-                    UniqueCodes = i.UniqueCodes ?? new List<string>(),
+                    UniqueCodes = i.UniqueCodes?.ToList(), // حفظ مقادیر واقعی
                     SelectedUniqueCode = i.SelectedUniqueCode,
                     UniqueCodeHierarchy = i.UniqueCodeHierarchy ?? new List<UniqueCodeHierarchyDto>()
                 }).ToList() ?? new List<ReceiptOrIssueItemDto>()
@@ -744,6 +744,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (!model.Type.HasValue)
                 ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
 
+            if (!ModelState.IsValid)
+            {
+                return Json(new
+                {
+                    success = false,
+                    errors = ModelState.Values
+                                .SelectMany(v => v.Errors)
+                                .Select(e => e.ErrorMessage)
+                });
+            }
 
             try
             {
@@ -751,24 +761,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 var (result, errors) = await _service.UpdateAsync(dto.Id, dto, HttpContext.RequestAborted);
 
                 if (errors.Any())
-                {
                     return Json(new { success = false, errors });
-                }
 
                 if (result == null)
-                {
                     return Json(new { success = false, errors = new[] { "سند مورد نظر یافت نشد یا ویرایش نشد." } });
-                }
 
                 return Json(new { success = true, documentId = result.Id });
             }
-            catch (Exception ex)
+            catch
             {
-                // سایر خطاهای غیرمنتظره
                 return Json(new { success = false, errors = new[] { "خطای غیرمنتظره‌ای رخ داد. لطفاً با پشتیبانی تماس بگیرید." } });
             }
         }
-
 
 
 
