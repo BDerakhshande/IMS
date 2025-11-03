@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using ClosedXML.Excel;
 using DocumentFormat.OpenXml.InkML;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Application.WarehouseManagement.Services;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
+using System.Text.Json;
 
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
@@ -137,13 +138,79 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(products);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> ExportInventoryToExcel([FromBody] InventoryReportFilterDto filter)
+        [HttpPost]  // بدون [FromBody] – از Form data bind می‌شود
+        public async Task<IActionResult> ExportInventoryToExcel(InventoryReportFilterDto filter)
         {
-            var fileBytes = await _inventoryReportService.ExportReportToExcelAsync(filter);
+            // لاگ برای دیباگ (حذف کنید بعد از تست)
+            Console.WriteLine($"UniqueCodes in filter for Excel: {string.Join(", ", filter.UniqueCodes ?? new List<string>())}");
+            Console.WriteLine($"Warehouses count: {filter.Warehouses?.Count ?? 0}");
+            Console.WriteLine($"ProductId: {filter.ProductId}");
+
+            // گرفتن داده‌ها از سرویس
+            var data = await _inventoryReportService.GetInventoryReportAsync(filter);
+
+            if (data == null || !data.Any())
+                return BadRequest("داده‌ای برای گزارش وجود ندارد");
+
+            // فیلتر اضافی بر اساس کد یکتا اگر وجود داشته باشد (مشابه PDF برای consistency)
+            if (filter.UniqueCodes != null && filter.UniqueCodes.Any())
+            {
+                var codes = filter.UniqueCodes
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToList();
+
+                // لاگ برای دیباگ
+                Console.WriteLine($"Filtered data count after UniqueCodes in Excel: {data.Count(i => i.UniqueCodes.Any(uc => codes.Contains(uc)))}");
+
+                data = data.Where(i => i.UniqueCodes.Any(uc => codes.Contains(uc))).ToList();
+
+                if (!data.Any())
+                    return BadRequest("هیچ داده‌ای با کد یکتاهای انتخاب شده یافت نشد");
+            }
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Inventory Report");
+
+            // ستون‌ها
+            worksheet.Cell(1, 1).Value = "نام انبار";
+            worksheet.Cell(1, 2).Value = "قسمت";
+            worksheet.Cell(1, 3).Value = "بخش";
+            worksheet.Cell(1, 4).Value = "دسته‌بندی";
+            worksheet.Cell(1, 5).Value = "گروه";
+            worksheet.Cell(1, 6).Value = "طبقه";
+            worksheet.Cell(1, 7).Value = "کالا";
+            worksheet.Cell(1, 8).Value = "موجودی";
+            worksheet.Cell(1, 9).Value = "کدهای یکتا";
+
+            int row = 2;
+            foreach (var item in data)
+            {
+                worksheet.Cell(row, 1).Value = item.WarehouseName ?? "-";
+                worksheet.Cell(row, 2).Value = item.ZoneName ?? "-";
+                worksheet.Cell(row, 3).Value = item.SectionName ?? "-";
+                worksheet.Cell(row, 4).Value = item.CategoryName ?? "-";
+                worksheet.Cell(row, 5).Value = item.GroupName ?? "-";
+                worksheet.Cell(row, 6).Value = item.StatusName ?? "-";
+                worksheet.Cell(row, 7).Value = item.ProductName ?? "-";
+                worksheet.Cell(row, 8).Value = item.Quantity;
+                worksheet.Cell(row, 9).Value = string.Join(", ", item.UniqueCodes ?? new List<string>());
+                row++;
+            }
+
+            var total = data.Sum(x => x.Quantity);
+            worksheet.Cell(row, 7).Value = "جمع کل:";
+            worksheet.Cell(row, 8).Value = total;
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var fileBytes = stream.ToArray();
+
             var fileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
