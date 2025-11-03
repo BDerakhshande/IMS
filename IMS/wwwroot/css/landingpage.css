@@ -97,6 +97,7 @@ nav a {
     padding: 4rem 5%;
     padding-top: 50px;
     padding-bottom: 10px;
+    margin-bottom: 0rem;
 }
 
 
@@ -128,10 +129,22 @@ nav a {
     box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
 }
 
+.features-about-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1rem; /* فاصله بین دو باکس */
+    margin: 0rem auto;
+    margin-top: -20px;
+    max-width: 1200px;
+}
+
+
 /* Features */
 .features {
     background: rgba(26, 74, 90, 1);
-    padding: 4rem 5%;
+    padding: 2rem 2.5%;
+    width:650px;
     text-align: center;
     border-radius: 20px;
     margin: 3rem 5%;
@@ -154,7 +167,7 @@ nav a {
     border-radius: 16px;
     padding: 2rem;
     transition: 0.3s;
-    border: 1px solid white;
+    border: 0.5px solid white;
 }
 
     .card:hover {
@@ -164,7 +177,8 @@ nav a {
 
     .card h3 {
         color: var(--primary);
-        margin-bottom: 1rem;
+        margin-bottom: 0.8rem;
+        font-size:15px;
     }
 
     .card p {
@@ -177,7 +191,8 @@ nav a {
 
 /* About Company */
 .about-company {
-    padding: 4rem 5%;
+    padding: 2rem 2.5%;
+    width: 650px;
     text-align: center;
     background: rgba(26, 74, 90, 1);
     border-radius: 20px;
@@ -209,7 +224,7 @@ nav a {
         background: #1a4a5a;
         border-radius: 14px;
         padding: 1.5rem;
-        border: 1px solid white;
+        border: 0.2px solid white;
         transition: 0.3s;
     }
 
@@ -222,6 +237,104 @@ nav a {
             color: var(--primary);
             margin-bottom: 0.8rem;
         }
+
+/* === اسلایدر افقی بخش about-company === */
+.about-slider {
+    overflow: hidden;
+    width: 100%;
+    margin-top: 2rem;
+    border-radius: 16px;
+}
+
+    .about-slider .slide-track {
+        display: flex;
+        width: calc(300px * 8 * 0.5); /* تعداد آیتم‌ها × عرض هر آیتم */
+        animation: scroll-about 30s linear infinite;
+    }
+
+    .about-slider .internal-feature {
+        min-width: 200px;
+        margin: 0 1rem;
+        background: #1a4a5a;
+        border-radius: 14px;
+        padding: 1rem;
+        border: 0.5px solid white;
+        color: white;
+        text-align: center;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+        .about-slider .internal-feature:hover {
+            transform: scale(1.05);
+            border-color: var(--primary);
+        }
+
+/* حرکت افقی بی‌نهایت */
+@keyframes scroll-about {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* توقف حرکت هنگام hover */
+.about-slider:hover .slide-track {
+    animation-play-state: paused;
+}
+
+
+/* === افکت حرکت افقی کارت‌ها === */
+.slider {
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    border-radius: 16px;
+    margin-top: 2rem;
+}
+
+.slide-track {
+    display: flex;
+    width: calc(300px * 6 * 0.5); /* تعداد کارت‌ها × عرض هر کارت */
+    animation: scroll 25s linear infinite;
+}
+
+.card {
+    min-width: 200px;
+    margin: 0 1rem;
+    background: #1a4a5a;
+    border-radius: 14px;
+    padding: 1rem;
+    border: 0.5px solid white;
+    color: white;
+    text-align: center;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+    .card:hover {
+        transform: scale(1.05);
+        border-color: var(--primary);
+    }
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* توقف حرکت هنگام hover */
+.slider:hover .slide-track {
+    animation-play-state: paused;
+}
+
 
 /* Footer */
 
@@ -245,7 +358,7 @@ footer {
     opacity: 0.8;
 }
 
-@@media (max-width: 768px) {
+@media (max-width: 768px) {
     .hero {
         text-align: center;
     }
