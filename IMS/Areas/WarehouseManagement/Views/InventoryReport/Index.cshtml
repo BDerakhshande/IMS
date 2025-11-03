@@ -428,13 +428,13 @@ else
     <script>
         const BASE_URL = '/WarehouseManagement/InventoryReport/';
         const warehousesList = @Html.Raw(JsonSerializer.Serialize(
-        ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
-        .Select(w => new { value = w.Value, text = w.Text })
-    ));
+                    ((SelectList)ViewBag.Warehouses).Cast<SelectListItem>()
+                    .Select(w => new { value = w.Value, text = w.Text })
+            ));
 
-        // ذخیره مقادیر select2 قبل از جستجو
-        const selectCache = {};
-        let currentFormState = {};
+    // ذخیره مقادیر select2 قبل از جستجو
+    const selectCache = {};
+    let currentFormState = {};
 
         function cacheSelectValues(container = document) {
             $(container).find('.select2').each(function () {
@@ -447,10 +447,8 @@ else
             $(container).find('.select2').each(function () {
                 const cachedVal = selectCache[this.id];
                 if (cachedVal === undefined || cachedVal === null) return;
-
                 const $this = $(this);
                 const isMultiple = $this.prop('multiple');
-
                 if (isMultiple) {
                     const values = Array.isArray(cachedVal) ? cachedVal : [cachedVal];
                     values.forEach(val => {
@@ -467,7 +465,6 @@ else
                     }
                     $this.val(cachedVal).trigger('change');
                 }
-
                 console.log(`🔹 Restored value for ${this.id}:`, $this.val());
             });
         }
@@ -477,13 +474,11 @@ else
                 const $this = $(this);
                 const selectedValue = $this.val();
                 const isMultiple = $this.prop('multiple');
-
                 console.log('-----------------------------');
                 console.log('Initializing Select2 for:', this.id);
                 console.log('Current selectedValue:', selectedValue);
                 console.log('Is multiple:', isMultiple);
                 console.log('Existing options:', $this.find('option').map((i, o) => o.value).get());
-
                 $this.select2({
                     placeholder: $this.attr('placeholder') || 'انتخاب کنید',
                     allowClear: true,
@@ -496,7 +491,6 @@ else
                         inputTooShort: () => 'لطفاً حداقل یک کاراکتر وارد کنید'
                     }
                 });
-
                 // اضافه کردن optionهای missing
                 if (selectedValue) {
                     const values = isMultiple ? (Array.isArray(selectedValue) ? selectedValue : [selectedValue]) : [selectedValue];
@@ -508,11 +502,9 @@ else
                     });
                     $this.val(isMultiple ? values : selectedValue).trigger('change');
                 }
-
                 console.log('After setting value, select val():', $this.val());
                 console.log('-----------------------------');
             });
-
             restoreSelectValues(container);
         }
 
@@ -521,19 +513,31 @@ else
             return warehousesList.map(w => `<option value="${w.value}">${w.text}</option>`).join('');
         }
 
+        // تابع غیرفعال کردن سلکت انبارها
+        function disableWarehouseSelects() {
+            $('#warehouseFiltersContainer select[name$=".WarehouseId"]').prop('disabled', true);
+        }
+
+        // تابع مخفی/نمایش دکمه افزودن انبار
+        function toggleAddWarehouseButton(show) {
+            const addBtn = $('.text-end mt-3 button[onclick="addWarehouseFilter()"]');
+            if (show) {
+                addBtn.show();
+            } else {
+                addBtn.hide();
+            }
+        }
+
         async function loadGroups(categoryId) {
             const groupSelect = $('#GroupId');
             const statusSelect = $('#StatusId');
             const productSelect = $('#ProductId');
             const uniqueCodesSelect = $('#UniqueCodes');
-
             groupSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
             statusSelect.prop('disabled', true).html('<option>ابتدا گروه را انتخاب کنید</option>').trigger('change');
             productSelect.prop('disabled', true).html('<option>ابتدا وضعیت را انتخاب کنید</option>').trigger('change');
             uniqueCodesSelect.prop('disabled', true).html('<option>ابتدا کالا را انتخاب کنید</option>').trigger('change');
-
             if (!categoryId) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetGroupsByCategoryId?categoryId=${categoryId}`);
                 const data = await response.json();
@@ -550,13 +554,10 @@ else
             const statusSelect = $('#StatusId');
             const productSelect = $('#ProductId');
             const uniqueCodesSelect = $('#UniqueCodes');
-
             statusSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
             productSelect.prop('disabled', true).html('<option>ابتدا وضعیت را انتخاب کنید</option>').trigger('change');
             uniqueCodesSelect.prop('disabled', true).html('<option>ابتدا کالا را انتخاب کنید</option>').trigger('change');
-
             if (!groupId) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetStatusesByGroupId?groupId=${groupId}`);
                 const data = await response.json();
@@ -572,12 +573,9 @@ else
         async function loadProducts(statusId) {
             const productSelect = $('#ProductId');
             const uniqueCodesSelect = $('#UniqueCodes');
-
             productSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
             uniqueCodesSelect.prop('disabled', true).html('<option>ابتدا کالا را انتخاب کنید</option>').trigger('change');
-
             if (!statusId) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetProductsByStatusId?statusId=${statusId}`);
                 const data = await response.json();
@@ -593,16 +591,13 @@ else
         async function loadUniqueCodes(productId) {
             const uniqueCodesSelect = $('#UniqueCodes');
             uniqueCodesSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
-
             if (!productId) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetUniqueCodes?productId=${productId}`);
                 const data = await response.json();
                 uniqueCodesSelect.empty().append('<option value="">همه کدهای یکتا</option>');
                 data.forEach(code => uniqueCodesSelect.append(new Option(code.text, code.id)));
                 uniqueCodesSelect.prop('disabled', false).trigger('change');
-
                 restoreSelectValues('#UniqueCodes');
             } catch (err) {
                 console.error(err);
@@ -615,12 +610,9 @@ else
             const index = $(selectElement).data('index');
             const zoneSelect = $(`select[name="Warehouses[${index}].ZoneIds"]`);
             const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
-
             zoneSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
             sectionSelect.prop('disabled', true).html('<option>ابتدا منطقه را انتخاب کنید</option>').trigger('change');
-
             if (!warehouseId) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetZonesByWarehouseId?warehouseId=${warehouseId}`);
                 const data = await response.json();
@@ -637,10 +629,8 @@ else
             const zoneIds = Array.from(selectElement.selectedOptions).map(o => o.value);
             const index = $(selectElement).data('index');
             const sectionSelect = $(`select[name="Warehouses[${index}].SectionIds"]`);
-
             sectionSelect.prop('disabled', true).html('<option>در حال بارگذاری...</option>').trigger('change');
             if (!zoneIds.length) return;
-
             try {
                 const response = await fetch(`${BASE_URL}GetSectionsByZoneIds?zoneIds=${zoneIds.join(',')}`);
                 const data = await response.json();
@@ -653,11 +643,11 @@ else
             }
         }
 
-        async function addWarehouseFilter(warehouseId = null, zoneId = null, sectionId = null) {
+        // به‌روزرسانی تابع addWarehouseFilter برای پشتیبانی از لیست‌ها و غیرفعال کردن
+        async function addWarehouseFilter(warehouseId = null, zoneIds = null, sectionIds = null) {
             const container = $('#warehouseFiltersContainer');
             const newIndex = container.children().length;
             const optionsHtml = getWarehouseOptions();
-
             const filterHtml = `
                 <div class="warehouse-filter-group p-3 border rounded mb-3">
                     <div class="row g-3">
@@ -690,20 +680,30 @@ else
             `;
             const newFilter = $(filterHtml).appendTo(container);
             initializeSelect2(newFilter);
-
             if (warehouseId) {
                 const warehouseSelect = newFilter.find(`select[name="Warehouses[${newIndex}].WarehouseId"]`);
                 warehouseSelect.val(warehouseId).trigger('change');
-                await loadZones(warehouseSelect[0]);
-
-                if (zoneId) {
+                await loadZones(warehouseSelect[0]); // بارگذاری گزینه‌های قسمت
+                // غیرفعال کردن سلکت انبار
+                warehouseSelect.prop('disabled', true);
+                if (zoneIds && zoneIds.length > 0) {
                     const zoneSelect = newFilter.find(`select[name="Warehouses[${newIndex}].ZoneIds"]`);
-                    zoneSelect.val([zoneId]).trigger('change');
+                    zoneIds.forEach(zId => {
+                        if (zoneSelect.find(`option[value="${zId}"]`).length === 0) {
+                            zoneSelect.append(new Option(zId, zId, true, true));
+                        }
+                    });
+                    zoneSelect.val(zoneIds).trigger('change');
+                    // بارگذاری و انتخاب بخش‌ها
                     await loadSections(zoneSelect[0]);
-
-                    if (sectionId) {
+                    if (sectionIds && sectionIds.length > 0) {
                         const sectionSelect = newFilter.find(`select[name="Warehouses[${newIndex}].SectionIds"]`);
-                        sectionSelect.val([sectionId]).trigger('change');
+                        sectionIds.forEach(sId => {
+                            if (sectionSelect.find(`option[value="${sId}"]`).length === 0) {
+                                sectionSelect.append(new Option(sId, sId, true, true));
+                            }
+                        });
+                        sectionSelect.val(sectionIds).trigger('change');
                     }
                 }
             }
@@ -718,7 +718,6 @@ else
             const filterGroup = $(button).closest('.warehouse-filter-group');
             filterGroup.find('select.select2').select2('destroy');
             filterGroup.remove();
-
             container.children('.warehouse-filter-group').each(function (index) {
                 $(this).find('select[name$="WarehouseId"]').attr('name', `Warehouses[${index}].WarehouseId`).data('index', index);
                 $(this).find('select[name$="ZoneIds"]').attr('name', `Warehouses[${index}].ZoneIds`).data('index', index);
@@ -728,25 +727,61 @@ else
 
         $(document).ready(async function () {
             initializeSelect2();
-
             $('#inventoryReportForm').on('submit', function () {
                 cacheSelectValues();
             });
-
             // Restore state after page load
             await restoreSelectValues();
 
-            $('#UniqueCodes').on('select2:select', async function (e) {
-                const selectedCode = e.params.data.id;
+            // رویداد تغییر برای UniqueCodes (جایگزین select)
+            $('#UniqueCodes').on('change', async function (e) {
+                const selectedCodes = $(this).val();
+                if (!selectedCodes || selectedCodes.length === 0) {
+                    toggleAddWarehouseButton(true); // نمایش دکمه افزودن
+                    return;
+                }
+                // پاک کردن فیلترهای قبلی انبار
+                $('#warehouseFiltersContainer').empty();
+                // دریافت جزئیات برای هر کد یکتا
+                const promises = selectedCodes.map(code =>
+                    fetch(`${BASE_URL}GetUniqueCodeDetails?uniqueCodeId=${code}`)
+                        .then(res => res.json())
+                        .catch(err => { console.error(err); return null; })
+                );
                 try {
-                    const response = await fetch(`${BASE_URL}GetUniqueCodeDetails?uniqueCodeId=${selectedCode}`);
-                    const data = await response.json();
-                    addWarehouseFilter(data.sourceWarehouseId, data.sourceZoneId, data.sourceSectionId);
+                    const detailsList = (await Promise.all(promises)).filter(d => d !== null && d.warehouseId !== null); // فقط مواردی که انبار دارند
+                    if (detailsList.length === 0) return;
+                    // گروه‌بندی بر اساس انبار
+                    const warehouseGroups = {};
+                    detailsList.forEach(data => {
+                        const whId = data.warehouseId.toString();
+                        if (!warehouseGroups[whId]) {
+                            warehouseGroups[whId] = { zones: new Set(), sections: new Set() };
+                        }
+                        if (data.zoneId) warehouseGroups[whId].zones.add(data.zoneId);
+                        if (data.sectionId) warehouseGroups[whId].sections.add(data.sectionId);
+                    });
+                    // افزودن/به‌روزرسانی فیلترها برای هر انبار منحصربه‌فرد
+                    for (const [whIdStr, groupData] of Object.entries(warehouseGroups)) {
+                        const whId = parseInt(whIdStr);
+                        const zoneList = Array.from(groupData.zones);
+                        const sectionList = Array.from(groupData.sections);
+                        await addWarehouseFilter(whId, zoneList, sectionList);
+                    }
+                    // مخفی کردن دکمه افزودن انبار
+                    toggleAddWarehouseButton(false);
                 } catch (err) {
                     console.error(err);
-                    alert('خطا در بارگذاری جزئیات کد یکتا.');
+                    alert('خطا در بارگذاری جزئیات کدهای یکتا.');
                 }
             });
+
+            // اگر پس از پست، کد یکتا انتخاب شده، انبارها را غیرفعال کن
+            if ($('#UniqueCodes').val() && $('#UniqueCodes').val().length > 0) {
+                $('#UniqueCodes').trigger('change');
+                disableWarehouseSelects();
+                toggleAddWarehouseButton(false);
+            }
         });
     </script>
 }

@@ -1,12 +1,13 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using IMS.Application.WarehouseManagement.DTOs;
+using IMS.Domain.WarehouseManagement.Entities;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ClosedXML.Excel;
-using IMS.Application.WarehouseManagement.DTOs;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace IMS.Application.WarehouseManagement.Services
 {
@@ -18,87 +19,155 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             _dbContext = dbContext;
         }
+
+
+
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
-            // کوئری پایه
-            var query = from i in _dbContext.Inventories
-                        join p in _dbContext.Products on i.ProductId equals p.Id
-                        join s in _dbContext.Statuses on p.StatusId equals s.Id
-                        join g in _dbContext.Groups on s.GroupId equals g.Id
-                        join c in _dbContext.Categories on g.CategoryId equals c.Id
-                        join w in _dbContext.Warehouses on i.WarehouseId equals w.Id
-                        join z in _dbContext.StorageZones on i.ZoneId equals z.Id into zoneJoin
-                        from z in zoneJoin.DefaultIfEmpty()
-                        join sec in _dbContext.StorageSections on i.SectionId equals sec.Id into sectionJoin
-                        from sec in sectionJoin.DefaultIfEmpty()
-                        select new
-                        {
-                            Inventory = i,
-                            Product = p,
-                            Status = s,
-                            Group = g,
-                            Category = c,
-                            Warehouse = w,
-                            Zone = z,
-                            Section = sec
-                        };
+            // پایهٔ query با Include برای navigation properties ضروری
+            var baseQuery = _dbContext.Inventories
+                .Include(i => i.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
+                .Include(i => i.Warehouse)
+                .Include(i => i.Zone)
+                .Include(i => i.Section)
+                .AsQueryable();
 
-            // اعمال فیلترهای ساده
+            // 1) اگر UniqueCodes فیلتر شده‌اند: ابتدا inventoryIds مرتبط را از InventoryItems بگیر
+            List<int> inventoryIdsFromUniqueCodes = null;
+            if (filter.UniqueCodes != null && filter.UniqueCodes.Any())
+            {
+                // استفاده از HashSet برای کارایی
+                var codes = filter.UniqueCodes.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
+                if (codes.Count > 0)
+                {
+                    inventoryIdsFromUniqueCodes = await _dbContext.InventoryItems
+                        .Where(ii => codes.Contains(ii.UniqueCode))
+                        .Select(ii => ii.InventoryId)
+                        .Distinct()
+                        .ToListAsync();
+                    // اگر هیچ inventory مرتبطی پیدا نشد، نتیجه خالی است -> سریع برگرد
+                    if (!inventoryIdsFromUniqueCodes.Any())
+                        return new List<InventoryReportResultDto>();
+                }
+            }
+
+            // 2) اعمال فیلترهای ساده (که مستقیماً روی Inventory قابل اعمال‌اند)
             if (filter.CategoryId.HasValue)
-                query = query.Where(x => x.Category.Id == filter.CategoryId.Value);
+                baseQuery = baseQuery.Where(i => i.Product.Status.Group.CategoryId == filter.CategoryId.Value);
 
             if (filter.GroupId.HasValue)
-                query = query.Where(x => x.Group.Id == filter.GroupId.Value);
+                baseQuery = baseQuery.Where(i => i.Product.Status.GroupId == filter.GroupId.Value);
 
             if (filter.StatusId.HasValue)
-                query = query.Where(x => x.Status.Id == filter.StatusId.Value);
+                baseQuery = baseQuery.Where(i => i.Product.StatusId == filter.StatusId.Value);
 
             if (filter.ProductId.HasValue)
-                query = query.Where(x => x.Product.Id == filter.ProductId.Value);
+                baseQuery = baseQuery.Where(i => i.ProductId == filter.ProductId.Value);
 
             if (!string.IsNullOrWhiteSpace(filter.ProductSearch))
             {
-                var search = filter.ProductSearch.Trim();
-                query = query.Where(x => x.Product.Name.Contains(search));
+                var s = filter.ProductSearch.Trim();
+                baseQuery = baseQuery.Where(i => i.Product.Name.Contains(s));
             }
 
-            if (filter.UniqueCode != null && filter.UniqueCode.Any())
+            // اگر UniqueCodes داشتیم، اعمال فیلتر بر اساس inventoryIds حاصل
+            if (inventoryIdsFromUniqueCodes != null)
             {
-                query = query.Where(x => x.Inventory.InventoryItems
-                    .Any(ii => filter.UniqueCode.Contains(ii.UniqueCode)));
+                baseQuery = baseQuery.Where(i => inventoryIdsFromUniqueCodes.Contains(i.Id));
             }
 
-            // اجرای کوئری اصلی
-            var list = await query.ToListAsync();
-
-            // فیلتر پیشرفته بر اساس Warehouses، Zone و Section
-            if (filter.Warehouses?.Any(w => w.WarehouseId > 0) == true)
+            // 3) اعمال فیلترهای پیچیدهٔ Warehouses/Zone/Section
+            // اگر هیچ فیلتر انباری نبود، همان baseQuery ادامه می‌یابد.
+            if (filter.Warehouses != null && filter.Warehouses.Any(w => w.WarehouseId > 0))
             {
-                list = list.Where(i =>
-                    filter.Warehouses.Any(w =>
-                        w.WarehouseId == i.Inventory.WarehouseId &&
-                        (w.ZoneIds == null || w.ZoneIds.Count == 0 || (i.Inventory.ZoneId != null && w.ZoneIds.Contains(i.Inventory.ZoneId.Value))) &&
-                        (w.SectionIds == null || w.SectionIds.Count == 0 || (i.Inventory.SectionId != null && w.SectionIds.Contains(i.Inventory.SectionId.Value)))
-                    )
-                ).ToList();
+                // ایجاد یک IQueryable خالی برای تجمیع (ابتدا false)
+                IQueryable<Inventory> combined = baseQuery.Where(i => false);
+
+                foreach (var w in filter.Warehouses.Where(x => x.WarehouseId > 0))
+                {
+                    // برای هر رکورد از لیست، یک شرط جداگانه می‌سازیم
+                    var warehouseId = w.WarehouseId;
+                    var zoneIds = (w.ZoneIds ?? new List<int>()).Where(z => z > 0).ToList();
+                    var sectionIds = (w.SectionIds ?? new List<int>()).Where(s => s > 0).ToList();
+
+                    // شرط پایه برای این انبار
+                    var temp = baseQuery.Where(i => i.WarehouseId == warehouseId);
+
+                    // اگر zoneIds مشخص شده باشند، فقط آن زون‌ها را قبول کن (در غیر این صورت همه زون‌ها قبول است)
+                    if (zoneIds.Any())
+                    {
+                        // i.ZoneId ممکن است null -> مقایسه با Value
+                        temp = temp.Where(i => i.ZoneId.HasValue && zoneIds.Contains(i.ZoneId.Value));
+                    }
+
+                    // اگر sectionIds مشخص شده باشند، فقط آن سِکشن‌ها را قبول کن
+                    if (sectionIds.Any())
+                    {
+                        temp = temp.Where(i => i.SectionId.HasValue && sectionIds.Contains(i.SectionId.Value));
+                    }
+
+                    // الحاق به combined (در نهایت مجموعهٔ union از همه شروط می‌شویم)
+                    combined = combined.Concat(temp);
+                }
+
+                // distinct برای جلوگیری از تکرار
+                baseQuery = combined.Distinct();
             }
 
-            // دریافت تمام InventoryItems مربوطه برای کدهای یکتا بعد از تغییرات
-            var inventoryIds = list.Select(x => x.Inventory.Id).ToList();
-            var inventoryItems = await _dbContext.InventoryItems
-                .Where(ii => inventoryIds.Contains(ii.InventoryId))
+            // 4) اجرای query و گرفتن نتایج Inventory (با شامل نکردن InventoryItems — چون UniqueCodes را جداگانه می‌گیریم)
+            // توجه: اگر خواستی می‌توانی Include(i => i.InventoryItems) اضافه کنی، اما ما برای UniqueCodes از یک کوئری جدا استفاده می‌کنیم.
+            var inventories = await baseQuery
+                .Select(i => new
+                {
+                    Inventory = i,
+                    Product = i.Product,
+                    Status = i.Product.Status,
+                    Group = i.Product.Status.Group,
+                    Category = i.Product.Status.Group.Category,
+                    Warehouse = i.Warehouse,
+                    Zone = i.Zone,
+                    Section = i.Section
+                })
                 .ToListAsync();
 
-            // گروه‌بندی نتایج و جمع‌آوری UniqueCodes
-            var groupedResults = list
+            if (!inventories.Any())
+                return new List<InventoryReportResultDto>();
+
+            // 5) گرفتن InventoryItems فقط برای inventoryIds انتخاب‌شده (و در صورت لزوم فیلتر UniqueCodes را نیز اعمال می‌کنیم)
+            var selectedInventoryIds = inventories.Select(x => x.Inventory.Id).Distinct().ToList();
+
+            var inventoryItemsQuery = _dbContext.InventoryItems
+                .Where(ii => selectedInventoryIds.Contains(ii.InventoryId) && !string.IsNullOrWhiteSpace(ii.UniqueCode));
+
+            // اگر فیلتر UniqueCodes داشتیم: فقط آن‌ها را نگه داریم
+            if (filter.UniqueCodes != null && filter.UniqueCodes.Any())
+            {
+                var codes = filter.UniqueCodes.Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().ToList();
+                inventoryItemsQuery = inventoryItemsQuery.Where(ii => codes.Contains(ii.UniqueCode));
+            }
+
+            var inventoryItems = await inventoryItemsQuery
+                .Select(ii => new { ii.InventoryId, ii.UniqueCode })
+                .ToListAsync();
+
+            // 6) ساخت lookup از inventoryItems برای دسترسی سریع در حافظه
+            var itemsLookup = inventoryItems
+                .GroupBy(ii => ii.InventoryId)
+                .ToDictionary(g => g.Key, g => g.Select(x => x.UniqueCode).Distinct().ToList());
+
+            // 7) گروه‌بندی نهایی و ساخت DTOها
+            var groupedResults = inventories
                 .GroupBy(i => new
                 {
                     i.Inventory.WarehouseId,
                     WarehouseName = i.Warehouse.Name,
                     ZoneId = i.Inventory.ZoneId,
-                    ZoneName = i.Zone?.Name,
+                    ZoneName = i.Zone != null ? i.Zone.Name : null,
                     SectionId = i.Inventory.SectionId,
-                    SectionName = i.Section?.Name,
+                    SectionName = i.Section != null ? i.Section.Name : null,
                     CategoryId = i.Category.Id,
                     CategoryName = i.Category.Name,
                     GroupId = i.Group.Id,
@@ -125,10 +194,11 @@ namespace IMS.Application.WarehouseManagement.Services
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
                     Quantity = g.Sum(x => x.Inventory.Quantity),
-                    UniqueCodes = inventoryItems
-                        .Where(ii => g.Select(x => x.Inventory.Id).Contains(ii.InventoryId))
-                        .Select(ii => ii.UniqueCode)
-                        .ToList()
+                    UniqueCodes = g.Select(x => x.Inventory.Id)
+                                   .Where(id => itemsLookup.ContainsKey(id))
+                                   .SelectMany(id => itemsLookup[id])
+                                   .Distinct()
+                                   .ToList()
                 })
                 .ToList();
 

@@ -277,35 +277,103 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(inventoryCodes);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> GetUniqueCodeDetails(string uniqueCodeId)
         {
             if (string.IsNullOrWhiteSpace(uniqueCodeId))
                 return BadRequest("کد یکتا نامعتبر است.");
 
-            var productItem = await _dbContext.ProductItems
+            var inventoryItem = await _dbContext.InventoryItems
                 .AsNoTracking()
-                .Where(pi => pi.UniqueCode == uniqueCodeId)
-                .Select(pi => new
+                .Include(ii => ii.Inventory)
+                .ThenInclude(i => i.Warehouse)
+                .Include(ii => ii.Inventory)
+                .ThenInclude(i => i.Zone)  // تصحیح: Zone به جای StorageZone
+                .Include(ii => ii.Inventory)
+                .ThenInclude(i => i.Section)  // تصحیح: Section به جای StorageSection
+                .Include(ii => ii.Inventory)
+                .ThenInclude(i => i.Product)
+                .ThenInclude(p => p.Status)
+                .ThenInclude(s => s.Group)
+                .ThenInclude(g => g.Category)
+                .Where(ii => ii.UniqueCode == uniqueCodeId)
+                .Select(ii => new
                 {
-                    pi.UniqueCode,
-                    pi.ProjectId,
-                    ProductCode = pi.Product.Code
+                    UniqueCode = ii.UniqueCode,
+                    WarehouseId = ii.Inventory.WarehouseId,
+                    WarehouseName = ii.Inventory.Warehouse.Name,
+                    ZoneId = ii.Inventory.ZoneId,
+                    ZoneName = ii.Inventory.Zone != null ? ii.Inventory.Zone.Name : null,  // تصحیح: Zone به جای StorageZone
+                    SectionId = ii.Inventory.SectionId,
+                    SectionName = ii.Inventory.Section != null ? ii.Inventory.Section.Name : null,  // تصحیح: Section به جای StorageSection
+                                                                                                    // اضافه کردن IDهای سلسله‌مراتب
+                    CategoryId = ii.Inventory.Product.Status.Group.CategoryId,
+                    GroupId = ii.Inventory.Product.Status.GroupId,
+                    StatusId = ii.Inventory.Product.StatusId,
+                    ProductId = ii.Inventory.ProductId
                 })
                 .FirstOrDefaultAsync();
 
-            if (productItem == null)
-                return NotFound();
+            if (inventoryItem == null)
+            {
+                // اگر در موجودی نبود، از ProductItems بگیر (بدون انبار)
+                var productItem = await _dbContext.ProductItems
+                    .AsNoTracking()
+                    .Include(pi => pi.Product)
+                    .ThenInclude(p => p.Status)
+                    .ThenInclude(s => s.Group)
+                    .ThenInclude(g => g.Category)
+                    .Where(pi => pi.UniqueCode == uniqueCodeId)
+                    .Select(pi => new
+                    {
+                        UniqueCode = pi.UniqueCode,
+                        WarehouseId = (int?)null,
+                        WarehouseName = (string?)null,
+                        ZoneId = (int?)null,
+                        ZoneName = (string?)null,
+                        SectionId = (int?)null,
+                        SectionName = (string?)null,
+                        // IDهای سلسله‌مراتب
+                        CategoryId = pi.Product.Status.Group.CategoryId,
+                        GroupId = pi.Product.Status.GroupId,
+                        StatusId = pi.Product.StatusId,
+                        ProductId = pi.ProductId
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (productItem == null) return NotFound();
+
+                return Json(new
+                {
+                    uniqueCode = productItem.UniqueCode,
+                    warehouseId = productItem.WarehouseId,
+                    warehouseName = productItem.WarehouseName,
+                    zoneId = productItem.ZoneId,
+                    zoneName = productItem.ZoneName,
+                    sectionId = productItem.SectionId,
+                    sectionName = productItem.SectionName,
+                    categoryId = productItem.CategoryId,
+                    groupId = productItem.GroupId,
+                    statusId = productItem.StatusId,
+                    productId = productItem.ProductId
+                });
+            }
 
             return Json(new
             {
-                uniqueCode = productItem.UniqueCode,
-                projectId = productItem.ProjectId,
-                text = productItem.UniqueCode
+                uniqueCode = inventoryItem.UniqueCode,
+                warehouseId = inventoryItem.WarehouseId,
+                warehouseName = inventoryItem.WarehouseName,
+                zoneId = inventoryItem.ZoneId,
+                zoneName = inventoryItem.ZoneName,
+                sectionId = inventoryItem.SectionId,
+                sectionName = inventoryItem.SectionName,
+                categoryId = inventoryItem.CategoryId,
+                groupId = inventoryItem.GroupId,
+                statusId = inventoryItem.StatusId,
+                productId = inventoryItem.ProductId
             });
         }
-
 
     }
 }
