@@ -17,5 +17,7 @@ namespace IMS.Domain.WarehouseManagement.Enums
 
         [Display(Name = "انتقال")]
         Transfer = 3
+
+
     }
 }

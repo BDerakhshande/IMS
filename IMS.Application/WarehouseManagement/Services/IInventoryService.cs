@@ -13,7 +13,7 @@ namespace IMS.Application.WarehouseManagement.Services
         Task CreateAsync(InventoryCreateDto dto);
 
         Task<InventoryCreateDto> LoadOrCreateAsync(InventoryCreateDto inputDto);
-        Task<bool> UpdateQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId, int newQuantity);
+        Task<bool> UpdateQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId, decimal newQuantity);
         Task<int> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId);
 
 

@@ -1,7 +1,7 @@
 ﻿@{
     ViewData["Title"] = "گزارش تراکنش‌های کالا";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
-    var documentTypes = new List<string> { "رسید", "حواله", "انتقال", "تبدیل" };
+    var documentTypes = new List<string> { "رسید", "حواله", "انتقال", "تبدیل","اصلاح موجودی" };
 }
 
 <style>
@@ -216,9 +216,9 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small">وضعیت</label>
+                            <label class="form-label small">طبقه</label>
                             <select id="status" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
-                                <option value="">انتخاب وضعیت</option>
+                                <option value="">انتخاب طبقه</option>
                                 @if (ViewBag.Statuses != null)
                                 {
                                     foreach (var item in (SelectList)ViewBag.Statuses)
@@ -497,7 +497,7 @@
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetStatusesByGroupId?groupId=${groupId}`)
                 .then(response => response.json())
                 .then(data => {
-                    statusSelect.empty().append('<option value="">همه وضعیت‌ها</option>');
+                    statusSelect.empty().append('<option value="">همه طبقه‌ها</option>');
                     data.forEach(status => {
                         statusSelect.append(new Option(status.text, status.value));
                     });
@@ -543,7 +543,7 @@
             $('#product').prop('disabled', true).html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
         }
 
-        function renderReportRows(data) {
+              function renderReportRows(data) {
             const tbody = document.getElementById('reportBody');
             tbody.innerHTML = '';
 
@@ -556,12 +556,38 @@
                     else if (item.conversionType === 'Produced') tr.classList.add('conversion-produced');
                 }
 
+                       // نمایش نام فارسی نوع سند
+        let documentTypeDisplay = '-';
+        switch(item.documentType) {
+            case 'تبدیل':
+            case 'Conversion':
+                documentTypeDisplay = 'تبدیل';
+                break;
+            case 'Receipt':
+            case 'رسید':
+                documentTypeDisplay = 'رسید';
+                break;
+            case 'Dispatch':  // اگر enum Issue باشه، این رو به 'Issue' تغییر بده
+            case 'حواله':
+                documentTypeDisplay = 'حواله';
+                break;
+            case 'Transfer':
+            case 'انتقال':
+                documentTypeDisplay = 'انتقال';
+                break;
+            case 'InventoryAdjustment':
+            case 'اصلاح موجودی':
+                documentTypeDisplay = 'اصلاح موجودی';
+                break;
+            default:
+                documentTypeDisplay = item.documentType || '-';
+        }
+
                 tr.innerHTML = `
                     <td class="text-start ps-4">${item.date || '-'}</td>
-                           <td class="text-start">
-                        ${item.categoryName || '-'} - ${item.groupName || '-'} - ${item.statusName || '-'} -  ${item.productName || '-'} 
-                           </td>
-
+                    <td class="text-start">
+                        ${item.categoryName || '-'} - ${item.groupName || '-'} - ${item.statusName || '-'} - ${item.productName || '-'}
+                    </td>
                     <td class="text-start">
                         <div class="small">
                             ${item.sourceWarehouseName || '-'} - ${item.sourceDepartmentName || '-'} - ${item.sourceSectionName || '-'}
@@ -573,7 +599,7 @@
                         </div>
                     </td>
                     <td class="text-start">
-                        ${item.documentType === 'تبدیل' || item.documentType === 'Conversion' ? `تبدیل` : item.documentType || '-'}
+                        ${documentTypeDisplay}
                     </td>
                     <td class="text-end pe-4 fw-bold">
                         <span class="badge bg-primary bg-opacity-10 text-primary">
@@ -588,6 +614,7 @@
             // به روز رسانی تعداد رکوردها
             document.getElementById('totalRecords').textContent = data.length.toLocaleString();
         }
+
 
         $(document).ready(function () {
             // تنظیم تاریخ امروز به عنوان پیش‌فرض

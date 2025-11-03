@@ -23,6 +23,11 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<List<InventoryTransactionReportDto>> GetReportAsync(InventoryTransactionReportItemDto filter)
         {
+            var results = new List<InventoryTransactionReportDto>();
+
+            //-----------------------------------
+            // ۱. تراکنش‌های رسید/حواله/انتقال
+            //-----------------------------------
             var receiptQuery = _dbContext.ReceiptOrIssueItems
                 .Include(i => i.ReceiptOrIssue)
                 .Include(i => i.Product)
@@ -37,54 +42,32 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(i => i.DestinationSection)
                 .AsQueryable();
 
-            if (filter.DocumentType == "Conversion")
-            {
-                // وقتی نوع سند تبدیل است، داده‌های رسید/حواله/انتقال را فیلتر کن تا نتیجه ندهد
-                receiptQuery = receiptQuery.Where(i => false);
-            }
+            if (filter.DocumentType == "Conversion" || filter.DocumentType == "InventoryAdjustment")
+                receiptQuery = receiptQuery.Where(i => false); // این نوع داده شامل رسید و حواله نیست
             else
             {
                 if (filter.FromDate.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.ReceiptOrIssue.Date >= filter.FromDate.Value);
-
                 if (filter.ToDate.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.ReceiptOrIssue.Date <= filter.ToDate.Value);
-
-                if (!string.IsNullOrEmpty(filter.DocumentType))
-                {
-                    if (Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out var docTypeEnum))
-                        receiptQuery = receiptQuery.Where(i => i.ReceiptOrIssue.Type == docTypeEnum);
-                    else
-                        return new List<InventoryTransactionReportDto>();
-                }
+                if (!string.IsNullOrEmpty(filter.DocumentType) &&
+                    Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out var docTypeEnum))
+                    receiptQuery = receiptQuery.Where(i => i.ReceiptOrIssue.Type == docTypeEnum);
 
                 if (filter.CategoryId.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.CategoryId == filter.CategoryId);
-
                 if (filter.GroupId.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.GroupId == filter.GroupId);
-
                 if (filter.StatusId.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.StatusId == filter.StatusId);
-
                 if (filter.ProductId.HasValue)
                     receiptQuery = receiptQuery.Where(i => i.ProductId == filter.ProductId);
-
                 if (filter.WarehouseId.HasValue)
                     receiptQuery = receiptQuery.Where(i =>
                         i.SourceWarehouseId == filter.WarehouseId || i.DestinationWarehouseId == filter.WarehouseId);
-
-                if (filter.ZoneId.HasValue)
-                    receiptQuery = receiptQuery.Where(i =>
-                        i.SourceZoneId == filter.ZoneId || i.DestinationZoneId == filter.ZoneId);
-
-                if (filter.SectionId.HasValue)
-                    receiptQuery = receiptQuery.Where(i =>
-                        i.SourceSectionId == filter.SectionId || i.DestinationSectionId == filter.SectionId);
             }
 
             var receiptResults = await receiptQuery
-                .OrderBy(i => i.ReceiptOrIssue.Date)
                 .Select(i => new InventoryTransactionReportDto
                 {
                     Date = i.ReceiptOrIssue.Date.ToString("yyyy/MM/dd"),
@@ -92,9 +75,9 @@ namespace IMS.Application.WarehouseManagement.Services
                     DocumentType = i.ReceiptOrIssue.Type.ToString(),
                     ConversionType = null,
 
-                    CategoryName = i.Category.Name ?? "",
-                    GroupName = i.Group.Name ?? "",
-                    StatusName = i.Status.Name ?? "",
+                    CategoryName = i.Category.Name,
+                    GroupName = i.Group.Name,
+                    StatusName = i.Status.Name,
                     ProductName = i.Product.Name,
 
                     SourceWarehouseName = i.SourceWarehouse.Name ?? "",
@@ -109,8 +92,11 @@ namespace IMS.Application.WarehouseManagement.Services
                 })
                 .ToListAsync();
 
-            // داده‌های سندهای تبدیل
+            results.AddRange(receiptResults);
 
+            //-----------------------------------
+            // ۲. تراکنش‌های تبدیل (Consumed/Produced)
+            //-----------------------------------
             var consumedQuery = _dbContext.conversionConsumedItems
                 .Include(c => c.Product)
                 .Include(c => c.Category)
@@ -138,7 +124,6 @@ namespace IMS.Application.WarehouseManagement.Services
                 consumedQuery = consumedQuery.Where(c => c.ConversionDocument.CreatedAt >= filter.FromDate.Value);
                 producedQuery = producedQuery.Where(p => p.ConversionDocument.CreatedAt >= filter.FromDate.Value);
             }
-
             if (filter.ToDate.HasValue)
             {
                 consumedQuery = consumedQuery.Where(c => c.ConversionDocument.CreatedAt <= filter.ToDate.Value);
@@ -152,41 +137,25 @@ namespace IMS.Application.WarehouseManagement.Services
                     consumedQuery = consumedQuery.Where(c => c.CategoryId == filter.CategoryId);
                     producedQuery = producedQuery.Where(p => p.CategoryId == filter.CategoryId);
                 }
-
                 if (filter.GroupId.HasValue)
                 {
                     consumedQuery = consumedQuery.Where(c => c.GroupId == filter.GroupId);
                     producedQuery = producedQuery.Where(p => p.GroupId == filter.GroupId);
                 }
-
                 if (filter.StatusId.HasValue)
                 {
                     consumedQuery = consumedQuery.Where(c => c.StatusId == filter.StatusId);
                     producedQuery = producedQuery.Where(p => p.StatusId == filter.StatusId);
                 }
-
                 if (filter.ProductId.HasValue)
                 {
                     consumedQuery = consumedQuery.Where(c => c.ProductId == filter.ProductId);
                     producedQuery = producedQuery.Where(p => p.ProductId == filter.ProductId);
                 }
-
                 if (filter.WarehouseId.HasValue)
                 {
                     consumedQuery = consumedQuery.Where(c => c.WarehouseId == filter.WarehouseId);
                     producedQuery = producedQuery.Where(p => p.WarehouseId == filter.WarehouseId);
-                }
-
-                if (filter.ZoneId.HasValue)
-                {
-                    consumedQuery = consumedQuery.Where(c => c.ZoneId == filter.ZoneId);
-                    producedQuery = producedQuery.Where(p => p.ZoneId == filter.ZoneId);
-                }
-
-                if (filter.SectionId.HasValue)
-                {
-                    consumedQuery = consumedQuery.Where(c => c.SectionId == filter.SectionId);
-                    producedQuery = producedQuery.Where(p => p.SectionId == filter.SectionId);
                 }
             }
             else
@@ -196,66 +165,121 @@ namespace IMS.Application.WarehouseManagement.Services
             }
 
             var consumedResults = await consumedQuery
-                .OrderBy(c => c.ConversionDocument.CreatedAt)
                 .Select(c => new InventoryTransactionReportDto
                 {
                     Date = c.ConversionDocument.CreatedAt.ToString("yyyy/MM/dd"),
                     DocumentNumber = c.ConversionDocument.DocumentNumber,
                     DocumentType = "Conversion",
                     ConversionType = "Consumed",
-
-                    CategoryName = c.Category.Name ?? "",
-                    GroupName = c.Group.Name ?? "",
-                    StatusName = c.Status.Name ?? "",
+                    CategoryName = c.Category.Name,
+                    GroupName = c.Group.Name,
+                    StatusName = c.Status.Name,
                     ProductName = c.Product.Name,
-
-                    SourceWarehouseName = c.Warehouse.Name ?? "",
-                    SourceDepartmentName = c.Zone.Name ?? "",
-                    SourceSectionName = c.Section.Name ?? "",
-
+                    SourceWarehouseName = c.Warehouse.Name,
+                    SourceDepartmentName = c.Zone.Name,
+                    SourceSectionName = c.Section.Name,
                     DestinationWarehouseName = "",
                     DestinationDepartmentName = "",
                     DestinationSectionName = "",
-
                     Quantity = c.Quantity
-                })
-                .ToListAsync();
+                }).ToListAsync();
 
             var producedResults = await producedQuery
-                .OrderBy(p => p.ConversionDocument.CreatedAt)
                 .Select(p => new InventoryTransactionReportDto
                 {
                     Date = p.ConversionDocument.CreatedAt.ToString("yyyy/MM/dd"),
                     DocumentNumber = p.ConversionDocument.DocumentNumber,
                     DocumentType = "Conversion",
                     ConversionType = "Produced",
-
-                    CategoryName = p.Category.Name ?? "",
-                    GroupName = p.Group.Name ?? "",
-                    StatusName = p.Status.Name ?? "",
+                    CategoryName = p.Category.Name,
+                    GroupName = p.Group.Name,
+                    StatusName = p.Status.Name,
                     ProductName = p.Product.Name,
-
                     SourceWarehouseName = "",
                     SourceDepartmentName = "",
                     SourceSectionName = "",
-
-                    DestinationWarehouseName = p.Warehouse.Name ?? "",
-                    DestinationDepartmentName = p.Zone.Name ?? "",
-                    DestinationSectionName = p.Section.Name ?? "",
-
+                    DestinationWarehouseName = p.Warehouse.Name,
+                    DestinationDepartmentName = p.Zone.Name,
+                    DestinationSectionName = p.Section.Name,
                     Quantity = p.Quantity
+                }).ToListAsync();
+
+            results.AddRange(consumedResults);
+            results.AddRange(producedResults);
+
+            //-----------------------------------
+            // ۳. تراکنش‌های اصلاح موجودی (Inventory Adjustments)
+            //-----------------------------------
+            var adjustmentQuery = _dbContext.InventoryTransactions
+                .Include(t => t.Product)
+                    .ThenInclude(p => p.Status)
+                        .ThenInclude(s => s.Group)
+                            .ThenInclude(g => g.Category)
+                .Include(t => t.Warehouse)
+                .Include(t => t.Zone)
+                .Include(t => t.Section)
+                .AsQueryable();
+
+            if (filter.FromDate.HasValue)
+                adjustmentQuery = adjustmentQuery.Where(t => t.Date >= filter.FromDate.Value);
+            if (filter.ToDate.HasValue)
+                adjustmentQuery = adjustmentQuery.Where(t => t.Date <= filter.ToDate.Value);
+
+            if (filter.DocumentType == "InventoryAdjustment" || string.IsNullOrEmpty(filter.DocumentType))
+            {
+                if (filter.CategoryId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.CategoryId == filter.CategoryId);
+                if (filter.GroupId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.GroupId == filter.GroupId);
+                if (filter.StatusId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.StatusId == filter.StatusId);
+                if (filter.ProductId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.ProductId == filter.ProductId);
+                if (filter.WarehouseId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.WarehouseId == filter.WarehouseId);
+                if (filter.ZoneId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.ZoneId == filter.ZoneId);
+                if (filter.SectionId.HasValue)
+                    adjustmentQuery = adjustmentQuery.Where(t => t.SectionId == filter.SectionId);
+            }
+            else
+            {
+                adjustmentQuery = adjustmentQuery.Where(t => false);
+            }
+
+            var adjustmentResults = await adjustmentQuery
+                .Select(t => new InventoryTransactionReportDto
+                {
+                    Date = t.Date.ToString("yyyy/MM/dd"),
+                    DocumentNumber = "-", // تراکنش اصلاحی شماره سند ندارد
+                    DocumentType = "اصلاح موجودی",
+                    ConversionType = null,
+
+                    CategoryName = t.Product.Status.Group.Category.Name,
+                    GroupName = t.Product.Status.Group.Name,
+                    StatusName = t.Product.Status.Name,
+                    ProductName = t.Product.Name,
+
+                    SourceWarehouseName = t.Warehouse.Name,
+                    SourceDepartmentName = t.Zone != null ? t.Zone.Name : "",
+                    SourceSectionName = t.Section != null ? t.Section.Name : "",
+
+                    DestinationWarehouseName = "",
+                    DestinationDepartmentName = "",
+                    DestinationSectionName = "",
+
+                    Quantity = t.QuantityChange
                 })
                 .ToListAsync();
 
-            var finalResults = receiptResults
-                .Concat(consumedResults)
-                .Concat(producedResults)
-                .OrderBy(r => r.Date)
-                .ToList();
+            results.AddRange(adjustmentResults);
 
+            //-----------------------------------
+            // ۴. مرتب‌سازی نهایی
+            //-----------------------------------
+            var finalResults = results.OrderBy(r => r.Date).ToList();
             return finalResults;
         }
-
 
 
 
@@ -392,6 +416,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 nameof(ReceiptOrIssueType.Issue) => "حواله",
                 nameof(ReceiptOrIssueType.Transfer) => "انتقال",
                 "Conversion" => "تبدیل",
+                "Adjustment" => "اصلاح موجودی",
                 _ => "نامشخص"
             };
         }
