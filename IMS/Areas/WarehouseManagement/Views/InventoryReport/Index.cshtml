@@ -313,6 +313,15 @@
                     @Html.HiddenFor(m => m.Warehouses[i].SectionIds[k])
                 }
             }
+
+            <!-- اضافه کردن Hidden برای UniqueCodes (جدید) -->
+            @if (Model.UniqueCodes != null && Model.UniqueCodes.Any())
+            {
+                @for (int j = 0; j < Model.UniqueCodes.Count; j++)
+                {
+                    @Html.HiddenFor(m => m.UniqueCodes[j])
+                }
+            }
         </form>
     </div>
 </div>

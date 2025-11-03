@@ -145,44 +145,71 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
-
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
         {
-            // گرفتن داده‌های اصلی بر اساس فیلتر
+            // لاگ برای دیباگ (حذف کنید بعد از تست)
+            Console.WriteLine($"UniqueCodes in filter: {string.Join(", ", filter.UniqueCodes ?? new List<string>())}");
+
+            // گرفتن داده‌ها از سرویس
             var items = await _inventoryReportService.GetInventoryReportAsync(filter);
 
-            // پر کردن SelectListها و نام‌ها مثل Index
-            await PopulateSelectLists(filter);
+            if (items == null || !items.Any())
+                return Content("داده‌ای برای گزارش وجود ندارد");
 
-            // محاسبه نام‌ها برای فیلتر انتخاب‌شده (با استفاده از ViewBag که PopulateSelectLists پر کرده)
-            var warehouseNames = (await _warehouseService.GetAllWarehousesAsync())
-                .ToDictionary(w => w.Id, w => w.Name);
+            // فیلتر بر اساس کد یکتا اگر وجود داشته باشد
+            if (filter.UniqueCodes != null && filter.UniqueCodes.Any())
+            {
+                var codes = filter.UniqueCodes
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .ToList();
 
-            var categoryNames = (await _categoryService.GetAllAsync())
-                .ToDictionary(c => c.Id, c => c.Name);
+                // لاگ برای دیباگ
+                Console.WriteLine($"Filtered items count after UniqueCodes: {items.Count(i => i.UniqueCodes.Any(uc => codes.Contains(uc)))}");
 
-            var groupNames = (await _inventoryReportService.GetAllGroupsAsync())
-                .ToDictionary(g => int.Parse(g.Value), g => g.Text);
+                // فقط آیتم‌هایی که حداقل یکی از کدهایشان با کدهای فیلتر شده مطابقت دارد
+                items = items.Where(i => i.UniqueCodes.Any(uc => codes.Contains(uc))).ToList();
 
-            var statusNames = (await _inventoryReportService.GetAllStatusesAsync())
-                .ToDictionary(s => int.Parse(s.Value), s => s.Text);
+                if (!items.Any())
+                    return Content("هیچ داده‌ای با کد یکتاهای انتخاب شده یافت نشد");
+            }
 
-            var productNames = (await _inventoryReportService.GetAllProductsAsync())
-                .ToDictionary(p => int.Parse(p.Value), p => p.Text);
+            // دیکشنری‌ها فقط بر اساس آیتم‌های فیلتر شده ساخته می‌شوند
+            var warehouseNames = items
+                .Where(i => i.WarehouseId > 0)
+                .GroupBy(i => i.WarehouseId)
+                .ToDictionary(g => g.Key, g => g.First().WarehouseName);
 
-            // گرفتن نام زون‌ها و سکشن‌ها از آیتم‌هایی که فیلتر شد
+            var categoryNames = items
+                .Where(i => i.CategoryId > 0)
+                .GroupBy(i => i.CategoryId)
+                .ToDictionary(g => g.Key, g => g.First().CategoryName);
+
+            var groupNames = items
+                .Where(i => i.GroupId > 0)
+                .GroupBy(i => i.GroupId)
+                .ToDictionary(g => g.Key, g => g.First().GroupName);
+
+            var statusNames = items
+                .Where(i => i.StatusId > 0)
+                .GroupBy(i => i.StatusId)
+                .ToDictionary(g => g.Key, g => g.First().StatusName);
+
+            var productNames = items
+                .Where(i => i.ProductId > 0)
+                .GroupBy(i => i.ProductId)
+                .ToDictionary(g => g.Key, g => g.First().ProductName);
+
             var zoneNames = items
-                .Where(i => i.ZoneId.HasValue && !string.IsNullOrEmpty(i.ZoneName))
+                .Where(i => i.ZoneId.HasValue)
                 .GroupBy(i => i.ZoneId.Value)
                 .ToDictionary(g => g.Key, g => g.First().ZoneName);
 
             var sectionNames = items
-                .Where(i => i.SectionId.HasValue && !string.IsNullOrEmpty(i.SectionName))
+                .Where(i => i.SectionId.HasValue)
                 .GroupBy(i => i.SectionId.Value)
                 .ToDictionary(g => g.Key, g => g.First().SectionName);
 
-            // ساخت ViewModel برای PDF
             var vm = new InventoryReportPdfViewModel
             {
                 Items = items,
@@ -193,20 +220,20 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 StatusNames = statusNames,
                 ProductNames = productNames,
                 ZoneNames = zoneNames,
-                SectionNames = sectionNames
+                SectionNames = sectionNames,
+                UniqueCodesFilter = filter.UniqueCodes?.Where(c => !string.IsNullOrWhiteSpace(c)).ToList() ?? new List<string>()
             };
 
-            // خروجی PDF
-            return new ViewAsPdf("InventoryPdfView", vm)
-            {
-                FileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
-                CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
-            };
+            return await Task.Run(() =>
+                new ViewAsPdf("InventoryPdfView", vm)
+                {
+                    FileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.pdf",
+                    PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                    PageOrientation = Rotativa.AspNetCore.Options.Orientation.Portrait,
+                    PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10),
+                    CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
+                });
         }
-
         [HttpGet]
         public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
         {

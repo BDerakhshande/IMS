@@ -15,6 +15,8 @@ namespace IMS.Models.ProMan
         public Dictionary<int, string> ProductNames { get; set; }
         public Dictionary<int, string> SectionNames { get; set; }
         public Dictionary<int, string> ZoneNames { get; set; }
+        public List<string> UniqueCodesFilter { get; set; } = new List<string>();
+    
     }
 }
 
