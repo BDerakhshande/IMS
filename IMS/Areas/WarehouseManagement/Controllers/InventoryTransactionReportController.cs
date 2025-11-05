@@ -40,14 +40,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             {
                 filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
 
-               
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
-                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                    if (filter.DocumentType != "Conversion" &&
+                        filter.DocumentType != "InventoryAdjustment" &&
+                        !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
                     {
                         return BadRequest("نوع سند نامعتبر است.");
                     }
                 }
+
 
                 else
                 {
@@ -62,7 +64,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
                 var result = reportData.Select(d => new InventoryTransactionReportDto
                 {
-                    Date = d.Date,
+                    Date = ToPersianDate(Convert.ToDateTime(d.Date)),
                     DocumentNumber = d.DocumentNumber,
                     DocumentType = MapToPersianDocumentType(d.DocumentType),
                     CategoryName = d.CategoryName,
@@ -77,6 +79,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     DestinationSectionName = d.DestinationSectionName,
                     Quantity = d.Quantity
                 });
+
 
                 return Json(result);
             }
@@ -146,7 +149,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "رسید" => "Receipt",
             "حواله" => "Issue",
             "انتقال" => "Transfer",
-            "تبدیل" => "Conversion",   // اضافه شده
+            "تبدیل" => "Conversion",
+            "اصلاح موجودی" => "InventoryAdjustment",
             _ => null
         };
 
@@ -155,7 +159,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "Receipt" => "رسید",
             "Issue" => "حواله",
             "Transfer" => "انتقال",
-            "Conversion" => "تبدیل",   // اضافه شده
+            "Conversion" => "تبدیل",
+            "InventoryAdjustment" => "اصلاح موجودی",
             _ => type
         };
 
@@ -199,7 +204,15 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(products);
         }
 
-
+        private string ToPersianDate(DateTime date)
+        {
+            if (date == default) return string.Empty;
+            var pc = new PersianCalendar();
+            var year = pc.GetYear(date);
+            var month = pc.GetMonth(date);
+            var day = pc.GetDayOfMonth(date);
+            return $"{year:0000}/{month:00}/{day:00}";
+        }
 
         [HttpPost]
         public async Task<IActionResult> ExportToExcel([FromForm] InventoryTransactionReportItemDto filter)
