@@ -528,18 +528,9 @@ namespace IMS.Application.WarehouseManagement.Services
                     // به‌روزرسانی مقدار منتقل شده در آیتم اصلی
                     dtoItem.Quantity = quantityToMove;
 
-                    // ❌ حذف return از اینجا
-                    // ✅ ادامه پردازش سایر آیتم‌ها و در نهایت ذخیره سند
+                  
                 }
 
-
-
-
-
-
-
-                // افزایش موجودی انبار مقصد فقط یک بار
-                destinationInventory.Quantity += quantityToMove;
                 item.Quantity = quantityToMove;
 
                 if (sourceInventory != null && sourceInventory.Quantity < 0)

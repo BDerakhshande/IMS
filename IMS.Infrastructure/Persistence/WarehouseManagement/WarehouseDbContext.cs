@@ -38,12 +38,29 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<InventoryItem> InventoryItems { get; set; }
         public DbSet<ReceiptOrIssueItemUniqueCode> ReceiptOrIssueItemUniqueCodes { get; set; }
         public DbSet<Unit> Units { get; set; }
+        public DbSet<InventoryReceiptLog> InventoryReceiptLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             modelBuilder.Entity<ReceiptOrIssueItemUniqueCode>()
       .ToTable("ReceiptOrIssueItemUniqueCode"); // بدون s
+
+
+            modelBuilder.Entity<InventoryReceiptLog>(builder =>
+            {
+                builder.HasOne(l => l.StorageZone)
+                       .WithMany() // اگر رابطه یک به چند دارید
+                       .HasForeignKey(l => l.ZoneId)
+                       .OnDelete(DeleteBehavior.Restrict);
+
+                builder.HasOne(l => l.StorageSection)
+                       .WithMany()
+                       .HasForeignKey(l => l.SectionId)
+                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
 
 
             base.OnModelCreating(modelBuilder);

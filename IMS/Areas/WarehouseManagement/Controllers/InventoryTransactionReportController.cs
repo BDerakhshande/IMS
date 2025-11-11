@@ -7,7 +7,6 @@ using System.Globalization;
 using IMS.Domain.WarehouseManagement.Enums;
 using Rotativa.AspNetCore;
 using IMS.Models.ProMan;
-
 namespace IMS.Areas.WarehouseManagement.Controllers
 {
     [Area("WarehouseManagement")]
@@ -16,7 +15,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IInventoryTransactionReportService _reportService;
         private readonly IWarehouseService _warehouseService;
         private readonly ICategoryService _categoryService;
-
         public InventoryTransactionReportController(
             IInventoryTransactionReportService reportService,
             IWarehouseService warehouseService,
@@ -26,7 +24,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             _warehouseService = warehouseService;
             _categoryService = categoryService;
         }
-
         public async Task<IActionResult> Index()
         {
             await PopulateSelectLists();
@@ -38,30 +35,26 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         {
             try
             {
-                filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
-
+                // حذف MapToEnglishDocumentType زیرا Value در View انگلیسی است و مستقیماً استفاده می‌شود
+                // filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
                     if (filter.DocumentType != "Conversion" &&
                         filter.DocumentType != "InventoryAdjustment" &&
+                        filter.DocumentType != "AddInventory" &&
                         !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
                     {
                         return BadRequest("نوع سند نامعتبر است.");
                     }
                 }
-
-
                 else
                 {
-                  
+
                     filter.DocumentType = null;
                 }
-
                 filter.FromDate = ParsePersianDate(filter.FromDateString);
                 filter.ToDate = ParsePersianDate(filter.ToDateString);
-
                 var reportData = await _reportService.GetReportAsync(filter);
-
                 var result = reportData.Select(d => new InventoryTransactionReportDto
                 {
                     Date = ToPersianDate(Convert.ToDateTime(d.Date)),
@@ -79,8 +72,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     DestinationSectionName = d.DestinationSectionName,
                     Quantity = d.Quantity
                 });
-
-
                 return Json(result);
             }
             catch (Exception ex)
@@ -91,11 +82,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-
-
-
-
         private async Task PopulateSelectLists()
         {
             ViewBag.Warehouses = new SelectList(await _warehouseService.GetAllWarehousesAsync(), "Id", "Name");
@@ -103,11 +89,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             ViewBag.Groups = new SelectList(await _reportService.GetAllGroupsAsync(), "Value", "Text");
             ViewBag.Statuses = new SelectList(await _reportService.GetAllStatusesAsync(), "Value", "Text");
             ViewBag.Products = new SelectList(await _reportService.GetAllProductsAsync(), "Value", "Text");
-
             ViewBag.Zones = new SelectList(await _reportService.GetAllZonesAsync(), "Value", "Text");
             ViewBag.Sections = new SelectList(await _reportService.GetAllSectionsAsync(), "Value", "Text");
         }
-
         // ======== Helper Methods ========
         private DateTime? ParsePersianDate(string? persianDate)
         {
@@ -116,7 +100,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 Console.WriteLine("Persian date is null or empty");
                 return null;
             }
-
             try
             {
                 var parts = persianDate.Split('/');
@@ -125,11 +108,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     Console.WriteLine($"Invalid date format: {persianDate}");
                     return null;
                 }
-
                 int year = int.Parse(parts[0]);
                 int month = int.Parse(parts[1]);
                 int day = int.Parse(parts[2]);
-
                 var pc = new PersianCalendar();
                 var result = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
                 Console.WriteLine($"Parsed date: {persianDate} -> {result}");
@@ -141,9 +122,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return null;
             }
         }
-
-
-
         private string? MapToEnglishDocumentType(string? type) => type switch
         {
             "رسید" => "Receipt",
@@ -151,9 +129,9 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "انتقال" => "Transfer",
             "تبدیل" => "Conversion",
             "اصلاح موجودی" => "InventoryAdjustment",
+            "ایجاد کالا" => "AddInventory",
             _ => null
         };
-
         private string MapToPersianDocumentType(string type) => type switch
         {
             "Receipt" => "رسید",
@@ -161,49 +139,40 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             "Transfer" => "انتقال",
             "Conversion" => "تبدیل",
             "InventoryAdjustment" => "اصلاح موجودی",
+            "AddInventory" => "ایجاد کالا",
             _ => type
         };
-
-
         // ======== Ajax Actions ========
-
         [HttpGet]
         public async Task<JsonResult> GetZonesByWarehouseId(int warehouseId)
         {
             var zones = await _reportService.GetZonesByWarehouseIdAsync(warehouseId);
             return Json(zones);
         }
-
-
         [HttpGet]
         public async Task<JsonResult> GetSectionsByZoneId(int zoneId)
         {
             var sections = await _reportService.GetSectionsByZoneIdAsync(zoneId);
             return Json(sections);
         }
-
-
         [HttpGet]
         public async Task<JsonResult> GetGroupsByCategoryId(int categoryId)
         {
             var groups = await _reportService.GetGroupsByCategoryIdAsync(categoryId);
             return Json(groups);
         }
-
         [HttpGet]
         public async Task<JsonResult> GetStatusesByGroupId(int groupId)
         {
             var statuses = await _reportService.GetStatusesByGroupIdAsync(groupId);
             return Json(statuses);
         }
-
         [HttpGet]
         public async Task<JsonResult> GetProductsByStatusId(int statusId)
         {
             var products = await _reportService.GetProductsByStatusIdAsync(statusId);
             return Json(products);
         }
-
         private string ToPersianDate(DateTime date)
         {
             if (date == default) return string.Empty;
@@ -213,29 +182,25 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var day = pc.GetDayOfMonth(date);
             return $"{year:0000}/{month:00}/{day:00}";
         }
-
         [HttpPost]
         public async Task<IActionResult> ExportToExcel([FromForm] InventoryTransactionReportItemDto filter)
         {
             try
             {
-                filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
-
+                // حذف MapToEnglishDocumentType زیرا Value در View انگلیسی است و مستقیماً استفاده می‌شود
+                // filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
-                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _) && filter.DocumentType != "InventoryAdjustment" && filter.DocumentType != "AddInventory")
                         return BadRequest("نوع سند نامعتبر است.");
                 }
                 else
                 {
                     filter.DocumentType = null;
                 }
-
                 filter.FromDate = ParsePersianDate(filter.FromDateString);
                 filter.ToDate = ParsePersianDate(filter.ToDateString);
-
                 var fileContent = await _reportService.ExportReportToExcelAsync(filter);
-
                 var fileName = $"InventoryTransactionReport_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 return File(fileContent,
                             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -247,49 +212,40 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return StatusCode(500, $"خطای سرور: {ex.Message}");
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> ExportToPdf([FromForm] InventoryTransactionReportItemDto filter)
         {
             try
             {
-                // تبدیل نوع سند به انگلیسی
-                filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
-
+                // حذف MapToEnglishDocumentType زیرا Value در View انگلیسی است و مستقیماً استفاده می‌شود
+                // filter.DocumentType = MapToEnglishDocumentType(filter.DocumentType);
                 if (!string.IsNullOrWhiteSpace(filter.DocumentType))
                 {
-                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _))
+                    if (filter.DocumentType != "Conversion" && !Enum.TryParse<ReceiptOrIssueType>(filter.DocumentType, out _) && filter.DocumentType != "InventoryAdjustment" && filter.DocumentType != "AddInventory")
                         return BadRequest("نوع سند نامعتبر است.");
                 }
                 else
                 {
                     filter.DocumentType = null;
                 }
-
                 // تبدیل تاریخ‌های فارسی به DateTime
                 filter.FromDate = ParsePersianDate(filter.FromDateString);
                 filter.ToDate = ParsePersianDate(filter.ToDateString);
-
                 // دریافت داده‌ها
                 var items = await _reportService.GetReportAsync(filter);
-
                 // آماده‌سازی ViewModel
                 var vm = new InventoryTransactionReportPdfViewModel
                 {
                     Items = items,
                     Filter = filter,
-
                     WarehouseName = filter.WarehouseName,
                     ZoneName = filter.ZoneName,
                     SectionName = filter.SectionName,
-
                     CategoryName = filter.CategoryName,
                     GroupName = filter.GroupName,
                     StatusName = filter.StatusName,
                     ProductName = filter.ProductName
                 };
-
-
                 // بازگشت PDF با Rotativa
                 return new ViewAsPdf("InventoryTransactionPdfView", vm)
                 {
@@ -306,7 +262,5 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return StatusCode(500, $"خطای سرور: {ex.Message}");
             }
         }
-
-
     }
 }

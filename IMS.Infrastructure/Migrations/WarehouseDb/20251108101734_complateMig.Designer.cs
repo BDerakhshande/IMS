@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    partial class WarehouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251108101734_complateMig")]
+    partial class complateMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -409,13 +412,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<bool>("IsUnique")
                         .HasColumnType("bit");
 
@@ -426,6 +422,12 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StorageSectionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StorageZoneId")
                         .HasColumnType("int");
 
                     b.Property<string>("UniqueCode")
@@ -442,11 +444,11 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.HasIndex("ProductId");
 
-                    b.HasIndex("SectionId");
+                    b.HasIndex("StorageSectionId");
+
+                    b.HasIndex("StorageZoneId");
 
                     b.HasIndex("WarehouseId");
-
-                    b.HasIndex("ZoneId");
 
                     b.ToTable("InventoryReceiptLogs");
                 });
@@ -1126,20 +1128,20 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
 
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "StorageSection")
                         .WithMany()
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("StorageSectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageZone", "StorageZone")
+                        .WithMany()
+                        .HasForeignKey("StorageZoneId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("IMS.Domain.WarehouseManagement.Entities.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageZone", "StorageZone")
-                        .WithMany()
-                        .HasForeignKey("ZoneId")
-                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Product");

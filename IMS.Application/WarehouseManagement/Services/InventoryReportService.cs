@@ -24,7 +24,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
-            // پایهٔ query با Include برای navigation properties ضروری
+          
             var baseQuery = _dbContext.Inventories
                 .Include(i => i.Product)
                     .ThenInclude(p => p.Status)
@@ -33,7 +33,9 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(i => i.Warehouse)
                 .Include(i => i.Zone)
                 .Include(i => i.Section)
+                .Where(i => i.Quantity > 0) 
                 .AsQueryable();
+
 
             // 1) اگر UniqueCodes فیلتر شده‌اند: ابتدا inventoryIds مرتبط را از InventoryItems بگیر
             List<int> inventoryIdsFromUniqueCodes = null;

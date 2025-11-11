@@ -206,8 +206,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     .Select(z => new SelectListItem { Value = z.Id.ToString(), Text = z.Name })
                 : Enumerable.Empty<SelectListItem>();
 
-            dto.Sections = dto.ZoneId.HasValue
-                ? (await _warehouseService.GetSectionsByZoneAsync(dto.ZoneId.Value))
+            dto.Sections = dto.ZoneId >0
+                ? (await _warehouseService.GetSectionsByZoneAsync(dto.ZoneId))
                     .Select(s => new SelectListItem { Value = s.Id.ToString(), Text = s.Name })
                 : Enumerable.Empty<SelectListItem>();
         }

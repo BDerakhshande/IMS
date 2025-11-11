@@ -17,6 +17,7 @@ namespace IMS.Application.WarehouseManagement.Services
         DbSet<Group> Groups { get; set; }
         DbSet<Status> Statuses { get; set; }
         DbSet<InventoryTransaction> InventoryTransactions { get; set; }
+        DbSet<InventoryReceiptLog> InventoryReceiptLogs { get; set; }
 
         DbSet<ReceiptOrIssue> ReceiptOrIssues { get; set; }
         DbSet<ReceiptOrIssueItem> ReceiptOrIssueItems  { get; set; }
