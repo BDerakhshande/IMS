@@ -23,7 +23,9 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             string generatedUniqueCode = null;
 
-            // 🧩 بررسی موجودی در انبار موردنظر
+            // بررسی اجباری بودن Zone و Section
+          
+            // بررسی موجودی در انبار موردنظر
             var existingInventory = await _context.Inventories
                 .Include(i => i.InventoryItems)
                 .FirstOrDefaultAsync(i =>
@@ -40,14 +42,19 @@ namespace IMS.Application.WarehouseManagement.Services
                     WarehouseId = dto.WarehouseId,
                     ZoneId = dto.ZoneId,
                     SectionId = dto.SectionId,
-                    Quantity = 0
+                    Quantity = 0,
+                    InventoryItems = new List<InventoryItem>()
                 };
                 _context.Inventories.Add(existingInventory);
+            }
+            else if (existingInventory.InventoryItems == null)
+            {
+                existingInventory.InventoryItems = new List<InventoryItem>();
             }
 
             if (dto.IsUnique)
             {
-                // 🔢 پیدا کردن آخرین شماره کد یکتا برای این محصول در کل سیستم
+                // پیدا کردن آخرین شماره کد یکتا
                 int? lastCode = await _context.ProductItems
                     .Where(pi => pi.ProductId == dto.ProductId)
                     .MaxAsync(pi => (int?)Convert.ToInt32(pi.UniqueCode));
@@ -55,14 +62,14 @@ namespace IMS.Application.WarehouseManagement.Services
                 int newCode = (lastCode ?? 0) + 1;
                 generatedUniqueCode = newCode.ToString();
 
-                // 🔢 تعیین Sequence
+                // تعیین Sequence
                 int? lastSequence = await _context.ProductItems
                     .Where(pi => pi.ProductId == dto.ProductId)
                     .MaxAsync(pi => (int?)pi.Sequence);
 
                 int newSequence = (lastSequence ?? 0) + 1;
 
-                // ➕ افزودن آیتم به InventoryItem
+                // افزودن آیتم به InventoryItem
                 var item = new InventoryItem
                 {
                     UniqueCode = generatedUniqueCode,
@@ -70,7 +77,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 };
                 existingInventory.InventoryItems.Add(item);
 
-                // ➕ افزودن به ProductItem
+                // افزودن به ProductItem
                 var productItem = new ProductItem
                 {
                     ProductId = dto.ProductId,
@@ -81,22 +88,36 @@ namespace IMS.Application.WarehouseManagement.Services
                 };
                 _context.ProductItems.Add(productItem);
 
-                // 📈 افزایش موجودی
                 existingInventory.Quantity += 1;
             }
             else
             {
-                // کالاهای غیر یکتا
                 if (dto.Quantity <= 0)
                     throw new InvalidOperationException("برای کالاهای عادی باید مقدار افزایشی معتبر وارد شود.");
 
                 existingInventory.Quantity += dto.Quantity;
             }
 
+            // ثبت لاگ
+            var log = new InventoryReceiptLog
+            {
+                ProductId = dto.ProductId,
+                WarehouseId = dto.WarehouseId,
+                ZoneId = dto.ZoneId,
+                SectionId = dto.SectionId,
+                Quantity = dto.IsUnique ? 1 : dto.Quantity,
+                IsUnique = dto.IsUnique,
+                UniqueCode = generatedUniqueCode,
+                CreatedAt = DateTime.Now,
+                DocumentType = "AddInventory"
+            };
+            _context.InventoryReceiptLogs.Add(log);
+
+            // ذخیره تغییرات
             await _context.SaveChangesAsync(CancellationToken.None);
+
             return (true, generatedUniqueCode);
         }
-
 
 
         public async Task<decimal> GetQuantityAsync(int productId, int warehouseId, int? zoneId, int? sectionId)

@@ -33,11 +33,11 @@
             box-sizing: border-box;
             font-family: 'B Nazanin', 'Iranian Sans', Tahoma, Arial, sans-serif;
         }
-        @@page{
+
+        @@page {
             size: A4 portrait;
             margin: 10mm;
         }
-
 
         body {
             padding: 20px;
@@ -102,6 +102,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            font-size: 13px;
         }
 
             .data-table th {
@@ -110,23 +111,26 @@
                 padding: 12px 8px;
                 text-align: center;
                 font-weight: bold;
-                font-size: 13px;
             }
 
             .data-table td {
                 padding: 10px 8px;
                 border-bottom: 1px solid #ddd;
                 text-align: center;
-                font-size: 13px;
             }
 
             .data-table tr:nth-child(even) {
                 background-color: #f8f9fa;
             }
 
+            /* مخفی کردن ردیف بدون UniqueCodes وقتی فیلتر اعمال شده */
+            .data-table tr.no-unique-codes {
+                display: none;
+            }
+
         .summary-row {
             font-weight: bold;
-            background-color: #f1f1f1 !important;
+            background-color: #d6ebf2 !important;
         }
 
             .summary-row td {
@@ -134,8 +138,6 @@
                 border-bottom: 2px solid #1a4a5a;
                 padding: 12px 8px;
             }
-
-      
     </style>
 </head>
 <body style="height: 100%">
@@ -153,22 +155,22 @@
             @if (Model.Filter.Warehouses != null && Model.Filter.Warehouses.Any())
             {
                 <li>
-                    انبارها: @string.Join(", ", Model.Filter.Warehouses.Where(w => w.WarehouseId > 0).Select(w =>
-                    Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId)
-                    ? CleanString(Model.WarehouseNames[w.WarehouseId])
-                    : $"انبار {w.WarehouseId}"
-                    ))
-                </li>
-            }
+                    انبارها: @string.Join(", ", Model.Filter.Warehouses
+                                    .Where(w => w.WarehouseId > 0)
+                                    .Select(w => Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId)
+                                    ? CleanString(Model.WarehouseNames[w.WarehouseId])
+                                    : $"انبار {w.WarehouseId}"))
+            </li>
+                        }
 
             @if (Model.Filter.CategoryId.HasValue)
             {
                 <li>
                     دسته‌بندی: @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
-                ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
-                : Model.Filter.CategoryId.Value.ToString())
-                </li>
-            }
+                                    ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
+                                    : Model.Filter.CategoryId.Value.ToString())
+            </li>
+                        }
 
             @if (Model.ZoneNames != null && Model.ZoneNames.Any())
             {
@@ -184,32 +186,37 @@
             {
                 <li>
                     گروه: @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
-                  ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
-                  : Model.Filter.GroupId.Value.ToString())
-                </li>
-            }
+                                    ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
+                                    : Model.Filter.GroupId.Value.ToString())
+            </li>
+                        }
 
             @if (Model.Filter.StatusId.HasValue)
             {
                 <li>
                     وضعیت: @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
-                 ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
-                 : Model.Filter.StatusId.Value.ToString())
-                </li>
-            }
+                                    ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
+                                    : Model.Filter.StatusId.Value.ToString())
+            </li>
+                        }
 
             @if (Model.Filter.ProductId.HasValue)
             {
                 <li>
                     کالا: @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
-                  ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
-                  : Model.Filter.ProductId.Value.ToString())
-                </li>
-            }
+                                    ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
+                                    : Model.Filter.ProductId.Value.ToString())
+            </li>
+                        }
 
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductSearch))
             {
                 <li>جستجوی محصول: @Model.Filter.ProductSearch</li>
+            }
+
+            @if (Model.UniqueCodesFilter != null && Model.UniqueCodesFilter.Any())
+            {
+                <li>کدهای یکتا: @string.Join(", ", Model.UniqueCodesFilter.Select(c => CleanString(c)))</li>
             }
         </ul>
     </section>
@@ -225,33 +232,45 @@
                 <th>طبقه</th>
                 <th>کالا</th>
                 <th>موجودی</th>
+                <th>کدهای یکتا</th>
             </tr>
         </thead>
         <tbody>
             @if (Model.Items != null && Model.Items.Any())
             {
+                bool hasUniqueFilter = Model.UniqueCodesFilter != null && Model.UniqueCodesFilter.Any();
+
                 foreach (var item in Model.Items)
                 {
-                    <tr>
-                        <td>@CleanString(item.WarehouseName ?? "-")</td>
-                        <td>@CleanString(item.ZoneName ?? "-")</td>
-                        <td>@CleanString(item.SectionName ?? "-")</td>
-                        <td>@CleanString(item.CategoryName ?? "-")</td>
-                        <td>@CleanString(item.GroupName ?? "-")</td>
-                        <td>@CleanString(item.StatusName ?? "-")</td>
-                        <td>@CleanString(item.ProductName ?? "-")</td>
-                        <td>@item.Quantity.ToString("N0")</td>
-                    </tr>
+                    bool hasUniqueCodes = item.UniqueCodes != null && item.UniqueCodes.Any();
+                    bool showRow = !hasUniqueFilter || hasUniqueCodes;
+
+                    if (showRow)
+                    {
+                        <tr class="@(hasUniqueCodes ? "" : "no-unique-codes")">
+                            <td>@CleanString(item.WarehouseName ?? "-")</td>
+                            <td>@CleanString(item.ZoneName ?? "-")</td>
+                            <td>@CleanString(item.SectionName ?? "-")</td>
+                            <td>@CleanString(item.CategoryName ?? "-")</td>
+                            <td>@CleanString(item.GroupName ?? "-")</td>
+                            <td>@CleanString(item.StatusName ?? "-")</td>
+                            <td>@CleanString(item.ProductName ?? "-")</td>
+                            <td>@item.Quantity.ToString("N0")</td>
+                            <td>@(hasUniqueCodes ? string.Join(", ", item.UniqueCodes.Select(c => CleanString(c))) : "-")</td>
+                        </tr>
+                    }
                 }
+
                 <tr class="summary-row">
                     <td colspan="7">جمع کل موجودی</td>
-                    <td>@(Model.Items.Sum(i => i.Quantity).ToString("N0"))</td>
+                    <td>@(Model.Items.Where(i => i.UniqueCodes != null && i.UniqueCodes.Any()).Sum(i => i.Quantity).ToString("N0"))</td>
+                    <td></td>
                 </tr>
             }
             else
             {
                 <tr>
-                    <td colspan="8" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
+                    <td colspan="9" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
                 </tr>
             }
         </tbody>

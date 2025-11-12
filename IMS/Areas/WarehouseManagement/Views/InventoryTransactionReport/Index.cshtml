@@ -1,15 +1,22 @@
 ﻿@{
     ViewData["Title"] = "گزارش تراکنش‌های کالا";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
-    var documentTypes = new List<string> { "رسید", "حواله", "انتقال", "تبدیل" };
+    var documentTypes = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "", Text = "انتخاب نوع" },
+        new SelectListItem { Value = "Receipt", Text = "رسید" },
+        new SelectListItem { Value = "Issue", Text = "حواله" },
+        new SelectListItem { Value = "Transfer", Text = "انتقال" },
+        new SelectListItem { Value = "Conversion", Text = "تبدیل" },
+        new SelectListItem { Value = "InventoryAdjustment", Text = "اصلاح موجودی" },
+        new SelectListItem { Value = "AddInventory", Text = "ایجاد کالا" }
+    };
 }
-
 <style>
     /* اضافه کردن فونت اصلی */
     body {
         font-size: 0.9rem;
     }
-
     /* استایل‌های قبلی با تغییرات جدید */
     select.form-select[dir="rtl"],
     select.form-select.text-end {
@@ -70,7 +77,6 @@
         font-size: 0.7rem;
         line-height: 1.2;
     }
-
     /* استایل‌های جدید برای دکمه‌های اکشن */
     .action-buttons {
         position: relative;
@@ -90,7 +96,6 @@
         display: flex;
         gap: 0.5rem;
     }
-
     /* بهبود ظاهر جدول */
     .table-responsive {
         border-radius: 0.35rem;
@@ -112,7 +117,6 @@
             padding: 0.4rem 0.75rem;
             vertical-align: middle;
         }
-
     /* بهبود ظاهر هشدارها */
     .alert {
         font-size: 0.85rem;
@@ -122,7 +126,6 @@
         .alert i {
             font-size: 1.5rem;
         }
-
     /* استایل‌های مخصوص گزارش تراکنش‌ها */
     .conversion-consumed {
         background-color: #ffe6e6; /* قرمز روشن */
@@ -130,6 +133,10 @@
 
     .conversion-produced {
         background-color: #e6ffe6; /* سبز روشن */
+    }
+
+    .add-inventory {
+        background-color: #e6f3ff; /* آبی روشن برای ایجاد کالا */
     }
 
     .no-results {
@@ -140,7 +147,6 @@
 </style>
 <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
 <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-
 <div class="card border-0 shadow-sm" dir="rtl">
     <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
         <div class="d-flex align-items-center">
@@ -148,7 +154,6 @@
             <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
         </div>
     </div>
-
     <div class="card-body p-2">
         <form method="post" asp-action="Index" id="transactionReportForm">
             <!-- فیلترهای انبار -->
@@ -185,7 +190,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- فیلترهای محصول -->
             <div class="card mb-4 border-success">
                 <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
@@ -216,9 +220,9 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label small">وضعیت</label>
+                            <label class="form-label small">طبقه</label>
                             <select id="status" name="StatusId" class="form-select form-select-sm shadow-sm" onchange="loadProducts(this.value)" @(ViewBag.Statuses != null ? "" : "disabled")>
-                                <option value="">انتخاب وضعیت</option>
+                                <option value="">انتخاب طبقه</option>
                                 @if (ViewBag.Statuses != null)
                                 {
                                     foreach (var item in (SelectList)ViewBag.Statuses)
@@ -244,7 +248,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- فیلترهای زمانی و نوع سند -->
             <div class="card mb-4 border-info">
                 <div class="card-header bg-light-info d-flex justify-content-between align-items-center">
@@ -265,17 +268,15 @@
                         <div class="col-md-4">
                             <label class="form-label small">نوع سند</label>
                             <select id="docType" name="DocumentType" class="form-select form-select-sm shadow-sm">
-                                <option value="">انتخاب نوع</option>
                                 @foreach (var item in documentTypes)
                                 {
-                                    <option value="@item">@item</option>
+                                    <option value="@item.Value">@item.Text</option>
                                 }
                             </select>
                         </div>
                     </div>
                 </div>
             </div>
-
             <div class="row mt-4">
                 <div class="col-md-12 text-center">
                     <button type="submit" class="btn btn-sm btn-primary px-4 rounded-pill">
@@ -291,18 +292,15 @@
             <input type="hidden" name="FromDateString" id="hiddenFromDate">
             <input type="hidden" name="ToDateString" id="hiddenToDate">
             <input type="hidden" name="DocumentType" id="hiddenDocumentType">
-
             <!-- فیلدهای سلسله‌مراتب انبار -->
             <input type="hidden" name="WarehouseId" id="hiddenWarehouseId">
             <input type="hidden" name="ZoneId" id="hiddenZoneId">
             <input type="hidden" name="SectionId" id="hiddenSectionId">
-
             <!-- فیلدهای سلسله‌مراتب محصول -->
             <input type="hidden" name="CategoryId" id="hiddenCategoryId">
             <input type="hidden" name="GroupId" id="hiddenGroupId">
             <input type="hidden" name="StatusId" id="hiddenStatusId">
             <input type="hidden" name="ProductId" id="hiddenProductId">
-
             <!-- نام‌ها برای نمایش در PDF -->
             <input type="hidden" name="WarehouseName" id="hiddenWarehouseName">
             <input type="hidden" name="ZoneName" id="hiddenZoneName">
@@ -314,7 +312,6 @@
         </form>
     </div>
 </div>
-
 <div id="reportResults" class="mt-4" style="display: none;" dir="rtl">
     <div class="action-buttons">
         <div class="action-buttons-container">
@@ -331,7 +328,6 @@
             </div>
         </div>
     </div>
-
     <div class="card shadow-sm mt-2">
         <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
             <div class="d-flex align-items-center">
@@ -349,7 +345,6 @@
                 </div>
                 <p class="mt-2 mb-0" style="font-size: 0.8rem;">در حال دریافت گزارش...</p>
             </div>
-
             <div class="table-responsive">
                 <table class="table table-sm table-hover mb-0">
                     <thead class="table-light">
@@ -368,7 +363,6 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
@@ -381,30 +375,25 @@
                 month: '2-digit',
                 day: '2-digit'
             }).format(date);
-
             return persian.replaceAll('۰','0').replaceAll('۱','1')
                           .replaceAll('۲','2').replaceAll('۳','3')
                           .replaceAll('۴','4').replaceAll('۵','5')
                           .replaceAll('۶','6').replaceAll('۷','7')
                           .replaceAll('۸','8').replaceAll('۹','9');
         }
-
         function loadZones(selectElement) {
             const warehouseId = selectElement.value;
             const zoneSelect = $('#zone');
             const sectionSelect = $('#section');
-
             zoneSelect.prop('disabled', true)
                       .html('<option value="">در حال بارگذاری...</option>');
             sectionSelect.prop('disabled', true)
                          .html('<option value="">ابتدا منطقه را انتخاب کنید</option>');
-
             if (!warehouseId) {
                 zoneSelect.prop('disabled', true)
                           .html('<option value="">ابتدا انبار را انتخاب کنید</option>');
                 return;
             }
-
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetZonesByWarehouseId?warehouseId=${warehouseId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -419,20 +408,16 @@
                     zoneSelect.html('<option value="">خطا در بارگذاری</option>');
                 });
         }
-
         function loadSections(selectElement) {
             const zoneId = selectElement.value;
             const sectionSelect = $('#section');
-
             sectionSelect.prop('disabled', true)
                          .html('<option value="">در حال بارگذاری...</option>');
-
             if (!zoneId) {
                 sectionSelect.prop('disabled', true)
                              .html('<option value="">ابتدا منطقه را انتخاب کنید</option>');
                 return;
             }
-
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetSectionsByZoneId?zoneId=${zoneId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -447,24 +432,20 @@
                     sectionSelect.html('<option value="">خطا در بارگذاری</option>');
                 });
         }
-
         function loadGroups(categoryId) {
             const groupSelect = $('#group');
             const statusSelect = $('#status');
             const productSelect = $('#product');
-
             groupSelect.prop('disabled', true)
                        .html('<option value="">در حال بارگذاری...</option>');
             statusSelect.prop('disabled', true)
                         .html('<option value="">ابتدا گروه را انتخاب کنید</option>');
             productSelect.prop('disabled', true)
                          .html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
-
             if (!categoryId) {
                 groupSelect.html('<option value="">انتخاب دسته‌بندی</option>');
                 return;
             }
-
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetGroupsByCategoryId?categoryId=${categoryId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -479,25 +460,21 @@
                     groupSelect.html('<option value="">خطا در بارگذاری</option>');
                 });
         }
-
         function loadStatuses(groupId) {
             const statusSelect = $('#status');
             const productSelect = $('#product');
-
             statusSelect.prop('disabled', true)
                         .html('<option value="">در حال بارگذاری...</option>');
             productSelect.prop('disabled', true)
                          .html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
-
             if (!groupId) {
                 statusSelect.html('<option value="">انتخاب گروه</option>');
                 return;
             }
-
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetStatusesByGroupId?groupId=${groupId}`)
                 .then(response => response.json())
                 .then(data => {
-                    statusSelect.empty().append('<option value="">همه وضعیت‌ها</option>');
+                    statusSelect.empty().append('<option value="">همه طبقه‌ها</option>');
                     data.forEach(status => {
                         statusSelect.append(new Option(status.text, status.value));
                     });
@@ -508,18 +485,14 @@
                     statusSelect.html('<option value="">خطا در بارگذاری</option>');
                 });
         }
-
         function loadProducts(statusId) {
             const productSelect = $('#product');
-
             productSelect.prop('disabled', true)
                          .html('<option value="">در حال بارگذاری...</option>');
-
             if (!statusId) {
-                productSelect.html('<option value="">انتخاب وضعیت</option>');
+                productSelect.html('<option value="">انتخاب طبقه</option>');
                 return;
             }
-
             fetch(`/WarehouseManagement/InventoryTransactionReport/GetProductsByStatusId?statusId=${statusId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -534,7 +507,6 @@
                     productSelect.html('<option value="">خطا در بارگذاری</option>');
                 });
         }
-
         function resetForm() {
             document.getElementById('transactionReportForm').reset();
             $('#zone').prop('disabled', true).html('<option value="">ابتدا انبار را انتخاب کنید</option>');
@@ -542,26 +514,53 @@
             $('#status').prop('disabled', true).html('<option value="">ابتدا گروه را انتخاب کنید</option>');
             $('#product').prop('disabled', true).html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
         }
-
         function renderReportRows(data) {
             const tbody = document.getElementById('reportBody');
             tbody.innerHTML = '';
-
             data.forEach(item => {
                 const tr = document.createElement('tr');
-
-                // رنگ پس‌زمینه بر اساس نوع تبدیل
-                if (item.documentType === 'تبدیل' || item.documentType === 'Conversion') {
+                // رنگ پس‌زمینه بر اساس نوع
+                if (item.documentType === 'Conversion' || item.documentType === 'تبدیل') {
                     if (item.conversionType === 'Consumed') tr.classList.add('conversion-consumed');
                     else if (item.conversionType === 'Produced') tr.classList.add('conversion-produced');
+                } else if (item.documentType === 'AddInventory' || item.documentType === 'ایجاد کالا') {
+                    tr.classList.add('add-inventory');
                 }
-
+                // نمایش نام فارسی نوع سند
+                let documentTypeDisplay = '-';
+                switch(item.documentType) {
+                    case 'تبدیل':
+                    case 'Conversion':
+                        documentTypeDisplay = 'تبدیل';
+                        break;
+                    case 'Receipt':
+                    case 'رسید':
+                        documentTypeDisplay = 'رسید';
+                        break;
+                    case 'Issue':
+                    case 'حواله':
+                        documentTypeDisplay = 'حواله';
+                        break;
+                    case 'Transfer':
+                    case 'انتقال':
+                        documentTypeDisplay = 'انتقال';
+                        break;
+                    case 'InventoryAdjustment':
+                    case 'اصلاح موجودی':
+                        documentTypeDisplay = 'اصلاح موجودی';
+                        break;
+                    case 'AddInventory':
+                    case 'ایجاد کالا':
+                        documentTypeDisplay = 'ایجاد کالا';
+                        break;
+                    default:
+                        documentTypeDisplay = item.documentType || '-';
+                }
                 tr.innerHTML = `
                     <td class="text-start ps-4">${item.date || '-'}</td>
-                           <td class="text-start">
-                        ${item.categoryName || '-'} - ${item.groupName || '-'} - ${item.statusName || '-'} -  ${item.productName || '-'} 
-                           </td>
-
+                    <td class="text-start">
+                        ${item.categoryName || '-'} - ${item.groupName || '-'} - ${item.statusName || '-'} - ${item.productName || '-'}
+                    </td>
                     <td class="text-start">
                         <div class="small">
                             ${item.sourceWarehouseName || '-'} - ${item.sourceDepartmentName || '-'} - ${item.sourceSectionName || '-'}
@@ -573,7 +572,7 @@
                         </div>
                     </td>
                     <td class="text-start">
-                        ${item.documentType === 'تبدیل' || item.documentType === 'Conversion' ? `تبدیل` : item.documentType || '-'}
+                        ${documentTypeDisplay}
                     </td>
                     <td class="text-end pe-4 fw-bold">
                         <span class="badge bg-primary bg-opacity-10 text-primary">
@@ -581,30 +580,24 @@
                         </span>
                     </td>
                 `;
-
                 tbody.appendChild(tr);
             });
-
             // به روز رسانی تعداد رکوردها
             document.getElementById('totalRecords').textContent = data.length.toLocaleString();
         }
-
         $(document).ready(function () {
             // تنظیم تاریخ امروز به عنوان پیش‌فرض
             const today = new Date();
             const persianToday = toPersianDateString(today);
             $('#fromDate').val(persianToday);
             $('#toDate').val(persianToday);
-
             // ارسال فرم
             $('#transactionReportForm').on('submit', function (e) {
                 e.preventDefault();
-
                 const formData = $(this).serialize();
                 $('#reportBody').empty();
                 $('#reportLoading').show();
                 $('#reportResults').show();
-
                 fetch(`/WarehouseManagement/InventoryTransactionReport/GetReport?${formData}`)
                     .then(res => {
                         if (!res.ok) throw new Error('خطا در دریافت گزارش از سرور');
@@ -638,13 +631,8 @@
                         `);
                     });
             });
-
-                     
-
-
             window.exportToExcel = async function() {
                 const formData = $('#transactionReportForm').serialize();
-
                 try {
                     const response = await fetch('/WarehouseManagement/InventoryTransactionReport/ExportToExcel', {
                         method: 'POST',
@@ -653,9 +641,7 @@
                         },
                         body: formData
                     });
-
                     if (!response.ok) throw new Error('خطا در دریافت فایل اکسل');
-
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -671,13 +657,11 @@
                 }
             };
         });
-
-                        function printPdfReport() {
+        function printPdfReport() {
             // فیلترهای زمانی و نوع سند
             document.getElementById('hiddenFromDate').value = document.getElementById('fromDate').value || '';
             document.getElementById('hiddenToDate').value = document.getElementById('toDate').value || '';
             document.getElementById('hiddenDocumentType').value = document.getElementById('docType').value || '';
-
             // سلسله مراتب انبار
             document.getElementById('hiddenWarehouseId').value = document.getElementById('warehouse').value || '';
             document.getElementById('hiddenZoneId').value = document.getElementById('zone').value || '';
@@ -685,7 +669,6 @@
             document.getElementById('hiddenWarehouseName').value = document.getElementById('warehouse').selectedOptions[0]?.text || '';
             document.getElementById('hiddenZoneName').value = document.getElementById('zone').selectedOptions[0]?.text || '';
             document.getElementById('hiddenSectionName').value = document.getElementById('section').selectedOptions[0]?.text || '';
-
             // سلسله مراتب محصول
             document.getElementById('hiddenCategoryId').value = document.getElementById('category').value || '';
             document.getElementById('hiddenGroupId').value = document.getElementById('group').value || '';
@@ -695,11 +678,8 @@
             document.getElementById('hiddenGroupName').value = document.getElementById('group').selectedOptions[0]?.text || '';
             document.getElementById('hiddenStatusName').value = document.getElementById('status').selectedOptions[0]?.text || '';
             document.getElementById('hiddenProductName').value = document.getElementById('product').selectedOptions[0]?.text || '';
-
             // ارسال فرم
             document.getElementById('pdfForm').submit();
         }
-
-
     </script>
 }

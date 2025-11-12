@@ -20,7 +20,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         private readonly IProjectService _projectService;
 
         public ConversionController(IConversionService conversionService, IWarehouseDbContext warehouseDbContext,
-            IApplicationDbContext projectContext , IProjectService projectService)
+            IApplicationDbContext projectContext, IProjectService projectService)
         {
             _conversionService = conversionService;
             _warehouseDbContext = warehouseDbContext;
@@ -34,11 +34,8 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var documents = await _conversionService.GetConversionDocumentsAsync();
             ViewBag.CreatedDocumentId = TempData["CreatedDocumentId"];
             ViewBag.SuccessMessage = TempData["SuccessMessage"];
-            return View(documents); 
+            return View(documents);
         }
-
-
-
 
         [HttpGet]
         public async Task<IActionResult> Create()
@@ -104,13 +101,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     ZoneId = s.ZoneId
                 }).ToListAsync();
 
-
             var projects = await _projectContext.Projects
-    .Select(p => new SelectListItem
-    {
-        Value = p.Id.ToString(),
-        Text = p.ProjectName
-    }).ToListAsync();
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.ProjectName
+                }).ToListAsync();
 
             // Persian date setup
             PersianCalendar pc = new PersianCalendar();
@@ -132,12 +128,10 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 DocumentNumber = await _conversionService.GetNextConversionDocumentNumberAsync(),
                 Projects = projects,
                 ProjectId = null
-
             };
 
             return View(model);
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -182,20 +176,21 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             ModelState.Remove(nameof(model.Categories));
             ModelState.Remove(nameof(model.Warehouses));
 
-        
+            if (!ModelState.IsValid)
+                return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+
             try
             {
                 var (documentId, documentNumber) = await _conversionService.ConvertAndRegisterDocumentAsync(
                     model.ConsumedItems,
                     model.ProducedItems
-                   
                 );
 
                 return Json(new
                 {
                     success = true,
-                    documentId = documentId,
-                    documentNumber = documentNumber
+                    documentId,
+                    documentNumber
                 });
             }
             catch (Exception ex)
@@ -207,11 +202,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 });
             }
         }
-
-
-
-
-
 
         private async Task PopulateSelectListsAsync(ConversionCreateViewModel model)
         {
@@ -244,15 +234,12 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 .ToListAsync();
 
             model.Projects = await _projectContext.Projects
-    .Select(p => new SelectListItem
-    {
-        Value = p.Id.ToString(),
-        Text = p.ProjectName
-    }).ToListAsync();
-
+                .Select(p => new SelectListItem
+                {
+                    Value = p.Id.ToString(),
+                    Text = p.ProjectName
+                }).ToListAsync();
         }
-
-
 
         [HttpGet]
         public async Task<JsonResult> GetZonesByWarehouse(int warehouseId)
@@ -263,6 +250,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 .ToListAsync();
             return Json(zones);
         }
+
         [HttpGet]
         public async Task<JsonResult> GetSectionsByZone(int zoneId)
         {
@@ -303,7 +291,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(products);
         }
 
-
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
@@ -328,7 +315,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                 return RedirectToAction("Index");
             }
         }
-
 
         public IActionResult Print(int id)
         {
@@ -391,8 +377,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             };
         }
 
-
-
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -446,75 +430,77 @@ namespace IMS.Areas.WarehouseManagement.Controllers
 
             await PopulateSelectListsAsync(model);
 
-            return View("Edit", model);
+            return View("Create", model); // Use the same view as Create for editing
         }
 
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> Edit(ConversionCreateViewModel model)
+        //{
+        //    if (!model.DocumentId.HasValue)
+        //    {
+        //        return Json(new { success = false, errors = new[] { "شناسه سند معتبر نیست." } });
+        //    }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(ConversionCreateViewModel model)
-        {
-            if (!model.DocumentId.HasValue)
-            {
-                return Json(new { success = false, errors = new[] { "شناسه سند معتبر نیست." } });
-            }
+        //    // اعتبارسنجی تاریخ
+        //    if (!string.IsNullOrEmpty(model.DateString))
+        //    {
+        //        var parts = model.DateString.Split('/');
+        //        if (parts.Length == 3 &&
+        //            int.TryParse(parts[0], out int year) &&
+        //            int.TryParse(parts[1], out int month) &&
+        //            int.TryParse(parts[2], out int day))
+        //        {
+        //            try
+        //            {
+        //                PersianCalendar pc = new PersianCalendar();
+        //                model.Date = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
+        //            }
+        //            catch
+        //            {
+        //                ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
+        //        }
+        //    }
 
-            // اعتبارسنجی تاریخ
-            if (!string.IsNullOrEmpty(model.DateString))
-            {
-                var parts = model.DateString.Split('/');
-                if (parts.Length == 3 &&
-                    int.TryParse(parts[0], out int year) &&
-                    int.TryParse(parts[1], out int month) &&
-                    int.TryParse(parts[2], out int day))
-                {
-                    try
-                    {
-                        PersianCalendar pc = new PersianCalendar();
-                        model.Date = pc.ToDateTime(year, month, day, 0, 0, 0, 0);
-                    }
-                    catch
-                    {
-                        ModelState.AddModelError("DateString", "تاریخ وارد شده معتبر نیست.");
-                    }
-                }
-                else
-                {
-                    ModelState.AddModelError("DateString", "فرمت تاریخ صحیح نیست.");
-                }
-            }
+        //    // اعتبارسنجی اقلام
+        //    if (model.ConsumedItems == null || !model.ConsumedItems.Any())
+        //        ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
 
-            // اعتبارسنجی اقلام
-            if (model.ConsumedItems == null || !model.ConsumedItems.Any())
-                ModelState.AddModelError(string.Empty, "حداقل یک کالای مصرفی باید انتخاب شود.");
+        //    if (model.ProducedItems == null || !model.ProducedItems.Any())
+        //        ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
 
-            if (model.ProducedItems == null || !model.ProducedItems.Any())
-                ModelState.AddModelError(string.Empty, "حداقل یک کالای تولیدی باید وارد شود.");
+        //    ModelState.Remove(nameof(model.Zones));
+        //    ModelState.Remove(nameof(model.Groups));
+        //    ModelState.Remove(nameof(model.Products));
+        //    ModelState.Remove(nameof(model.Sections));
+        //    ModelState.Remove(nameof(model.Statuses));
+        //    ModelState.Remove(nameof(model.Categories));
+        //    ModelState.Remove(nameof(model.Warehouses));
 
-            
+        //    if (!ModelState.IsValid)
+        //        return Json(new { success = false, errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
 
-            try
-            {
-                var (documentId, documentNumber) = await _conversionService.UpdateConversionDocumentAsync(
-                    model.DocumentId.Value,
-                    model.ConsumedItems,
-                    model.ProducedItems,
-                    model.ProjectId // ✅ ارسال ProjectId
-                );
+        //    try
+        //    {
+        //        var (documentId, documentNumber) = await _conversionService.UpdateConversionDocumentAsync(
+        //            model.DocumentId.Value,
+        //            model.ConsumedItems,
+        //            model.ProducedItems,
+        //            model.ProjectId
+        //        );
 
-                return Json(new { success = true, documentId, documentNumber });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, errors = new[] { "خطا در ویرایش سند: " + ex.Message } });
-            }
-        }
-
-
-
-
-
-
+        //        return Json(new { success = true, documentId, documentNumber });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, errors = new[] { "خطا در ویرایش سند: " + ex.Message } });
+        //    }
+        //}
     }
 }
 

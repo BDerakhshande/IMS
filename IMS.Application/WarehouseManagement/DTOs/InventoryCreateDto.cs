@@ -11,8 +11,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
     {
         // محل نگهداری
         public int WarehouseId { get; set; }
-        public int? ZoneId { get; set; }
-        public int? SectionId { get; set; }
+        public int ZoneId { get; set; }
+        public int SectionId { get; set; }
 
         // کالا (بر اساس انتخاب سلسله‌مراتبی)
         public int CategoryId { get; set; }

@@ -22,6 +22,7 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<StorageSection> StorageSections { get; set; } = null!;
         public DbSet<ProductItem> ProductItems { get; set; } = null!;
         public DbSet<Inventory> Inventories { get; set; } = null!;
+        public DbSet<InventoryTransaction> InventoryTransactions { get; set; }
 
         public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<Group> Groups { get; set; } = null!;
@@ -37,12 +38,29 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
         public DbSet<InventoryItem> InventoryItems { get; set; }
         public DbSet<ReceiptOrIssueItemUniqueCode> ReceiptOrIssueItemUniqueCodes { get; set; }
         public DbSet<Unit> Units { get; set; }
+        public DbSet<InventoryReceiptLog> InventoryReceiptLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
             modelBuilder.Entity<ReceiptOrIssueItemUniqueCode>()
       .ToTable("ReceiptOrIssueItemUniqueCode"); // بدون s
+
+
+            modelBuilder.Entity<InventoryReceiptLog>(builder =>
+            {
+                builder.HasOne(l => l.StorageZone)
+                       .WithMany() // اگر رابطه یک به چند دارید
+                       .HasForeignKey(l => l.ZoneId)
+                       .OnDelete(DeleteBehavior.Restrict);
+
+                builder.HasOne(l => l.StorageSection)
+                       .WithMany()
+                       .HasForeignKey(l => l.SectionId)
+                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+
 
 
             base.OnModelCreating(modelBuilder);
@@ -93,6 +111,40 @@ namespace IMS.Infrastructure.Persistence.WarehouseManagement
                 .OnDelete(DeleteBehavior.Restrict);
 
 
+            modelBuilder.Entity<InventoryTransaction>()
+    .HasOne(t => t.Product)
+    .WithMany()
+    .HasForeignKey(t => t.ProductId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Category)
+                .WithMany()
+                .HasForeignKey(t => t.CategoryId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Group)
+                .WithMany()
+                .HasForeignKey(t => t.GroupId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Status)
+                .WithMany()
+                .HasForeignKey(t => t.StatusId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Warehouse)
+                .WithMany()
+                .HasForeignKey(t => t.WarehouseId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Zone)
+                .WithMany()
+                .HasForeignKey(t => t.ZoneId);
+
+            modelBuilder.Entity<InventoryTransaction>()
+                .HasOne(t => t.Section)
+                .WithMany()
+                .HasForeignKey(t => t.SectionId);
 
 
 

@@ -5,7 +5,6 @@
 }
 
 <style>
-
     select.form-select[dir="rtl"],
     select.form-select.text-end {
         direction: rtl;
@@ -25,13 +24,12 @@
         background-image: none !important;
     }
 
-
     .table-sm-custom {
         font-size: 0.85rem;
     }
 
         .table-sm-custom .form-select,
-        .table-sm-custom .form-control {س
+        .table-sm-custom .form-control {
             font-size: 0.85rem;
             padding: 0.25rem 0.5rem;
             height: auto;
@@ -60,9 +58,6 @@
         justify-content: center;
         font-size: 16px;
     }
-
-   
-
 </style>
 <link href="~/lib/select2/css/select2.min.css" rel="stylesheet" />
 <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
@@ -80,7 +75,7 @@
     </div>
 
     <div class="card-body p-2">
-        <form asp-action="Create" method="post" id="conversionForm">
+        <form asp-action="@(ViewBag.ActionName == "Edit" ? "Edit" : "Create")" method="post" id="conversionForm">
             @Html.AntiForgeryToken()
             @if (!ViewData.ModelState.IsValid)
             {
@@ -115,7 +110,7 @@
             <!-- بخش اقلام مصرفی -->
             <div class="card mb-4 border-primary">
                 <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold text-black" >
+                    <h6 class="mb-0 fw-bold text-black">
                         <i class="fas fa-box-open me-2"></i>کالاهای مصرفی
                     </h6>
                     <button type="button" id="addConsumedItem" class="btn btn-sm btn-primary rounded-pill">
@@ -137,8 +132,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <div id="clientValidationErrors"></div>
-
                                 @if (Model.ConsumedItems != null && Model.ConsumedItems.Any())
                                 {
                                     for (int i = 0; i < Model.ConsumedItems.Count; i++)
@@ -280,79 +273,82 @@
             <!-- بخش کالای تولیدی -->
             <div class="card mb-4 border-success">
                 <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold  text-black">
+                    <h6 class="mb-0 fw-bold text-black">
                         <i class="fas fa-industry me-2"></i>کالای تولیدی
                     </h6>
+                    <button type="button" id="addProducedItem" class="btn btn-sm btn-success rounded-pill">
+                        <i class="bi bi-plus-circle me-2"></i>افزودن کالای تولیدی
+                    </button>
                 </div>
-                <div class="card-body produced-item-container">
+                <div class="card-body">
                     <div class="table-responsive border rounded-3">
-                    <div id="producedValidationErrors" class="mb-3"></div>
-                        <table class="table table-hover table-sm mb-0" id="producedItemsTable">
-                            <thead class="table-light" style="font-size: 0.8rem;">
+                        <div id="producedValidationErrors" class="mb-3"></div>
+                        <table class="table table-hover mb-0 table-sm-custom" id="producedItemsTable">
+                            <thead class="table-light">
                                 <tr>
                                     <th class="text-center py-2">کالا</th>
                                     <th class="text-center py-2">تعداد</th>
                                     <th class="text-center py-2">محل نگهداری</th>
-                                <th class="text-center py-2">پروژه</th>
+                                    <th class="text-center py-2">پروژه</th>
                                     <th class="text-center py-2" style="width: 80px;">عملیات</th>
                                 </tr>
                             </thead>
-                            <tbody class="table-sm-custom">
+                            <tbody>
                                 @if (Model.ProducedItems != null && Model.ProducedItems.Any())
                                 {
-
                                     for (int i = 0; i < Model.ProducedItems.Count; i++)
                                     {
-
-
                                         <tr class="align-middle" data-index="@i">
                                             <td>
-                                                <div class="accordion" id="producedProductAccordion_@i">
-                                                    <div class="accordion-item border-0">
-                                                        <h2 class="accordion-header">
-                                                            <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#producedProductCollapse_@i">
+                                                <div class="accordion border-0" id="producedProductAccordion_@i">
+                                                    <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
+                                                        <h2 class="accordion-header" id="producedHeading_@i">
+                                                            <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
+                                                                    data-bs-toggle="collapse" data-bs-target="#producedProductCollapse_@i" aria-expanded="false"
+                                                                    aria-controls="producedProductCollapse_@i">
                                                                 انتخاب کالا و مشخصات آن
                                                             </button>
                                                         </h2>
                                                         <div id="producedProductCollapse_@i" class="accordion-collapse collapse" data-bs-parent="#producedProductAccordion_@i">
-                                                            <div class="accordion-body p-2">
-                                                                <label>دسته بندی</label>
-                                                                <select asp-for="ProducedItems[i].CategoryId" class="form-select category-select  shadow-sm" data-index="@i">
-                                                                    <option value="">انتخاب دسته‌بندی</option>
-                                                                    @foreach (var category in Model.Categories)
-                                                                    {
-                                                                        <option value="@category.Value" selected="@(category.Value == Model.ProducedItems[i].CategoryId.ToString())">@category.Text</option>
-                                                                    }
-                                                                </select>
-																<label>گروه</label>
-                                                                <select asp-for="ProducedItems[i].GroupId" class="form-select group-select" data-index="@i">
-                                                                    <option value="">انتخاب گروه</option>
-                                                                    @foreach (var group in Model.Groups)
-                                                                    {
-                                                                        <option value="@group.Id" selected="@(group.Id.ToString() == (Model.ProducedItems[i].GroupId.ToString() ?? ""))">@group.Name</option>
-                                                                    }
-                                                                </select>
-                                                                <label>طبقه</label>
-                                                                <select asp-for="ProducedItems[i].StatusId" class="form-select status-select " data-index="@i">
-                                                                    <option value="">انتخاب طبقه</option>
-                                                                    @foreach (var status in Model.Statuses)
-                                                                    {
-                                                                        <option value="@status.Id" selected="@(status.Id.ToString() == (Model.ProducedItems[i].StatusId.ToString() ?? ""))">@status.Name</option>
-                                                                    }
-                                                                </select>
-                                                                <label>کالا</label>
-                                                                <select asp-for="@Model.ProducedItems[i].ProductId" class="form-select product-select" data-index="@i">
-                                                                    <option value="">انتخاب کالا</option>
-                                                                    @foreach (var product in Model.Products)
-                                                                    {
-                                                                        <option value="@product.Id" selected="@(product.Id == Model.ProducedItems[i].ProductId)">@product.Name</option>
-                                                                    }
-                                                                </select>
+                                                            <div class="accordion-body py-2 px-3">
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">دسته‌بندی</label>
+                                                                    <select asp-for="ProducedItems[i].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end"
+                                                                            data-index="@i">
+                                                                        <option value="">انتخاب دسته‌بندی</option>
+                                                                        @foreach (var category in Model.Categories)
+                                                                        {
+                                                                            <option value="@category.Value" selected="@(category.Value == Model.ProducedItems[i].CategoryId.ToString())">@category.Text</option>
+                                                                        }
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">گروه</label>
+                                                                    <select asp-for="ProducedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select"
+                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].GroupId">
+                                                                        <option value="">انتخاب گروه</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <label class="form-label small">طبقه</label>
+                                                                    <select asp-for="ProducedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select"
+                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].StatusId">
+                                                                        <option value="">انتخاب طبقه</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-1">
+                                                                    <label class="form-label small">کالا</label>
+                                                                    <select asp-for="ProducedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select"
+                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].ProductId">
+                                                                        <option value="">انتخاب کالا</option>
+                                                                    </select>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
+
                                             <td style="width: 120px;">
                                                 <input asp-for="ProducedItems[i].Quantity" type="number" min="1" class="form-control shadow-sm" />
                                                 <span asp-validation-for="ProducedItems[i].Quantity" class="text-danger small d-block mt-1"></span>
@@ -369,7 +365,7 @@
                                                             <div class="accordion-body p-2">
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">انبار</label>
-                                                                    <select asp-for="ProducedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="produced_@i">
+                                                                    <select asp-for="ProducedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i">
                                                                         <option value="">انتخاب انبار</option>
                                                                         @foreach (var warehouse in Model.Warehouses)
                                                                         {
@@ -380,7 +376,7 @@
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">قسمت</label>
-                                                                    <select asp-for="ProducedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="produced_@i">
+                                                                    <select asp-for="ProducedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="@i">
                                                                         <option value="">انتخاب قسمت</option>
                                                                         @foreach (var zone in Model.Zones)
                                                                         {
@@ -391,7 +387,7 @@
                                                                 </div>
                                                                 <div>
                                                                     <label class="form-label small text-muted mb-1">بخش</label>
-                                                                    <select asp-for="ProducedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="produced_@i">
+                                                                    <select asp-for="ProducedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="@i">
                                                                         <option value="">انتخاب بخش</option>
                                                                         @foreach (var section in Model.Sections)
                                                                         {
@@ -405,32 +401,31 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                        <td>
+                                            <td>
                                                 <select asp-for="ProducedItems[i].ProjectId" class="form-select form-select-sm">
-                                                <option value="">بدون پروژه</option>
-                                                @foreach (var project in Model.Projects)
-                                                {
-                                                    <option value="@project.Value" selected="@(project.Value == Model.ProducedItems[i].ProjectId?.ToString())">
-                                                        @project.Text
-                                                    </option>
-                                                }
-                                            </select>
-                                            <span asp-validation-for="ProducedItems[i].ProjectId" class="text-danger small d-block mt-1"></span>
-                                        </td>
+                                                    <option value="">بدون پروژه</option>
+                                                    @foreach (var project in Model.Projects)
+                                                    {
+                                                        <option value="@project.Value" selected="@(project.Value == Model.ProducedItems[i].ProjectId?.ToString())">
+                                                            @project.Text
+                                                        </option>
+                                                    }
+                                                </select>
+                                                <span asp-validation-for="ProducedItems[i].ProjectId" class="text-danger small d-block mt-1"></span>
+                                            </td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
                                                     <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                                                    <i class="bi bi-check-lg"></i>
+                                                        <i class="bi bi-check-lg"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                                                    <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
                                     }
                                 }
-
                             </tbody>
                         </table>
                     </div>
@@ -450,10 +445,6 @@
         </form>
     </div>
 </div>
-
-
-
-
 
 @section Scripts {
     <!-- در بخش Scripts مطمئن شوید این کتابخانه‌ها بارگذاری شده‌اند -->
@@ -515,8 +506,8 @@
             };
 
             // --- Build Options
-            function buildOptions(items) {
-                let options = '<option value="">انتخاب کنید</option>';
+            function buildOptions(items, placeholder = 'انتخاب کنید') {
+                let options = `<option value="">${placeholder}</option>`;
                 if (!Array.isArray(items)) return options;
                 items.forEach(item => {
                     if (item.id && item.name)
@@ -525,120 +516,226 @@
                 return options;
             }
 
-                    $('#addConsumedItem').on('click', function () {
-            const index = $('#consumedItemsTable tbody tr').length;
-            console.log('Add button clicked, current index:', index);
+            // Build project options with "بدون پروژه"
+            function buildProjectOptions() {
+                let options = '<option value="">بدون پروژه</option>';
+                normalizedData.projects.forEach(p => {
+                    options += `<option value="${p.id}">${p.name}</option>`;
+                });
+                return options;
+            }
 
-            const rowTemplate = `
-        <tr class="align-middle" data-index="${index}">
-            <td>
-                <div class="accordion border-0" id="productAccordion_${index}">
-                    <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
-                        <h2 class="accordion-header" id="heading_${index}">
-                            <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#productCollapse_${index}" aria-expanded="false"
-                                    aria-controls="productCollapse_${index}">
-                                انتخاب کالا و مشخصات آن
-                            </button>
-                        </h2>
-                        <div id="productCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${index}">
-                            <div class="accordion-body py-2 px-3">
-                                <div class="mb-2">
-                                    <label class="form-label small">دسته‌بندی</label>
-                                    <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}">
-                                        ${buildOptions(normalizedData.categories)}
-                                    </select>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small">گروه</label>
-                                    <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}">
-                                        <option value="">انتخاب گروه</option>
-                                    </select>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small">طبقه</label>
-                                    <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}">
-                                        <option value="">انتخاب طبقه</option>
-                                    </select>
-                                </div>
-                                <div class="mb-1">
-                                    <label class="form-label small">کالا</label>
-                                    <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}">
-                                        <option value="">انتخاب کالا</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </td>
-            <td style="width: 120px;">
-                <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
-                <span class="text-danger small d-block mt-1"></span>
-            </td>
-            <td>
-                <div class="accordion" id="locationAccordion_${index}">
-                    <div class="accordion-item border-0">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#locationCollapse_${index}">
-                                مشخصات محل نگهداری
-                            </button>
-                        </h2>
-                        <div id="locationCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion_${index}">
-                            <div class="accordion-body p-2">
-                                <div class="mb-2">
-                                    <label class="form-label small text-muted mb-1">انبار</label>
-                                    <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
-                                        ${buildOptions(normalizedData.warehouses)}
-                                    </select>
-                                    <span class="text-danger small d-block mt-1"></span>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small text-muted mb-1">قسمت</label>
-                                    <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
-                                        <option value="">انتخاب قسمت</option>
-                                    </select>
-                                    <span class="text-danger small d-block mt-1"></span>
-                                </div>
-                                <div>
-                                    <label class="form-label small text-muted mb-1">بخش</label>
-                                    <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
-                                        <option value="">انتخاب بخش</option>
-                                    </select>
-                                    <span class="text-danger small d-block mt-1"></span>
+            $('#addConsumedItem').on('click', function () {
+                const index = $('#consumedItemsTable tbody tr').length;
+                const rowTemplate = `
+                <tr class="align-middle" data-index="${index}">
+                    <td>
+                        <div class="accordion border-0" id="productAccordion_${index}">
+                            <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
+                                <h2 class="accordion-header" id="heading_${index}">
+                                    <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#productCollapse_${index}" aria-expanded="false"
+                                            aria-controls="productCollapse_${index}">
+                                        انتخاب کالا و مشخصات آن
+                                    </button>
+                                </h2>
+                                <div id="productCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#productAccordion_${index}">
+                                    <div class="accordion-body py-2 px-3">
+                                        <div class="mb-2">
+                                            <label class="form-label small">دسته‌بندی</label>
+                                            <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}">
+                                                ${buildOptions(normalizedData.categories)}
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">گروه</label>
+                                            <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}">
+                                                <option value="">انتخاب گروه</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">طبقه</label>
+                                            <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}">
+                                                <option value="">انتخاب طبقه</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label small">کالا</label>
+                                            <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}">
+                                                <option value="">انتخاب کالا</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm" data-index="${index}">
-                    ${buildOptions(normalizedData.projects)}
-                </select>
-            </td>
-            <td class="text-center">
-                <div class="d-flex justify-content-center gap-2">
-                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
-                        <i class="bi bi-check-lg"></i>
-                    </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-        `;
+                    </td>
+                    <td style="width: 120px;">
+                        <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                        <span class="text-danger small d-block mt-1"></span>
+                    </td>
+                    <td>
+                        <div class="accordion" id="locationAccordion_${index}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#locationCollapse_${index}">
+                                        مشخصات محل نگهداری
+                                    </button>
+                                </h2>
+                                <div id="locationCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#locationAccordion_${index}">
+                                    <div class="accordion-body p-2">
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">انبار</label>
+                                            <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
+                                                ${buildOptions(normalizedData.warehouses)}
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">قسمت</label>
+                                            <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
+                                                <option value="">انتخاب قسمت</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">بخش</label>
+                                            <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
+                                                <option value="">انتخاب بخش</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm" data-index="${index}">
+                            ${buildProjectOptions()}
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
 
-            $('#consumedItemsTable tbody').append(rowTemplate);
-            console.log('Row appended to table');
+                $('#consumedItemsTable tbody').append(rowTemplate);
+            });
 
+            $('#addProducedItem').on('click', function () {
+                const index = $('#producedItemsTable tbody tr').length;
+                const rowTemplate = `
+                <tr class="align-middle" data-index="${index}">
+                    <td>
+                        <div class="accordion border-0" id="producedProductAccordion_${index}">
+                            <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
+                                <h2 class="accordion-header" id="producedHeading_${index}">
+                                    <button class="accordion-button collapsed bg-light-subtle fw-semibold py-2" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#producedProductCollapse_${index}" aria-expanded="false"
+                                            aria-controls="producedProductCollapse_${index}">
+                                        انتخاب کالا و مشخصات آن
+                                    </button>
+                                </h2>
+                                <div id="producedProductCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#producedProductAccordion_${index}">
+                                    <div class="accordion-body py-2 px-3">
+                                        <div class="mb-2">
+                                            <label class="form-label small">دسته‌بندی</label>
+                                            <select name="ProducedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}">
+                                                ${buildOptions(normalizedData.categories)}
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">گروه</label>
+                                            <select name="ProducedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}">
+                                                <option value="">انتخاب گروه</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small">طبقه</label>
+                                            <select name="ProducedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}">
+                                                <option value="">انتخاب طبقه</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label small">کالا</label>
+                                            <select name="ProducedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}">
+                                                <option value="">انتخاب کالا</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="width: 120px;">
+                        <input name="ProducedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                        <span class="text-danger small d-block mt-1"></span>
+                    </td>
+                    <td>
+                        <div class="accordion" id="producedLocationAccordion_${index}">
+                            <div class="accordion-item border-0">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed bg-light py-2" type="button" data-bs-toggle="collapse" data-bs-target="#producedLocationCollapse_${index}">
+                                        مشخصات محل نگهداری
+                                    </button>
+                                </h2>
+                                <div id="producedLocationCollapse_${index}" class="accordion-collapse collapse" data-bs-parent="#producedLocationAccordion_${index}">
+                                    <div class="accordion-body p-2">
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">انبار</label>
+                                            <select name="ProducedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
+                                                ${buildOptions(normalizedData.warehouses)}
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label small text-muted mb-1">قسمت</label>
+                                            <select name="ProducedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
+                                                <option value="">انتخاب قسمت</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                        <div>
+                                            <label class="form-label small text-muted mb-1">بخش</label>
+                                            <select name="ProducedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
+                                                <option value="">انتخاب بخش</option>
+                                            </select>
+                                            <span class="text-danger small d-block mt-1"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <select name="ProducedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm" data-index="${index}">
+                            ${buildProjectOptions()}
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                `;
 
-        });
-
-
-
-     
+                $('#producedItemsTable tbody').append(rowTemplate);
+            });
 
             // --- Cascading Dropdown Handling
             function updateDependentDropdowns(prefix, index) {

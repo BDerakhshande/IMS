@@ -4,6 +4,7 @@ using IMS.Infrastructure.Persistence.WarehouseManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IMS.Infrastructure.Migrations.WarehouseDb
 {
     [DbContext(typeof(WarehouseDbContext))]
-    partial class WarehouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251103143929_InventoryTransactionsAddMig")]
+    partial class InventoryTransactionsAddMig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -401,56 +404,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                     b.ToTable("InventoryItems");
                 });
 
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.InventoryReceiptLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsUnique")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("SectionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UniqueCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ZoneId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("SectionId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.HasIndex("ZoneId");
-
-                    b.ToTable("InventoryReceiptLogs");
-                });
-
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.InventoryTransaction", b =>
                 {
                     b.Property<int>("Id")
@@ -490,20 +443,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("SectionId");
-
-                    b.HasIndex("StatusId");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.HasIndex("ZoneId");
 
                     b.ToTable("InventoryTransactions");
                 });
@@ -1114,96 +1053,6 @@ namespace IMS.Infrastructure.Migrations.WarehouseDb
                         .IsRequired();
 
                     b.Navigation("Inventory");
-                });
-
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.InventoryReceiptLog", b =>
-                {
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "StorageSection")
-                        .WithMany()
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageZone", "StorageZone")
-                        .WithMany()
-                        .HasForeignKey("ZoneId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("StorageSection");
-
-                    b.Navigation("StorageZone");
-
-                    b.Navigation("Warehouse");
-                });
-
-            modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.InventoryTransaction", b =>
-                {
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Category", "Category")
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageSection", "Section")
-                        .WithMany()
-                        .HasForeignKey("SectionId");
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Status", "Status")
-                        .WithMany()
-                        .HasForeignKey("StatusId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("IMS.Domain.WarehouseManagement.Entities.StorageZone", "Zone")
-                        .WithMany()
-                        .HasForeignKey("ZoneId");
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Group");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Section");
-
-                    b.Navigation("Status");
-
-                    b.Navigation("Warehouse");
-
-                    b.Navigation("Zone");
                 });
 
             modelBuilder.Entity("IMS.Domain.WarehouseManagement.Entities.Product", b =>

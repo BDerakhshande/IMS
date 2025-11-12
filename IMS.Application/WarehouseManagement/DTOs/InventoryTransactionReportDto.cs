@@ -9,6 +9,8 @@ namespace IMS.Application.WarehouseManagement.DTOs
     public class InventoryTransactionReportDto
     {
         public string Date { get; set; }
+        public string PersianDate { get; set; }
+
         public string CategoryName { get; set; }
         public string GroupName { get; set; }
         public string StatusName { get; set; }
