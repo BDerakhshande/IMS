@@ -10,5 +10,6 @@
         public string ZoneName { get; set; }
         public string SectionName { get; set; }
         public decimal Quantity { get; set; }
+
     }
 }

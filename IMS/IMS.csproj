@@ -7,15 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\babel.config.json" />
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\stylelintrc.json" />
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\tsconfig.cjs.json" />
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\tsconfig.esm.json" />
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\tsconfig.json" />
-    <Content Include="wwwroot\lib\tom-select-2.4.3\.config\tsconfig.types.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="14.0.0" />
     <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="FluentValidation" Version="12.0.0" />
@@ -58,24 +49,6 @@
     <Folder Include="wwwroot\lib\jquery-validation\" />
     <Folder Include="wwwroot\lib\jquery-validation\dist\" />
     <Folder Include="wwwroot\lib\jquery\dist\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="wwwroot\lib\tom-select-2.4.3\.config\eleventy.csp.cjs" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.config\eleventy.js" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.config\karma.conf.cjs" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.config\rollup.config.mjs" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.config\rollup.docs.mjs" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\dependabot.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\FUNDING.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\ISSUE_TEMPLATE\BUG_REPORT.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\ISSUE_TEMPLATE\config.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\pull_request_template.md" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\workflows\ci.yaml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\workflows\docs.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.github\workflows\stale.yml" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.husky\.gitignore" />
-    <None Include="wwwroot\lib\tom-select-2.4.3\.husky\pre-commit" />
   </ItemGroup>
 
 </Project>

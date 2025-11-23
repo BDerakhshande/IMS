@@ -68,6 +68,21 @@
             color: #7f8c8d;
         }
 
+        .filters-inline {
+            direction: rtl;
+        }
+
+            .filters-inline .tag {
+                display: inline-block;
+                background-color: #e8f4fc;
+                padding: 5px 10px;
+                margin: 3px;
+                border-radius: 3px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
+
         /* Filters Section */
         .filters {
             background-color: #f8f9fa;
@@ -84,15 +99,20 @@
             }
 
             .filters ul {
-                list-style-type: none;
+                list-style: none;
+                padding: 0;
+                margin: 0;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 15px;
+                gap: 10px;
+                flex-direction: row-reverse ;
             }
 
             .filters li {
                 background-color: #e8f4fc;
                 padding: 5px 10px;
+                display: inline-flex;
+                white-space: nowrap;
                 border-radius: 3px;
                 font-size: 13px;
             }
@@ -151,75 +171,76 @@
 
     <section class="filters">
         <h4>فیلترهای اعمال شده:</h4>
-        <ul>
+        <div class="filters-inline">
             @if (Model.Filter.Warehouses != null && Model.Filter.Warehouses.Any())
             {
-                <li>
+                <span class="tag">
                     انبارها: @string.Join(", ", Model.Filter.Warehouses
                                     .Where(w => w.WarehouseId > 0)
                                     .Select(w => Model.WarehouseNames != null && Model.WarehouseNames.ContainsKey(w.WarehouseId)
                                     ? CleanString(Model.WarehouseNames[w.WarehouseId])
                                     : $"انبار {w.WarehouseId}"))
-            </li>
+            </span>
                         }
 
             @if (Model.Filter.CategoryId.HasValue)
             {
-                <li>
+                <span class="tag">
                     دسته‌بندی: @(Model.CategoryNames != null && Model.CategoryNames.ContainsKey(Model.Filter.CategoryId.Value)
                                     ? CleanString(Model.CategoryNames[Model.Filter.CategoryId.Value])
                                     : Model.Filter.CategoryId.Value.ToString())
-            </li>
+            </span>
                         }
 
             @if (Model.ZoneNames != null && Model.ZoneNames.Any())
             {
-                <li>قسمت‌ها: @string.Join(", ", Model.ZoneNames.Values.Select(z => CleanString(z)))</li>
+                <span class="tag">قسمت‌ها: @string.Join(", ", Model.ZoneNames.Values.Select(z => CleanString(z)))</span>
             }
 
             @if (Model.SectionNames != null && Model.SectionNames.Any())
             {
-                <li>بخش‌ها: @string.Join(", ", Model.SectionNames.Values.Select(s => CleanString(s)))</li>
+                <span class="tag">بخش‌ها: @string.Join(", ", Model.SectionNames.Values.Select(s => CleanString(s)))</span>
             }
 
             @if (Model.Filter.GroupId.HasValue)
             {
-                <li>
+                <span class="tag">
                     گروه: @(Model.GroupNames != null && Model.GroupNames.ContainsKey(Model.Filter.GroupId.Value)
                                     ? CleanString(Model.GroupNames[Model.Filter.GroupId.Value])
                                     : Model.Filter.GroupId.Value.ToString())
-            </li>
+            </span>
                         }
 
             @if (Model.Filter.StatusId.HasValue)
             {
-                <li>
+                <span class="tag">
                     وضعیت: @(Model.StatusNames != null && Model.StatusNames.ContainsKey(Model.Filter.StatusId.Value)
                                     ? CleanString(Model.StatusNames[Model.Filter.StatusId.Value])
                                     : Model.Filter.StatusId.Value.ToString())
-            </li>
+            </span>
                         }
 
             @if (Model.Filter.ProductId.HasValue)
             {
-                <li>
+                <span class="tag">
                     کالا: @(Model.ProductNames != null && Model.ProductNames.ContainsKey(Model.Filter.ProductId.Value)
                                     ? CleanString(Model.ProductNames[Model.Filter.ProductId.Value])
                                     : Model.Filter.ProductId.Value.ToString())
-            </li>
+            </span>
                         }
 
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductSearch))
             {
-                <li>جستجوی محصول: @Model.Filter.ProductSearch</li>
+                <span class="tag">جستجوی محصول: @Model.Filter.ProductSearch</span>
             }
 
             @if (Model.UniqueCodesFilter != null && Model.UniqueCodesFilter.Any())
             {
-                <li>کدهای یکتا: @string.Join(", ", Model.UniqueCodesFilter.Select(c => CleanString(c)))</li>
+                <span class="tag">کدهای یکتا: @string.Join(", ", Model.UniqueCodesFilter.Select(c => CleanString(c)))</span>
             }
-        </ul>
+        </div>
     </section>
+
 
     <table class="data-table">
         <thead>

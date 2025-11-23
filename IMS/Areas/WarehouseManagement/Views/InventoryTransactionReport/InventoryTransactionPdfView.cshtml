@@ -76,6 +76,20 @@
             margin-bottom: 15px;
         }
 
+        .filters-inline {
+            direction: rtl;
+        }
+
+            .filters-inline .tag {
+                display: inline-block;
+                background-color: #e8f4fc;
+                padding: 5px 10px;
+                margin: 3px;
+                border-radius: 3px;
+                font-size: 13px;
+                white-space: nowrap;
+            }
+
         .filters {
             background-color: #f8f9fa;
             padding: 15px;
@@ -152,57 +166,60 @@
     </div>
     <section class="filters">
         <h4>فیلترهای اعمال شده:</h4>
-        <ul>
+        <ul class="filters-inline">
+
             @* فیلتر نوع سند *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.DocumentType))
             {
-                <li>نوع سند: @GetDocTypeFa(Model.Filter.DocumentType)</li>
-
+                <span class="tag">نوع سند: @GetDocTypeFa(Model.Filter.DocumentType)</span>
             }
 
             @* فیلتر تاریخ‌ها *@
             @if (Model.Filter.FromDate.HasValue)
             {
-                <li>از تاریخ: @ToPersianDate(Model.Filter.FromDate.Value)</li>
+                <span class="tag"> تاریخ: @ToPersianDate(Model.Filter.FromDate.Value)</span>
             }
             @if (Model.Filter.ToDate.HasValue)
             {
-                <li>تا تاریخ: @ToPersianDate(Model.Filter.ToDate.Value)</li>
+                <span class="tag"> تاریخ: @ToPersianDate(Model.Filter.ToDate.Value)</span>
             }
 
             @* فیلتر سلسله‌مراتب انبار *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.WarehouseName))
             {
-                <li>انبار: @Model.Filter.WarehouseName</li>
+                <span class="tag">انبار: @Model.Filter.WarehouseName</span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ZoneName))
             {
-                <li>قسمت: @Model.Filter.ZoneName</li>
+                <span class="tag">قسمت: @Model.Filter.ZoneName</span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.SectionName))
             {
-                <li>بخش: @Model.Filter.SectionName</li>
+                <span class="tag">
+                    بخش: @Model.Filter.SectionName
+                </span>
             }
 
             @* فیلتر سلسله‌مراتب محصول *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.CategoryName))
             {
-                <li>دسته‌بندی: @Model.Filter.CategoryName</li>
+                <span class="tag">دسته‌بندی: @Model.Filter.CategoryName</span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.GroupName))
             {
-                <li>گروه: @Model.Filter.GroupName</li>
+                <span class="tag">گروه: @Model.Filter.GroupName</span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.StatusName))
             {
-                <li>وضعیت: @Model.Filter.StatusName</li>
+                <span class="tag">وضعیت: @Model.Filter.StatusName</span>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductName))
             {
-                <li>کالا: @Model.Filter.ProductName</li>
+                <span class="tag">کالا: @Model.Filter.ProductName</span>
             }
         </ul>
     </section>
+
 
     <table class="data-table">
         <thead>

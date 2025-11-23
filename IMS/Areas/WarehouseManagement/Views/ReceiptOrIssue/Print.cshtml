@@ -118,7 +118,7 @@
         <h1>
             @(Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt ? "رسید انبار" :
                 Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue ? "حواله انبار" :
-                Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "انتقال انبار" :
+                Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "تراکنش انبار" :
                 "سند انبار")
         </h1>
         <div class="print-info">
@@ -140,7 +140,7 @@
             <span class="info-value">
                 @(Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt ? "رسید" :
                     Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue ? "حواله" :
-                    Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "انتقال" :
+                    Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "تراکنش" :
                     "نامشخص")
             </span>
         </div>
