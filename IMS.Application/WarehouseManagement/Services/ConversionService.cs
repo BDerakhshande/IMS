@@ -1,4 +1,5 @@
-﻿using IMS.Application.ProjectManagement.Service;
+﻿using DocumentFormat.OpenXml.InkML;
+using IMS.Application.ProjectManagement.Service;
 using IMS.Application.WarehouseManagement.DTOs;
 using IMS.Domain.WarehouseManagement.Entities;
 using IMS.Domain.WarehouseManagement.Enums;
@@ -91,9 +92,9 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
         public async Task<(int Id, string DocumentNumber)> ConvertAndRegisterDocumentAsync(
-            List<ConversionConsumedItemDto> consumedItems,
-            List<ConversionProducedItemDto> producedItems,
-            CancellationToken cancellationToken = default)
+      List<ConversionConsumedItemDto> consumedItems,
+      List<ConversionProducedItemDto> producedItems,
+      CancellationToken cancellationToken = default)
         {
             if (consumedItems == null || !consumedItems.Any())
                 throw new ArgumentException("اقلام مصرفی نمی‌تواند خالی باشد.");
@@ -103,61 +104,29 @@ namespace IMS.Application.WarehouseManagement.Services
             var errors = new List<string>();
             string nextDocNumber = await GetNextConversionDocumentNumberAsync();
 
+            // جمع‌آوری شناسه‌ها
             var allWarehouseIds = consumedItems.Select(i => i.WarehouseId)
-                .Concat(producedItems.Select(i => i.WarehouseId))
-                .Distinct()
-                .ToList();
+                .Concat(producedItems.Select(i => i.WarehouseId)).Distinct().ToList();
             var allProductIds = consumedItems.Select(i => i.ProductId)
-                .Concat(producedItems.Select(i => i.ProductId))
-                .Distinct()
-                .ToList();
-            var allZoneIds = consumedItems.Select(i => i.ZoneId)
-                .Concat(producedItems.Select(i => i.ZoneId))
-                .Distinct()
-                .ToList();
-            var allSectionIds = consumedItems.Select(i => i.SectionId)
-                .Concat(producedItems.Select(i => i.SectionId))
-                .Distinct()
-                .ToList();
+                .Concat(producedItems.Select(i => i.ProductId)).Distinct().ToList();
 
-            // تبدیل لیست‌های int به int? برای هماهنگی با ستون‌های nullable
-            List<int?> allZoneIdsNullable = allZoneIds.Select(z => (int?)z).ToList();
-            List<int?> allSectionIdsNullable = allSectionIds.Select(s => (int?)s).ToList();
-            List<int?> allWarehouseIdsNullable = allWarehouseIds.Select(w => (int?)w).ToList();
-            List<int?> allProductIdsNullable = allProductIds.Select(p => (int?)p).ToList();
-
-            // گرفتن Inventoryها با فیلترهای null-safe
+            // بارگذاری موجودی‌ها و آیتم‌ها
             var inventories = await _dbContext.Inventories
-                .Where(inv =>
-                    allWarehouseIds.Contains(inv.WarehouseId) &&
-                    allProductIds.Contains(inv.ProductId) &&
-                    allZoneIdsNullable.Contains(inv.ZoneId) &&
-                    allSectionIdsNullable.Contains(inv.SectionId))
+                .Where(i => allWarehouseIds.Contains(i.WarehouseId) && allProductIds.Contains(i.ProductId))
                 .ToListAsync(cancellationToken);
 
-            // گرفتن InventoryItemها با Include و فیلترهای null-safe
             var inventoryItems = await _dbContext.InventoryItems
                 .Include(ii => ii.Inventory)
-                .Where(ii =>
-                    allWarehouseIds.Contains(ii.Inventory.WarehouseId) &&
-                    allProductIds.Contains(ii.Inventory.ProductId) &&
-                    allZoneIdsNullable.Contains(ii.Inventory.ZoneId) &&
-                    allSectionIdsNullable.Contains(ii.Inventory.SectionId))
+                .Where(ii => allWarehouseIds.Contains(ii.Inventory.WarehouseId) && allProductIds.Contains(ii.Inventory.ProductId))
                 .ToListAsync(cancellationToken);
 
+            var inventoryItemsById = inventoryItems.ToDictionary(ii => ii.Id);
             var inventoryItemsMap = inventoryItems
-                .GroupBy(ii => new
-                {
-                    ii.Inventory.WarehouseId,
-                    ii.Inventory.ZoneId,
-                    ii.Inventory.SectionId,
-                    ii.Inventory.ProductId
-                })
+                .GroupBy(ii => new { ii.Inventory.WarehouseId, ii.Inventory.ZoneId, ii.Inventory.SectionId, ii.Inventory.ProductId })
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            var productNames = await _dbContext.Products
-                .Where(p => allProductIds.Contains(p.Id))
-                .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
+            var products = await _dbContext.Products.Where(p => allProductIds.Contains(p.Id)).ToListAsync(cancellationToken);
+            var productNames = products.ToDictionary(p => p.Id, p => p.Name);
 
             var conversionDocument = new ConversionDocument
             {
@@ -167,109 +136,245 @@ namespace IMS.Application.WarehouseManagement.Services
                 ProducedItems = new List<ConversionProducedItem>()
             };
 
-            // --- پردازش consumed items ---
-            foreach (var consumed in consumedItems)
+            using var transaction = await (_dbContext as DbContext).Database.BeginTransactionAsync(cancellationToken);
+
+            try
             {
-                var productName = productNames.GetValueOrDefault(consumed.ProductId, "نامشخص");
-                var sourceInventory = inventories.FirstOrDefault(i =>
-                    i.WarehouseId == consumed.WarehouseId &&
-                    i.ZoneId == consumed.ZoneId &&
-                    i.SectionId == consumed.SectionId &&
-                    i.ProductId == consumed.ProductId);
-
-                if (sourceInventory == null)
+                // ================================
+                // پردازش اقلام مصرفی
+                // ================================
+                foreach (var consumed in consumedItems)
                 {
-                    errors.Add($"موجودی برای کالای مصرفی '{productName}' یافت نشد.");
-                    continue;
-                }
+                    var productName = productNames.GetValueOrDefault(consumed.ProductId, "نامشخص");
 
-                var key = new
-                {
-                    consumed.WarehouseId,
-                    ZoneId = (int?)consumed.ZoneId,
-                    SectionId = (int?)consumed.SectionId,
-                    consumed.ProductId
-                };
+                    var sourceInventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == consumed.WarehouseId &&
+                        i.ProductId == consumed.ProductId &&
+                        i.ZoneId == consumed.ZoneId &&
+                        i.SectionId == consumed.SectionId
+                    );
 
-
-                var uniqueCount = inventoryItemsMap.ContainsKey(key) ? inventoryItemsMap[key].Count : 0;
-                decimal totalNonUniqueQuantity = sourceInventory.Quantity - uniqueCount;
-                if (totalNonUniqueQuantity <= 0)
-                {
-                    errors.Add($"کالای {productName} فقط به‌صورت کد یکتا موجود است. مصرف عمومی ممکن نیست.");
-                    continue;
-                }
-                if (totalNonUniqueQuantity < consumed.Quantity)
-                {
-                    errors.Add($"موجودی عمومی کالای {productName} کافی نیست (موجودی عمومی: {totalNonUniqueQuantity}).");
-                    continue;
-                }
-
-                sourceInventory.Quantity -= consumed.Quantity;
-                _dbContext.Inventories.Update(sourceInventory);
-
-                conversionDocument.ConsumedItems.Add(new ConversionConsumedItem
-                {
-                    CategoryId = consumed.CategoryId,
-                    GroupId = consumed.GroupId,
-                    StatusId = consumed.StatusId,
-                    ProductId = consumed.ProductId,
-                    Quantity = consumed.Quantity,
-                    ZoneId = consumed.ZoneId,
-                    SectionId = consumed.SectionId,
-                    WarehouseId = consumed.WarehouseId,
-                    ProjectId = consumed.ProjectId
-                });
-            }
-
-            if (errors.Any())
-                throw new InvalidOperationException(string.Join("; ", errors));
-
-            // --- پردازش produced items ---
-            foreach (var produced in producedItems)
-            {
-                var productName = productNames.GetValueOrDefault(produced.ProductId, "نامشخص");
-                var destinationInventory = inventories.FirstOrDefault(i =>
-                    i.WarehouseId == produced.WarehouseId &&
-                    i.ZoneId == produced.ZoneId &&
-                    i.SectionId == produced.SectionId &&
-                    i.ProductId == produced.ProductId);
-
-                if (destinationInventory == null)
-                {
-                    destinationInventory = new Inventory
+                    if (sourceInventory == null)
                     {
-                        WarehouseId = produced.WarehouseId,
-                        ZoneId = produced.ZoneId,
-                        SectionId = produced.SectionId,
-                        ProductId = produced.ProductId,
-                        Quantity = 0
+                        errors.Add($"موجودی برای کالای مصرفی '{productName}' یافت نشد.");
+                        continue;
+                    }
+
+                    var consumedItem = new ConversionConsumedItem
+                    {
+                        CategoryId = consumed.CategoryId,
+                        GroupId = consumed.GroupId,
+                        StatusId = consumed.StatusId,
+                        ProductId = consumed.ProductId,
+                        Quantity = consumed.Quantity,
+                        ZoneId = consumed.ZoneId.Value,
+                        SectionId = consumed.SectionId.Value,
+                        WarehouseId = consumed.WarehouseId,
+                        ProjectId = consumed.ProjectId,
+                        UniqueCodes = new List<ConversionConsumedItemUniqueCode>()
                     };
-                    _dbContext.Inventories.Add(destinationInventory);
-                    inventories.Add(destinationInventory);
+
+                    // کاهش موجودی بر اساس UniqueCode
+                    if (consumed.InventoryItemIds != null && consumed.InventoryItemIds.Any())
+                    {
+                        foreach (var invId in consumed.InventoryItemIds)
+                        {
+                            if (!inventoryItemsById.TryGetValue(invId, out var invItem)) continue;
+
+                            consumedItem.UniqueCodes.Add(new ConversionConsumedItemUniqueCode
+                            {
+                                InventoryItemId = invId,
+                                ConversionConsumedItem = consumedItem
+                            });
+
+                            _dbContext.InventoryItems.Remove(invItem);
+                            sourceInventory.Quantity -= 1;
+                        }
+                    }
+                    else
+                    {
+                        // محاسبه موجودی واقعی عمومی (غیر یکتا)
+                        int totalNonUniqueQuantity = (int)(sourceInventory.Quantity - sourceInventory.InventoryItems.Count);
+
+                        if (totalNonUniqueQuantity <= 0)
+                        {
+                            // فقط موجودی یکتا وجود دارد => خطا بده
+                            errors.Add($"موجودی کالای {productName} فقط به صورت کد یکتا موجود است. برای کاهش موجودی باید کد یکتا مشخص شود.");
+                            continue; // ادامه پردازش آیتم بعدی
+                        }
+
+                        if (totalNonUniqueQuantity < consumed.Quantity)
+                        {
+                            errors.Add($"موجودی کالای عمومی {productName} کافی نیست (موجودی عمومی: {totalNonUniqueQuantity}). بخشی از موجودی این کالا دارای کد یکتا است و باید انتخاب شود.");
+                            continue;
+                        }
+
+                        // کاهش موجودی عمومی
+                        sourceInventory.Quantity -= consumed.Quantity;
+                    }
+
+
+                    conversionDocument.ConsumedItems.Add(consumedItem);
                 }
 
-                destinationInventory.Quantity += produced.Quantity;
-                _dbContext.Inventories.Update(destinationInventory);
-
-                conversionDocument.ProducedItems.Add(new ConversionProducedItem
+                // ================================
+                // پردازش اقلام تولیدی
+                // ================================
+                foreach (var produced in producedItems)
                 {
-                    CategoryId = produced.CategoryId,
-                    GroupId = produced.GroupId,
-                    StatusId = produced.StatusId,
-                    ProductId = produced.ProductId,
-                    Quantity = produced.Quantity,
-                    ZoneId = produced.ZoneId,
-                    SectionId = produced.SectionId,
-                    WarehouseId = produced.WarehouseId,
-                    ProjectId = produced.ProjectId
-                });
+                    var productName = productNames.GetValueOrDefault(produced.ProductId, "نامشخص");
+
+                    var destinationInventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == produced.WarehouseId &&
+                        i.ZoneId == produced.ZoneId &&
+                        i.SectionId == produced.SectionId &&
+                        i.ProductId == produced.ProductId);
+
+                    if (destinationInventory == null)
+                    {
+                        destinationInventory = new Inventory
+                        {
+                            WarehouseId = produced.WarehouseId,
+                            ZoneId = produced.ZoneId,
+                            SectionId = produced.SectionId,
+                            ProductId = produced.ProductId,
+                            Quantity = 0
+                        };
+                        _dbContext.Inventories.Add(destinationInventory);
+                        inventories.Add(destinationInventory);
+                    }
+
+                    var producedItem = new ConversionProducedItem
+                    {
+                        CategoryId = produced.CategoryId,
+                        GroupId = produced.GroupId,
+                        StatusId = produced.StatusId,
+                        ProductId = produced.ProductId,
+                        Quantity = produced.Quantity,
+                        ZoneId = produced.ZoneId.Value,
+                        SectionId = produced.SectionId.Value,
+                        WarehouseId = produced.WarehouseId,
+                        ProjectId = produced.ProjectId,
+                        UniqueCodes = new List<ConversionProducedItemUniqueCode>()
+                    };
+
+                    // ایجاد کدهای یکتا اگر نیاز باشد
+                    var createdUniqueCodes = new List<string>();
+                    if (produced.UniqueCodes != null && produced.UniqueCodes.Any())
+                    {
+                        createdUniqueCodes.AddRange(produced.UniqueCodes);
+                    }
+                    else if (produced.GenerateUniqueCodes)
+                    {
+                        // دریافت آخرین شماره کد یکتا از ProductItems
+                        int lastNumber = await _dbContext.ProductItems
+                            .Where(pi => pi.ProductId == produced.ProductId)
+                            .Select(pi => (int?)Convert.ToInt32(pi.UniqueCode))
+                            .MaxAsync(cancellationToken) ?? 0;
+
+                        for (int i = 1; i <= produced.Quantity; i++)
+                            createdUniqueCodes.Add((lastNumber + i).ToString());
+                    }
+
+
+
+
+                    foreach (var code in createdUniqueCodes)
+                    {
+                        producedItem.UniqueCodes.Add(new ConversionProducedItemUniqueCode
+                        {
+                            UniqueCode = code,
+                            ConversionProducedItem = producedItem
+                        });
+
+                        var newItem = new InventoryItem
+                        {
+                            Inventory = destinationInventory,
+                            UniqueCode = code
+                        };
+                        _dbContext.InventoryItems.Add(newItem);
+                        destinationInventory.Quantity += 1;
+                    }
+
+                    // کالای عمومی
+                    if (!createdUniqueCodes.Any())
+                        destinationInventory.Quantity += produced.Quantity;
+
+                    conversionDocument.ProducedItems.Add(producedItem);
+                }
+
+                if (errors.Any())
+                    throw new InvalidOperationException(string.Join("; ", errors));
+
+                _dbContext.conversionDocuments.Add(conversionDocument);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+
+                return (conversionDocument.Id, nextDocNumber);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                throw;
+            }
+        }
+
+
+        public async Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
+    int documentId,
+    List<ConversionConsumedItemDto> consumedItems,
+    List<ConversionProducedItemDto> producedItems,
+    CancellationToken cancellationToken = default)
+        {
+            var document = await _dbContext.conversionDocuments
+                .Include(d => d.ConsumedItems)
+                    .ThenInclude(ci => ci.UniqueCodes)
+                .Include(d => d.ProducedItems)
+                    .ThenInclude(pi => pi.UniqueCodes)
+                .FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
+
+            if (document == null)
+                throw new InvalidOperationException("سند مورد نظر یافت نشد.");
+
+            // بازگرداندن موجودی‌های قبلی
+            foreach (var consumed in document.ConsumedItems)
+            {
+                var inventory = await _dbContext.Inventories
+                    .FirstOrDefaultAsync(i =>
+                        i.WarehouseId == consumed.WarehouseId &&
+                        i.ZoneId == consumed.ZoneId &&
+                        i.SectionId == consumed.SectionId &&
+                        i.ProductId == consumed.ProductId, cancellationToken);
+
+                if (inventory != null)
+                    inventory.Quantity += consumed.Quantity;
             }
 
-            _dbContext.conversionDocuments.Add(conversionDocument);
+            foreach (var produced in document.ProducedItems)
+            {
+                var inventory = await _dbContext.Inventories
+                    .FirstOrDefaultAsync(i =>
+                        i.WarehouseId == produced.WarehouseId &&
+                        i.ZoneId == produced.ZoneId &&
+                        i.SectionId == produced.SectionId &&
+                        i.ProductId == produced.ProductId, cancellationToken);
+
+                if (inventory != null)
+                {
+                    inventory.Quantity -= produced.Quantity;
+                    if (inventory.Quantity < 0) inventory.Quantity = 0;
+                }
+            }
+
+            _dbContext.conversionConsumedItems.RemoveRange(document.ConsumedItems);
+            _dbContext.conversionProducedItems.RemoveRange(document.ProducedItems);
+
             await _dbContext.SaveChangesAsync(cancellationToken);
-            return (conversionDocument.Id, nextDocNumber);
+
+            // حالا دوباره مثل ایجاد سند، اقلام جدید را ثبت کنیم
+            return await ConvertAndRegisterDocumentAsync(consumedItems, producedItems, cancellationToken);
         }
+
 
         public async Task<bool> DeleteConversionDocumentAsync(int documentId)
         {

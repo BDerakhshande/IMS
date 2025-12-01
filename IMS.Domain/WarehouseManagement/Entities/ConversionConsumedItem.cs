@@ -31,5 +31,7 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int? ProjectId { get; set; }
         public Project? Project { get; set; }
 
+        public ICollection<ConversionConsumedItemUniqueCode> UniqueCodes { get; set; } = new List<ConversionConsumedItemUniqueCode>();
+
     }
 }
