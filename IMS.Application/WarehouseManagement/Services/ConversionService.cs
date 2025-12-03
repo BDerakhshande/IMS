@@ -320,60 +320,60 @@ namespace IMS.Application.WarehouseManagement.Services
         }
 
 
-        public async Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
-    int documentId,
-    List<ConversionConsumedItemDto> consumedItems,
-    List<ConversionProducedItemDto> producedItems,
-    CancellationToken cancellationToken = default)
-        {
-            var document = await _dbContext.conversionDocuments
-                .Include(d => d.ConsumedItems)
-                    .ThenInclude(ci => ci.UniqueCodes)
-                .Include(d => d.ProducedItems)
-                    .ThenInclude(pi => pi.UniqueCodes)
-                .FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
+    //    public async Task<(int Id, string DocumentNumber)> UpdateConversionDocumentAsync(
+    //int documentId,
+    //List<ConversionConsumedItemDto> consumedItems,
+    //List<ConversionProducedItemDto> producedItems,
+    //CancellationToken cancellationToken = default)
+    //    {
+    //        var document = await _dbContext.conversionDocuments
+    //            .Include(d => d.ConsumedItems)
+    //                .ThenInclude(ci => ci.UniqueCodes)
+    //            .Include(d => d.ProducedItems)
+    //                .ThenInclude(pi => pi.UniqueCodes)
+    //            .FirstOrDefaultAsync(d => d.Id == documentId, cancellationToken);
 
-            if (document == null)
-                throw new InvalidOperationException("سند مورد نظر یافت نشد.");
+    //        if (document == null)
+    //            throw new InvalidOperationException("سند مورد نظر یافت نشد.");
 
-            // بازگرداندن موجودی‌های قبلی
-            foreach (var consumed in document.ConsumedItems)
-            {
-                var inventory = await _dbContext.Inventories
-                    .FirstOrDefaultAsync(i =>
-                        i.WarehouseId == consumed.WarehouseId &&
-                        i.ZoneId == consumed.ZoneId &&
-                        i.SectionId == consumed.SectionId &&
-                        i.ProductId == consumed.ProductId, cancellationToken);
+    //        // بازگرداندن موجودی‌های قبلی
+    //        foreach (var consumed in document.ConsumedItems)
+    //        {
+    //            var inventory = await _dbContext.Inventories
+    //                .FirstOrDefaultAsync(i =>
+    //                    i.WarehouseId == consumed.WarehouseId &&
+    //                    i.ZoneId == consumed.ZoneId &&
+    //                    i.SectionId == consumed.SectionId &&
+    //                    i.ProductId == consumed.ProductId, cancellationToken);
 
-                if (inventory != null)
-                    inventory.Quantity += consumed.Quantity;
-            }
+    //            if (inventory != null)
+    //                inventory.Quantity += consumed.Quantity;
+    //        }
 
-            foreach (var produced in document.ProducedItems)
-            {
-                var inventory = await _dbContext.Inventories
-                    .FirstOrDefaultAsync(i =>
-                        i.WarehouseId == produced.WarehouseId &&
-                        i.ZoneId == produced.ZoneId &&
-                        i.SectionId == produced.SectionId &&
-                        i.ProductId == produced.ProductId, cancellationToken);
+    //        foreach (var produced in document.ProducedItems)
+    //        {
+    //            var inventory = await _dbContext.Inventories
+    //                .FirstOrDefaultAsync(i =>
+    //                    i.WarehouseId == produced.WarehouseId &&
+    //                    i.ZoneId == produced.ZoneId &&
+    //                    i.SectionId == produced.SectionId &&
+    //                    i.ProductId == produced.ProductId, cancellationToken);
 
-                if (inventory != null)
-                {
-                    inventory.Quantity -= produced.Quantity;
-                    if (inventory.Quantity < 0) inventory.Quantity = 0;
-                }
-            }
+    //            if (inventory != null)
+    //            {
+    //                inventory.Quantity -= produced.Quantity;
+    //                if (inventory.Quantity < 0) inventory.Quantity = 0;
+    //            }
+    //        }
 
-            _dbContext.conversionConsumedItems.RemoveRange(document.ConsumedItems);
-            _dbContext.conversionProducedItems.RemoveRange(document.ProducedItems);
+    //        _dbContext.conversionConsumedItems.RemoveRange(document.ConsumedItems);
+    //        _dbContext.conversionProducedItems.RemoveRange(document.ProducedItems);
 
-            await _dbContext.SaveChangesAsync(cancellationToken);
+    //        await _dbContext.SaveChangesAsync(cancellationToken);
 
-            // حالا دوباره مثل ایجاد سند، اقلام جدید را ثبت کنیم
-            return await ConvertAndRegisterDocumentAsync(consumedItems, producedItems, cancellationToken);
-        }
+    //        // حالا دوباره مثل ایجاد سند، اقلام جدید را ثبت کنیم
+    //        return await ConvertAndRegisterDocumentAsync(consumedItems, producedItems, cancellationToken);
+    //    }
 
 
         public async Task<bool> DeleteConversionDocumentAsync(int documentId)
