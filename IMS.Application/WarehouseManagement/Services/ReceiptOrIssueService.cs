@@ -452,6 +452,10 @@ namespace IMS.Application.WarehouseManagement.Services
                         if (sourceInventory != null)
                             sourceInventory.Quantity -= 1;
 
+                        // افزایش موجودی انبار مقصد برای هر کد یکتا
+                        destinationInventory.Quantity += 1;
+
+
                         var productItem = await _dbContext.ProductItems
                             .FirstOrDefaultAsync(pi => pi.UniqueCode == uniqueCode);
 

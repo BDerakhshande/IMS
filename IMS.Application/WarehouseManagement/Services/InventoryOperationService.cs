@@ -23,8 +23,7 @@ namespace IMS.Application.WarehouseManagement.Services
         {
             string generatedUniqueCode = null;
 
-            // بررسی اجباری بودن Zone و Section
-          
+ 
             // بررسی موجودی در انبار موردنظر
             var existingInventory = await _context.Inventories
                 .Include(i => i.InventoryItems)

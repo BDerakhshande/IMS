@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace IMS.Domain.WarehouseManagement.Entities
 {
-    public class Product
-    {
+    public class Product 
+    { 
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string? Code { get; set; }
         public string? Description { get; set; }
-
         public int StatusId { get; set; }
         public Status Status { get; set; } = null!;
         public bool IsUnique { get; set; }
@@ -20,8 +19,6 @@ namespace IMS.Domain.WarehouseManagement.Entities
         public int UnitId { get; set; }
         public Unit Unit { get; set; } = null!;
         public ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
-        public ICollection<ProductItem> ProductItems { get; set; } = new List<ProductItem>();   
-
-
+        public ICollection<ProductItem> ProductItems { get; set; } = new List<ProductItem>(); 
     }
 }

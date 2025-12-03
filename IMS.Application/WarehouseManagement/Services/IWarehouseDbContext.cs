@@ -23,14 +23,17 @@ namespace IMS.Application.WarehouseManagement.Services
         DbSet<ReceiptOrIssueItem> ReceiptOrIssueItems  { get; set; }
         DbSet<ConversionConsumedItem> conversionConsumedItems  { get; set; }
         DbSet<ConversionProducedItem> conversionProducedItems  { get; set; }
-        DbSet<ConversionDocument> conversionDocuments { get; set; }
+
         DbSet<Unit> Units { get; set; }
         DbSet<Inventory> Inventories { get; set; }
         public DbSet<StorageZone> StorageZones { get; }
         public DbSet<StorageSection> StorageSections { get;  } 
         public DbSet<ProductItem> ProductItems { get;  } 
         public DbSet<InventoryItem> InventoryItems { get;  } 
-        public DbSet<ReceiptOrIssueItemUniqueCode> ReceiptOrIssueItemUniqueCodes { get;  } 
+        public DbSet<ReceiptOrIssueItemUniqueCode> ReceiptOrIssueItemUniqueCodes { get;  }
+
+        public DbSet<ConversionDocument> conversionDocuments { get; set; }
+        public DbSet<ConversionConsumedItemUniqueCode> ConversionConsumedItemUniqueCodes { get; set; }
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
     }

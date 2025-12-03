@@ -57,11 +57,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-
-
-
-
         private async Task PopulateSelectLists(InventoryReportFilterDto filter = null)
         {
             var warehouses = await _warehouseService.GetAllWarehousesAsync();
@@ -102,8 +97,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         }
 
 
-
-        // اکشن‌های API برای بارگذاری مناطق و بخش‌ها
         [HttpGet]
         public async Task<JsonResult> GetZonesByWarehouseId(int warehouseId)
         {
@@ -138,7 +131,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             return Json(products);
         }
 
-        [HttpPost]  // بدون [FromBody] – از Form data bind می‌شود
+        [HttpPost]  
         public async Task<IActionResult> ExportInventoryToExcel(InventoryReportFilterDto filter)
         {
             // لاگ برای دیباگ (حذف کنید بعد از تست)
@@ -210,7 +203,6 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             var fileName = $"InventoryReport_{DateTime.Now:yyyyMMddHHmmss}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
-
 
         [HttpPost]
         public async Task<IActionResult> ExportToPdf(InventoryReportFilterDto filter)
@@ -301,6 +293,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
                     CustomSwitches = "--disable-smart-shrinking --print-media-type --background"
                 });
         }
+
         [HttpGet]
         public async Task<IActionResult> GetUniqueCodes(int productId, int? sourceWarehouseId = null)
         {

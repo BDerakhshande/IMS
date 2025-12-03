@@ -3,8 +3,19 @@
     ViewData["Title"] = "ایجاد سند تبدیل جدید";
     Layout = "~/Areas/WarehouseManagement/Views/Shared/_MyLayout.cshtml";
 }
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
 
 <style>
+    .custom-dropdown {
+        min-width: 250px; /* حداقل عرض dropdown */
+        max-width: 600px; /* حداکثر عرض اختیاری */
+    }
+
     select.form-select[dir="rtl"],
     select.form-select.text-end {
         direction: rtl;
@@ -63,9 +74,7 @@
 <link href="~/lib/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
 <link href="~/lib/persian-datepicker/persian-datepicker.min.css" rel="stylesheet" />
 <link href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet" />
-
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-
 <div class="card border-0 shadow-sm" dir="rtl">
     <div class="card-header py-1 d-flex justify-content-between align-items-center" style="background-color: #1a4959; color: white;">
         <div class="d-flex align-items-center">
@@ -73,18 +82,16 @@
             <h5 class="mb-0 fw-bold" style="font-size: 0.9rem;">@ViewData["Title"]</h5>
         </div>
     </div>
-
     <div class="card-body p-2">
-        <form asp-action="@(ViewBag.ActionName == "Edit" ? "Edit" : "Create")" method="post" id="conversionForm">
+        <form asp-action="@(ViewBag.ActionName == "Edit" ? "Update" : "Create")" method="post" id="conversionForm">
             @Html.AntiForgeryToken()
-            @if (!ViewData.ModelState.IsValid)
+            @if (ViewData.ModelState.IsValid == false)
             {
                 <div class="alert alert-danger small py-2 px-3 mb-3 text-end">
                     <strong class="d-block mb-1">خطا!</strong>
                     @Html.ValidationSummary(true)
                 </div>
             }
-
             <div class="row g-2 mb-3">
                 <div class="col-md-3">
                     <label asp-for="DateString" class="form-label fw-bold small text-end w-100">تاریخ</label>
@@ -94,19 +101,16 @@
                     </div>
                     <span asp-validation-for="DateString" class="text-danger small d-block text-end"></span>
                 </div>
-
                 <div class="col-md-3">
                     <label asp-for="DocumentNumber" class="form-label fw-bold small text-end w-100">شماره سند</label>
                     <div class="input-group input-group-sm">
-                        <input asp-for="DocumentNumber" class="form-control text-end" placeholder="شماره سند را وارد کنید" />
+                        <input asp-for="DocumentNumber" class="form-control text-end" placeholder="شماره سند را وارد کنید" readonly="@(ViewBag.ActionName == "Edit" ? "readonly" : null)" />
                         <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
                     </div>
                     <span asp-validation-for="DocumentNumber" class="text-danger small d-block text-end"></span>
                 </div>
             </div>
-
             <hr class="my-3" />
-
             <!-- بخش اقلام مصرفی -->
             <div class="card mb-4 border-primary">
                 <div class="card-header bg-light-primary d-flex justify-content-between align-items-center">
@@ -120,7 +124,6 @@
                 <div class="card-body">
                     <div class="table-responsive border rounded-3">
                         <div id="consumedValidationErrors" class="mb-3"></div>
-
                         <table class="table table-hover mb-0 table-sm-custom" id="consumedItemsTable">
                             <thead class="table-light">
                                 <tr>
@@ -136,7 +139,7 @@
                                 {
                                     for (int i = 0; i < Model.ConsumedItems.Count; i++)
                                     {
-                                        <tr class="align-middle" data-index="@i">
+                                        <tr class="align-middle consumed-row" data-index="@i">
                                             <td>
                                                 <div class="accordion border-0" id="productAccordion_@i">
                                                     <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
@@ -152,7 +155,7 @@
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">دسته‌بندی</label>
                                                                     <select asp-for="ConsumedItems[i].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end"
-                                                                            data-index="@i">
+                                                                            data-index="@i" data-table="consumed">
                                                                         <option value="">انتخاب دسته‌بندی</option>
                                                                         @foreach (var category in Model.Categories)
                                                                         {
@@ -162,23 +165,38 @@
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">گروه</label>
-                                                                    <select asp-for="ConsumedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select"
-                                                                            data-index="@i" data-selected="@Model.ConsumedItems[i].GroupId">
+                                                                    <select asp-for="ConsumedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select text-end"
+                                                                            data-index="@i" data-table="consumed" data-selected="@Model.ConsumedItems[i].GroupId">
                                                                         <option value="">انتخاب گروه</option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">طبقه</label>
-                                                                    <select asp-for="ConsumedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select"
-                                                                            data-index="@i" data-selected="@Model.ConsumedItems[i].StatusId">
+                                                                    <select asp-for="ConsumedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select text-end"
+                                                                            data-index="@i" data-table="consumed" data-selected="@Model.ConsumedItems[i].StatusId">
                                                                         <option value="">انتخاب طبقه</option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="mb-1">
                                                                     <label class="form-label small">کالا</label>
-                                                                    <select asp-for="ConsumedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select"
-                                                                            data-index="@i" data-selected="@Model.ConsumedItems[i].ProductId">
+                                                                    <select asp-for="ConsumedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select text-end"
+                                                                            data-index="@i" data-table="consumed" data-selected="@Model.ConsumedItems[i].ProductId">
                                                                         <option value="">انتخاب کالا</option>
+                                                                    </select>
+                                                                </div>
+                                                                <div class="mb-1">
+                                                                    <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا (اختیاری)</label>
+                                                                    <select name="ConsumedItems[@i].InventoryItemIds"
+                                                                            class="form-select form-select-sm select2 unique-codes-select text-end w-100"
+                                                                            data-index="@i" data-table="consumed">
+                                                                        @if (ViewBag.AvailableUniqueCodes != null)
+                                                                        {
+                                                                            var availableCodes = ViewBag.AvailableUniqueCodes[i] as List<SelectListItem> ?? new List<SelectListItem>();
+                                                                            @foreach (var uniqueCode in availableCodes)
+                                                                            {
+                                                                                <option value="@uniqueCode.Value" selected="@(Model.ConsumedItems[i].InventoryItemIds?.Contains(int.Parse(uniqueCode.Value)) ?? false)">@uniqueCode.Text</option>
+                                                                            }
+                                                                        }
                                                                     </select>
                                                                 </div>
                                                             </div>
@@ -186,9 +204,8 @@
                                                     </div>
                                                 </div>
                                             </td>
-
                                             <td style="width: 120px;">
-                                                <input asp-for="ConsumedItems[i].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                                                <input asp-for="ConsumedItems[i].Quantity" type="number" min="1" class="form-control shadow-sm text-end" />
                                                 <span asp-validation-for="ConsumedItems[i].Quantity" class="text-danger small d-block mt-1"></span>
                                             </td>
                                             <td>
@@ -203,7 +220,7 @@
                                                             <div class="accordion-body p-2">
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">انبار</label>
-                                                                    <select asp-for="ConsumedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ConsumedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-table="consumed">
                                                                         <option value="">انتخاب انبار</option>
                                                                         @foreach (var warehouse in Model.Warehouses)
                                                                         {
@@ -214,23 +231,21 @@
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">قسمت</label>
-                                                                    <select asp-for="ConsumedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ConsumedItems[i].ZoneId"
+                                                                            class="form-select form-select-sm zone-select shadow-sm text-end"
+                                                                            data-index="@i" data-table="consumed"
+                                                                            data-selected="@Model.ConsumedItems[i].ZoneId">
                                                                         <option value="">انتخاب قسمت</option>
-                                                                        @foreach (var zone in Model.Zones)
-                                                                        {
-                                                                            <option value="@zone.Id" selected="@(zone.Id == Model.ConsumedItems[i].ZoneId)">@zone.Name</option>
-                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ConsumedItems[i].ZoneId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
                                                                 <div>
                                                                     <label class="form-label small text-muted mb-1">بخش</label>
-                                                                    <select asp-for="ConsumedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ConsumedItems[i].SectionId"
+                                                                            class="form-select form-select-sm section-select shadow-sm text-end"
+                                                                            data-index="@i" data-table="consumed"
+                                                                            data-selected="@Model.ConsumedItems[i].SectionId">
                                                                         <option value="">انتخاب بخش</option>
-                                                                        @foreach (var section in Model.Sections)
-                                                                        {
-                                                                            <option value="@(section.Id)" selected="@(section.Id == Model.ConsumedItems[i].SectionId)">@(section.Name)</option>
-                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ConsumedItems[i].SectionId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
@@ -240,23 +255,21 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <select asp-for="ConsumedItems[i].ProjectId" class="form-select form-select-sm">
+                                                <select asp-for="ConsumedItems[i].ProjectId" class="form-select form-select-sm text-end">
                                                     <option value="">بدون پروژه</option>
                                                     @foreach (var project in Model.Projects)
                                                     {
-                                                        <option value="@project.Value" selected="@(project.Value == Model.ConsumedItems[i].ProjectId?.ToString())">
-                                                            @project.Text
-                                                        </option>
+                                                        <option value="@project.Value" selected="@(project.Value == Model.ConsumedItems[i].ProjectId?.ToString())">@project.Text</option>
                                                     }
                                                 </select>
                                                 <span asp-validation-for="ConsumedItems[i].ProjectId" class="text-danger small d-block mt-1"></span>
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
-                                                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" data-table="consumed">
                                                         <i class="bi bi-check-lg"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" data-table="consumed">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
@@ -269,7 +282,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- بخش کالای تولیدی -->
             <div class="card mb-4 border-success">
                 <div class="card-header bg-light-success d-flex justify-content-between align-items-center">
@@ -298,7 +310,7 @@
                                 {
                                     for (int i = 0; i < Model.ProducedItems.Count; i++)
                                     {
-                                        <tr class="align-middle" data-index="@i">
+                                        <tr class="align-middle produced-row" data-index="@i">
                                             <td>
                                                 <div class="accordion border-0" id="producedProductAccordion_@i">
                                                     <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
@@ -314,7 +326,7 @@
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">دسته‌بندی</label>
                                                                     <select asp-for="ProducedItems[i].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end"
-                                                                            data-index="@i">
+                                                                            data-index="@i" data-table="produced">
                                                                         <option value="">انتخاب دسته‌بندی</option>
                                                                         @foreach (var category in Model.Categories)
                                                                         {
@@ -324,33 +336,46 @@
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">گروه</label>
-                                                                    <select asp-for="ProducedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select"
-                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].GroupId">
+                                                                    <select asp-for="ProducedItems[i].GroupId" class="form-select form-select-sm shadow-sm group-select text-end"
+                                                                            data-index="@i" data-table="produced" data-selected="@Model.ProducedItems[i].GroupId">
                                                                         <option value="">انتخاب گروه</option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small">طبقه</label>
-                                                                    <select asp-for="ProducedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select"
-                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].StatusId">
+                                                                    <select asp-for="ProducedItems[i].StatusId" class="form-select form-select-sm shadow-sm status-select text-end"
+                                                                            data-index="@i" data-table="produced" data-selected="@Model.ProducedItems[i].StatusId">
                                                                         <option value="">انتخاب طبقه</option>
                                                                     </select>
                                                                 </div>
                                                                 <div class="mb-1">
                                                                     <label class="form-label small">کالا</label>
-                                                                    <select asp-for="ProducedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select"
-                                                                            data-index="@i" data-selected="@Model.ProducedItems[i].ProductId">
+                                                                    <select asp-for="ProducedItems[i].ProductId" class="form-select form-select-sm shadow-sm product-select text-end"
+                                                                            data-index="@i" data-table="produced" data-selected="@Model.ProducedItems[i].ProductId">
                                                                         <option value="">انتخاب کالا</option>
                                                                     </select>
+                                                                </div>
+                                                                <div class="mb-2">
+                                                                    <div class="form-check">
+                                                                        <input asp-for="ProducedItems[i].GenerateUniqueCodes" class="form-check-input" type="checkbox" id="generateUnique_@i" />
+                                                                        <label class="form-check-label small text-muted" for="generateUnique_@i">
+                                                                            تولید خودکار کدهای یکتا (بر اساس تعداد)
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mb-1 @(Model.ProducedItems[i].GenerateUniqueCodes == true ? "d-none" : "")" id="manualUniqueDiv_@i">
+                                                                    <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا (اختیاری)</label>
+                                                                    <input type="text" name="ProducedItems[@i].UniqueCodesInput"
+                                                                           class="form-control form-control-sm text-end unique-codes-input"
+                                                                           placeholder="کد یکتا را وارد کنید" value="@(ViewBag.ProducedUniqueCodesInput != null ? ViewBag.ProducedUniqueCodesInput[i] : "")" />
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </td>
-
                                             <td style="width: 120px;">
-                                                <input asp-for="ProducedItems[i].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                                                <input asp-for="ProducedItems[i].Quantity" type="number" min="1" class="form-control shadow-sm text-end" />
                                                 <span asp-validation-for="ProducedItems[i].Quantity" class="text-danger small d-block mt-1"></span>
                                             </td>
                                             <td>
@@ -365,7 +390,7 @@
                                                             <div class="accordion-body p-2">
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">انبار</label>
-                                                                    <select asp-for="ProducedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ProducedItems[i].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="@i" data-table="produced">
                                                                         <option value="">انتخاب انبار</option>
                                                                         @foreach (var warehouse in Model.Warehouses)
                                                                         {
@@ -376,23 +401,23 @@
                                                                 </div>
                                                                 <div class="mb-2">
                                                                     <label class="form-label small text-muted mb-1">قسمت</label>
-                                                                    <select asp-for="ProducedItems[i].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ProducedItems[i].ZoneId"
+                                                                            class="form-select form-select-sm zone-select shadow-sm text-end"
+                                                                            data-index="@i" data-table="produced"
+                                                                            data-selected="@Model.ProducedItems[i].ZoneId">
+                                                                        <!-- اضافه شد -->
                                                                         <option value="">انتخاب قسمت</option>
-                                                                        @foreach (var zone in Model.Zones)
-                                                                        {
-                                                                            <option value="@zone.Id" selected="@(zone.Id == Model.ProducedItems[i].ZoneId)">@zone.Name</option>
-                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ProducedItems[i].ZoneId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
                                                                 <div>
                                                                     <label class="form-label small text-muted mb-1">بخش</label>
-                                                                    <select asp-for="ProducedItems[i].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="@i">
+                                                                    <select asp-for="ProducedItems[i].SectionId"
+                                                                            class="form-select form-select-sm section-select shadow-sm text-end"
+                                                                            data-index="@i" data-table="produced"
+                                                                            data-selected="@Model.ProducedItems[i].SectionId">
+                                                                        <!-- اضافه شد -->
                                                                         <option value="">انتخاب بخش</option>
-                                                                        @foreach (var section in Model.Sections)
-                                                                        {
-                                                                            <option value="@(section.Id)" selected="@(section.Id == Model.ProducedItems[i].SectionId)">@(section.Name)</option>
-                                                                        }
                                                                     </select>
                                                                     <span asp-validation-for="ProducedItems[i].SectionId" class="text-danger small d-block mt-1"></span>
                                                                 </div>
@@ -402,23 +427,21 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <select asp-for="ProducedItems[i].ProjectId" class="form-select form-select-sm">
+                                                <select asp-for="ProducedItems[i].ProjectId" class="form-select form-select-sm text-end">
                                                     <option value="">بدون پروژه</option>
                                                     @foreach (var project in Model.Projects)
                                                     {
-                                                        <option value="@project.Value" selected="@(project.Value == Model.ProducedItems[i].ProjectId?.ToString())">
-                                                            @project.Text
-                                                        </option>
+                                                        <option value="@project.Value" selected="@(project.Value == Model.ProducedItems[i].ProjectId?.ToString())">@project.Text</option>
                                                     }
                                                 </select>
                                                 <span asp-validation-for="ProducedItems[i].ProjectId" class="text-danger small d-block mt-1"></span>
                                             </td>
                                             <td class="text-center">
                                                 <div class="d-flex justify-content-center gap-2">
-                                                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                                                    <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" data-table="produced">
                                                         <i class="bi bi-check-lg"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" data-table="produced">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
@@ -431,32 +454,112 @@
                     </div>
                 </div>
             </div>
-
             <hr class="my-3" />
-
             <div class="d-flex justify-content-start gap-2 mt-3">
+                <input type="hidden" asp-for="DocumentId" />
                 <a asp-action="Index" class="btn btn-sm btn-secondary px-3 hide-on-print">
                     <i class="bi bi-arrow-right-circle ms-1"></i> بازگشت
                 </a>
                 <button type="submit" class="btn btn-sm btn-success px-3 hide-on-print">
-                    <i class="bi bi-check-circle ms-1"></i> ثبت
+                    <i class="bi bi-check-circle ms-1"></i> @(ViewBag.ActionName == "Edit" ? "به‌روزرسانی" : "ثبت")
                 </button>
             </div>
         </form>
     </div>
 </div>
-
 @section Scripts {
-    <!-- در بخش Scripts مطمئن شوید این کتابخانه‌ها بارگذاری شده‌اند -->
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap-5.1.3-dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/lib/select2/js/select2.min.js"></script>
-    <script src="~/lib/persian-datepicker/persian-datepicker.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/persian-datepicker.min.js"></script>
     <script src="~/js/MenuJs.js"></script>
-
     <script>
         $(document).ready(function () {
-            // مقداردهی اولیه select2
+            // تابع برای به‌روزرسانی هدر محصول
+            function updateProductHeader(index, type, categoryText, groupText, statusText, productText) {
+                const productHeaderText = `${categoryText} - ${groupText} - ${statusText} - ${productText}`;
+                const prefix = type === 'produced' ? 'producedProductCollapse_' : 'productCollapse_';
+                const $productHeader = $(`.accordion-button[data-bs-target^="#${prefix}${index}"]`);
+                if ($productHeader.length) {
+                    $productHeader.text(productHeaderText);
+                }
+            }
+            // تابع برای به‌روزرسانی هدر محل نگهداری
+            function updateLocationHeader(index, type, warehouseText, zoneText, sectionText) {
+                const locationHeaderText = `${warehouseText} - ${zoneText} - ${sectionText}`;
+                const prefix = type === 'produced' ? 'producedLocationCollapse_' : 'locationCollapse_';
+                const $locationHeader = $(`.accordion-button[data-bs-target^="#${prefix}${index}"]`);
+                if ($locationHeader.length) {
+                    $locationHeader.text(locationHeaderText);
+                }
+            }
+                        function loadZones(warehouseId, index, selectedZoneId, tableType = 'consumed', callback) {
+            const prefix = tableType === 'produced' ? 'ProducedItems' : 'ConsumedItems';
+            const $zone = $(`select[name='${prefix}[${index}].ZoneId']`);
+            const $section = $(`select[name='${prefix}[${index}].SectionId']`);
+            console.log(`[Zones] Called: warehouseId=${warehouseId}, index=${index}, selectedZoneId=${selectedZoneId}`);
+            // ریست کامل zone و section
+            $zone.html('<option value="">انتخاب قسمت</option>');
+            $section.html('<option value="">انتخاب بخش</option>');
+            if (!warehouseId) {
+                if (callback) callback(null);
+                return;
+            }
+            $.get('/WarehouseManagement/Conversion/GetZonesByWarehouse', { warehouseId })
+                .done(function(zones) {
+                    zones.forEach(zone => $zone.append(`<option value="${zone.value}">${zone.text}</option>`));
+                    // **تغییر مهم:** فقط وقتی selectedZoneId واقعی هست آن را انتخاب کن — از انتخاب خودکار اولین مورد خودداری کن
+                    let finalZoneId = (selectedZoneId && zones.some(z => z.value == selectedZoneId))
+                        ? selectedZoneId
+                        : null;
+                    if (finalZoneId) {
+                        $zone.val(finalZoneId.toString()).trigger('change');
+                        if ($zone.hasClass('select2-hidden-accessible')) $zone.trigger('change.select2');
+                    }
+                    console.log(`[Zones] Final zoneId=${finalZoneId}`);
+                    if (callback) callback(finalZoneId);
+                })
+                .fail(function(err) {
+                    console.error(`[Zones] Error loading zones:`, err);
+                    if (callback) callback(null);
+                });
+        }
+               function loadSections(zoneId, index, selectedSectionId, tableType = 'consumed', callback) {
+            const prefix = tableType === 'produced' ? 'ProducedItems' : 'ConsumedItems';
+            const $section = $(`select[name='${prefix}[${index}].SectionId']`);
+            console.log(`[Sections] Called: zoneId=${zoneId}, index=${index}, selectedSectionId=${selectedSectionId}`);
+            $section.html('<option value="">انتخاب بخش</option>');
+            if (!zoneId) {
+                if (callback) callback(null);
+                return;
+            }
+            $.get('/WarehouseManagement/Conversion/GetSectionsByZone', { zoneId })
+                .done(function(sections) {
+                    sections.forEach(section => $section.append(`<option value="${section.value}">${section.text}</option>`));
+                    let finalSectionId = (selectedSectionId && sections.some(s => s.value == selectedSectionId))
+                        ? selectedSectionId
+                        : null;
+                    if (finalSectionId) {
+                        $section.val(finalSectionId.toString()).trigger('change');
+                        if ($section.hasClass('select2-hidden-accessible')) $section.trigger('change.select2');
+                    }
+                    console.log(`[Sections] Final sectionId=${finalSectionId}`);
+                    if (callback) callback(finalSectionId);
+                })
+                .fail(function(err) {
+                    console.error(`[Sections] Error loading sections:`, err);
+                    if (callback) callback(null);
+                });
+        }
+            // Select2 initialization
+            $('.unique-codes-select').select2({
+                width: '100%',
+                dir: 'rtl',
+                placeholder: "انتخاب کد یکتا",
+                allowClear: true,
+                dropdownAutoWidth: true,
+                multiple: false
+            });
             $('.select2').select2({
                 theme: 'bootstrap5',
                 placeholder: 'انتخاب کنید',
@@ -464,8 +567,6 @@
                 dir: 'rtl',
                 minimumResultsForSearch: 0
             });
-
-            // --- Normalization
             function normalizeItems(items) {
                 return items.map(item => ({
                     id: item.id ?? item.Id ?? item.value ?? item.Value ?? '',
@@ -477,8 +578,6 @@
                     zoneId: item.ZoneId ?? item.zoneId ?? null,
                 }));
             }
-
-            // --- ViewData
             const viewData = {
                 categories: @Html.Raw(Json.Serialize(Model.Categories)),
                 groups: @Html.Raw(Json.Serialize(Model.Groups)),
@@ -489,8 +588,6 @@
                 sections: @Html.Raw(Json.Serialize(Model.Sections)),
                 projects: @Html.Raw(Json.Serialize(Model.Projects))
             };
-
-            // --- Normalized data
             const normalizedData = {
                 categories: normalizeItems(viewData.categories),
                 groups: normalizeItems(viewData.groups),
@@ -504,8 +601,6 @@
                     name: p.text ?? p.Text ?? ''
                 }))
             };
-
-            // --- Build Options
             function buildOptions(items, placeholder = 'انتخاب کنید') {
                 let options = `<option value="">${placeholder}</option>`;
                 if (!Array.isArray(items)) return options;
@@ -515,8 +610,6 @@
                 });
                 return options;
             }
-
-            // Build project options with "بدون پروژه"
             function buildProjectOptions() {
                 let options = '<option value="">بدون پروژه</option>';
                 normalizedData.projects.forEach(p => {
@@ -524,11 +617,11 @@
                 });
                 return options;
             }
-
+            // افزودن آیتم مصرفی
             $('#addConsumedItem').on('click', function () {
                 const index = $('#consumedItemsTable tbody tr').length;
                 const rowTemplate = `
-                <tr class="align-middle" data-index="${index}">
+                <tr class="align-middle consumed-row" data-index="${index}">
                     <td>
                         <div class="accordion border-0" id="productAccordion_${index}">
                             <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
@@ -543,26 +636,37 @@
                                     <div class="accordion-body py-2 px-3">
                                         <div class="mb-2">
                                             <label class="form-label small">دسته‌بندی</label>
-                                            <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}" data-table="consumed">
                                                 ${buildOptions(normalizedData.categories)}
                                             </select>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small">گروه</label>
-                                            <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select text-end"
+                                                    data-index="${index}" data-table="consumed">
                                                 <option value="">انتخاب گروه</option>
                                             </select>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small">طبقه</label>
-                                            <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select text-end"
+                                                    data-index="${index}" data-table="consumed">
                                                 <option value="">انتخاب طبقه</option>
                                             </select>
                                         </div>
                                         <div class="mb-1">
                                             <label class="form-label small">کالا</label>
-                                            <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select text-end"
+                                                    data-index="${index}" data-table="consumed">
                                                 <option value="">انتخاب کالا</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا (اختیاری)</label>
+                                            <select name="ConsumedItems[${index}].InventoryItemIds"
+                                                    class="form-select form-select-sm select2 unique-codes-select text-end w-100"
+                                                    data-index="${index}" data-table="consumed">
+                                                <option value="">انتخاب کد یکتا</option>
                                             </select>
                                         </div>
                                     </div>
@@ -571,7 +675,7 @@
                         </div>
                     </td>
                     <td style="width: 120px;">
-                        <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                        <input name="ConsumedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm text-end" />
                         <span class="text-danger small d-block mt-1"></span>
                     </td>
                     <td>
@@ -586,21 +690,25 @@
                                     <div class="accordion-body p-2">
                                         <div class="mb-2">
                                             <label class="form-label small text-muted mb-1">انبار</label>
-                                            <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
-                                                ${buildOptions(normalizedData.warehouses)}
+                                            <select name="ConsumedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="${index}" data-table="consumed">
+                                                ${buildOptions(normalizedData.warehouses, 'انتخاب انبار')}
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small text-muted mb-1">قسمت</label>
-                                            <select name="ConsumedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].ZoneId"
+                                                    class="form-select form-select-sm zone-select shadow-sm text-end"
+                                                    data-index="${index}" data-table="consumed">
                                                 <option value="">انتخاب قسمت</option>
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
                                         </div>
                                         <div>
                                             <label class="form-label small text-muted mb-1">بخش</label>
-                                            <select name="ConsumedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
+                                            <select name="ConsumedItems[${index}].SectionId"
+                                                    class="form-select form-select-sm section-select shadow-sm text-end"
+                                                    data-index="${index}" data-table="consumed">
                                                 <option value="">انتخاب بخش</option>
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
@@ -611,30 +719,37 @@
                         </div>
                     </td>
                     <td>
-                        <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm" data-index="${index}">
+                        <select name="ConsumedItems[${index}].ProjectId" class="form-select form-select-sm text-end">
                             ${buildProjectOptions()}
                         </select>
+                        <span class="text-danger small d-block mt-1"></span>
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" data-table="consumed">
                                 <i class="bi bi-check-lg"></i>
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" data-table="consumed">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
                 `;
-
                 $('#consumedItemsTable tbody').append(rowTemplate);
+                $(`select.unique-codes-select[data-index="${index}"]`).select2({
+                    theme: 'bootstrap5',
+                    placeholder: 'کد یکتا را انتخاب کنید',
+                    allowClear: true,
+                    dir: 'rtl',
+                    multiple: false
+                });
             });
-
+            // افزودن آیتم تولیدی
             $('#addProducedItem').on('click', function () {
                 const index = $('#producedItemsTable tbody tr').length;
                 const rowTemplate = `
-                <tr class="align-middle" data-index="${index}">
+                <tr class="align-middle produced-row" data-index="${index}">
                     <td>
                         <div class="accordion border-0" id="producedProductAccordion_${index}">
                             <div class="accordion-item shadow-sm rounded-3 overflow-hidden border-0">
@@ -649,27 +764,45 @@
                                     <div class="accordion-body py-2 px-3">
                                         <div class="mb-2">
                                             <label class="form-label small">دسته‌بندی</label>
-                                            <select name="ProducedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end" data-index="${index}">
+                                            <select name="ProducedItems[${index}].CategoryId" class="form-select form-select-sm shadow-sm category-select text-end"
+                                                    data-index="${index}" data-table="produced">
                                                 ${buildOptions(normalizedData.categories)}
                                             </select>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small">گروه</label>
-                                            <select name="ProducedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select" data-index="${index}">
+                                            <select name="ProducedItems[${index}].GroupId" class="form-select form-select-sm shadow-sm group-select text-end"
+                                                    data-index="${index}" data-table="produced">
                                                 <option value="">انتخاب گروه</option>
                                             </select>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small">طبقه</label>
-                                            <select name="ProducedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select" data-index="${index}">
+                                            <select name="ProducedItems[${index}].StatusId" class="form-select form-select-sm shadow-sm status-select text-end"
+                                                    data-index="${index}" data-table="produced">
                                                 <option value="">انتخاب طبقه</option>
                                             </select>
                                         </div>
                                         <div class="mb-1">
                                             <label class="form-label small">کالا</label>
-                                            <select name="ProducedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select" data-index="${index}">
+                                            <select name="ProducedItems[${index}].ProductId" class="form-select form-select-sm shadow-sm product-select text-end"
+                                                    data-index="${index}" data-table="produced">
                                                 <option value="">انتخاب کالا</option>
                                             </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <div class="form-check">
+                                                <input name="ProducedItems[${index}].GenerateUniqueCodes" class="form-check-input" type="checkbox" id="generateUnique_${index}" />
+                                                <label class="form-check-label small text-muted" for="generateUnique_${index}">
+                                                    تولید خودکار کدهای یکتا (بر اساس تعداد)
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-1" id="manualUniqueDiv_${index}">
+                                            <label class="form-label small text-muted mb-1 text-end w-100">کد یکتا (اختیاری)</label>
+                                            <input type="text" name="ProducedItems[${index}].UniqueCodesInput"
+                                                   class="form-control form-control-sm text-end unique-codes-input"
+                                                   placeholder="کد یکتا را وارد کنید" />
                                         </div>
                                     </div>
                                 </div>
@@ -677,7 +810,7 @@
                         </div>
                     </td>
                     <td style="width: 120px;">
-                        <input name="ProducedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm" />
+                        <input name="ProducedItems[${index}].Quantity" type="number" min="1" class="form-control shadow-sm text-end" />
                         <span class="text-danger small d-block mt-1"></span>
                     </td>
                     <td>
@@ -692,21 +825,21 @@
                                     <div class="accordion-body p-2">
                                         <div class="mb-2">
                                             <label class="form-label small text-muted mb-1">انبار</label>
-                                            <select name="ProducedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm" data-index="${index}">
-                                                ${buildOptions(normalizedData.warehouses)}
+                                            <select name="ProducedItems[${index}].WarehouseId" class="form-select form-select-sm warehouse-select shadow-sm text-end" data-index="${index}" data-table="produced">
+                                                ${buildOptions(normalizedData.warehouses, 'انتخاب انبار')}
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
                                         </div>
                                         <div class="mb-2">
                                             <label class="form-label small text-muted mb-1">قسمت</label>
-                                            <select name="ProducedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm" data-index="${index}">
+                                            <select name="ProducedItems[${index}].ZoneId" class="form-select form-select-sm zone-select shadow-sm text-end" data-index="${index}" data-table="produced">
                                                 <option value="">انتخاب قسمت</option>
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
                                         </div>
                                         <div>
                                             <label class="form-label small text-muted mb-1">بخش</label>
-                                            <select name="ProducedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm" data-index="${index}">
+                                            <select name="ProducedItems[${index}].SectionId" class="form-select form-select-sm section-select shadow-sm text-end" data-index="${index}" data-table="produced">
                                                 <option value="">انتخاب بخش</option>
                                             </select>
                                             <span class="text-danger small d-block mt-1"></span>
@@ -717,37 +850,127 @@
                         </div>
                     </td>
                     <td>
-                        <select name="ProducedItems[${index}].ProjectId" class="form-select form-select-sm project-select shadow-sm" data-index="${index}">
+                        <select name="ProducedItems[${index}].ProjectId" class="form-select form-select-sm text-end">
                             ${buildProjectOptions()}
                         </select>
+                        <span class="text-danger small d-block mt-1"></span>
                     </td>
                     <td class="text-center">
                         <div class="d-flex justify-content-center gap-2">
-                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت">
+                            <button type="button" class="btn btn-outline-success btn-sm save-item rounded-circle" title="ثبت" data-table="produced">
                                 <i class="bi bi-check-lg"></i>
                             </button>
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-item rounded-circle" title="حذف" data-table="produced">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </td>
                 </tr>
                 `;
-
                 $('#producedItemsTable tbody').append(rowTemplate);
+                $(`#generateUnique_${index}`).on('change', function () {
+                    const $manualDiv = $(`#manualUniqueDiv_${index}`);
+                    if (this.checked) {
+                        $manualDiv.addClass('d-none').find('input').val('');
+                    } else {
+                        $manualDiv.removeClass('d-none');
+                    }
+                });
             });
-
+            // توابع renumber
+            function renumberConsumedRows() {
+                const $tbody = $('#consumedItemsTable tbody');
+                $tbody.find('tr').each(function(newIndex) {
+                    const $row = $(this);
+                    const oldIndex = $row.data('index');
+                    if (oldIndex === newIndex) return;
+                    $row.attr('data-index', newIndex);
+                    $row.find('[name]').each(function() {
+                        const $el = $(this);
+                        let name = $el.attr('name');
+                        name = name.replace(new RegExp('\\[' + oldIndex + '\\]'), '[' + newIndex + ']');
+                        $el.attr('name', name);
+                    });
+                    const oldProductAccId = `productAccordion_${oldIndex}`;
+                    const newProductAccId = `productAccordion_${newIndex}`;
+                    $(`#${oldProductAccId}`).attr('id', newProductAccId);
+                    const oldHeadingId = `heading_${oldIndex}`;
+                    const newHeadingId = `heading_${newIndex}`;
+                    $(`#${oldHeadingId}`).attr('id', newHeadingId);
+                    const oldProductCollapseId = `productCollapse_${oldIndex}`;
+                    const newProductCollapseId = `productCollapse_${newIndex}`;
+                    $(`#${oldProductCollapseId}`).attr('id', newProductCollapseId).attr('data-bs-parent', `#${newProductAccId}`);
+                    $(`button[data-bs-target="#${oldProductCollapseId}"]`).attr({
+                        'data-bs-target': `#${newProductCollapseId}`,
+                        'aria-controls': newProductCollapseId
+                    });
+                    const oldLocationAccId = `locationAccordion_${oldIndex}`;
+                    const newLocationAccId = `locationAccordion_${newIndex}`;
+                    $(`#${oldLocationAccId}`).attr('id', newLocationAccId);
+                    const oldLocationCollapseId = `locationCollapse_${oldIndex}`;
+                    const newLocationCollapseId = `locationCollapse_${newIndex}`;
+                    $(`#${oldLocationCollapseId}`).attr('id', newLocationCollapseId).attr('data-bs-parent', `#${newLocationAccId}`);
+                    $(`button[data-bs-target="#${oldLocationCollapseId}"]`).attr({
+                        'data-bs-target': `#${newLocationCollapseId}`,
+                        'aria-controls': newLocationCollapseId
+                    });
+                });
+            }
+            function renumberProducedRows() {
+                const $tbody = $('#producedItemsTable tbody');
+                $tbody.find('tr').each(function(newIndex) {
+                    const $row = $(this);
+                    const oldIndex = $row.data('index');
+                    if (oldIndex === newIndex) return;
+                    $row.attr('data-index', newIndex);
+                    $row.find('[name]').each(function() {
+                        const $el = $(this);
+                        let name = $el.attr('name');
+                        name = name.replace(new RegExp('\\[' + oldIndex + '\\]'), '[' + newIndex + ']');
+                        $el.attr('name', name);
+                    });
+                    const oldProductAccId = `producedProductAccordion_${oldIndex}`;
+                    const newProductAccId = `producedProductAccordion_${newIndex}`;
+                    $(`#${oldProductAccId}`).attr('id', newProductAccId);
+                    const oldHeadingId = `producedHeading_${oldIndex}`;
+                    const newHeadingId = `producedHeading_${newIndex}`;
+                    $(`#${oldHeadingId}`).attr('id', newHeadingId);
+                    const oldProductCollapseId = `producedProductCollapse_${oldIndex}`;
+                    const newProductCollapseId = `producedProductCollapse_${newIndex}`;
+                    $(`#${oldProductCollapseId}`).attr('id', newProductCollapseId).attr('data-bs-parent', `#${newProductAccId}`);
+                    $(`button[data-bs-target="#${oldProductCollapseId}"]`).attr({
+                        'data-bs-target': `#${newProductCollapseId}`,
+                        'aria-controls': newProductCollapseId
+                    });
+                    const oldLocationAccId = `producedLocationAccordion_${oldIndex}`;
+                    const newLocationAccId = `producedLocationAccordion_${newIndex}`;
+                    $(`#${oldLocationAccId}`).attr('id', newLocationAccId);
+                    const oldLocationCollapseId = `producedLocationCollapse_${oldIndex}`;
+                    const newLocationCollapseId = `producedLocationCollapse_${newIndex}`;
+                    $(`#${oldLocationCollapseId}`).attr('id', newLocationCollapseId).attr('data-bs-parent', `#${newLocationAccId}`);
+                    $(`button[data-bs-target="#${oldLocationCollapseId}"]`).attr({
+                        'data-bs-target': `#${newLocationCollapseId}`,
+                        'aria-controls': newLocationCollapseId
+                    });
+                    const oldGenerateId = `generateUnique_${oldIndex}`;
+                    const newGenerateId = `generateUnique_${newIndex}`;
+                    $(`#${oldGenerateId}`).attr('id', newGenerateId);
+                    const oldManualDivId = `manualUniqueDiv_${oldIndex}`;
+                    const newManualDivId = `manualUniqueDiv_${newIndex}`;
+                    $(`#${oldManualDivId}`).attr('id', newManualDivId);
+                    $(`label[for="${oldGenerateId}"]`).attr('for', newGenerateId);
+                });
+            }
             // --- Cascading Dropdown Handling
             function updateDependentDropdowns(prefix, index) {
                 const $category = $(`select[name="${prefix}[${index}].CategoryId"]`);
                 const $group = $(`select[name="${prefix}[${index}].GroupId"]`);
                 const $status = $(`select[name="${prefix}[${index}].StatusId"]`);
                 const $product = $(`select[name="${prefix}[${index}].ProductId"]`);
-
                 const categoryId = $category.val();
                 const groupId = $group.val();
                 const statusId = $status.val();
-
+                const productId = $product.val();
                 if (categoryId) {
                     const filteredGroups = normalizedData.groups.filter(g => g.CategoryId?.toString() === categoryId);
                     $group.html(buildOptions(filteredGroups)).val(groupId);
@@ -758,17 +981,14 @@
                 }
                 if (statusId) {
                     const filteredProducts = normalizedData.products.filter(p => p.StatusId?.toString() === statusId);
-                    $product.html(buildOptions(filteredProducts));
+                    $product.html(buildOptions(filteredProducts)).val(productId);
                 }
             }
-
             // --- Initialize existing rows
             const consumedCount = @Model.ConsumedItems?.Count ?? 0;
             const producedCount = @Model.ProducedItems?.Count ?? 0;
-
             for (let i = 0; i < consumedCount; i++) updateDependentDropdowns('ConsumedItems', i);
             for (let i = 0; i < producedCount; i++) updateDependentDropdowns('ProducedItems', i);
-
             // --- On Change Events
             $(document).on('change', '.category-select', function () {
                 const index = $(this).data('index');
@@ -776,155 +996,304 @@
                 updateDependentDropdowns(prefix, index);
                 $(`select[name="${prefix}[${index}].ProductId"]`).html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
             });
-
             $(document).on('change', '.group-select', function () {
                 const index = $(this).data('index');
                 const prefix = $(this).attr('name') && $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
                 updateDependentDropdowns(prefix, index);
                 $(`select[name="${prefix}[${index}].ProductId"]`).html('<option value="">ابتدا وضعیت را انتخاب کنید</option>');
             });
-
             $(document).on('change', '.status-select', function () {
                 const index = $(this).data('index');
                 const prefix = $(this).attr('name') && $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
                 const statusId = $(this).val();
                 const $product = $(`select[name="${prefix}[${index}].ProductId"]`);
+                const currentProductId = $product.val();
                 const filtered = normalizedData.products.filter(p => p.StatusId?.toString() === statusId);
-                $product.html(buildOptions(filtered));
+                $product.html(buildOptions(filtered)).val(currentProductId);
             });
-
-            // --- انبار → قسمت
+            // Load unique codes when product changes (for consumed items)
+            $(document).on('change', '.product-select', function () {
+                const index = $(this).data('index');
+                const prefix = $(this).attr('name').startsWith('ProducedItems') ? 'ProducedItems' : 'ConsumedItems';
+                const productId = $(this).val();
+                if (prefix === 'ConsumedItems') {
+                    const $uniqueSelect = $(`select.unique-codes-select[data-index="${index}"]`);
+                    if (productId) {
+                        $.ajax({
+                            url: '/WarehouseManagement/Conversion/GetUniqueCodes',
+                            type: 'GET',
+                            data: { productId: productId },
+                            success: function (data) {
+                                $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
+                                if (data && data.length > 0) {
+                                    data.forEach(code => {
+                                        $uniqueSelect.append(`<option value="${code.id}">${code.text}</option>`);
+                                    });
+                                }
+                                $uniqueSelect.trigger('change.select2');
+                            },
+                            error: function () {
+                                alert('خطا در بارگذاری کدهای یکتا');
+                            }
+                        });
+                    } else {
+                        $uniqueSelect.empty().append('<option value="">انتخاب کد یکتا</option>');
+                    }
+                }
+            });
+            // مدیریت تغییر انبار (نسخه تصحیح‌شده بدون تکرار و با selectedZoneId = null)
             $(document).on('change', '.warehouse-select', function () {
                 const index = $(this).data('index');
+                const tableType = $(this).data('table') || 'consumed';
                 const warehouseId = $(this).val();
-                const $zone = $(`select.zone-select[data-index="${index}"]`);
-                const filtered = normalizedData.zones.filter(z => z.warehouseId?.toString() === warehouseId);
-                $zone.html(buildOptions(filtered));
-                $(`select.section-select[data-index="${index}"]`).html('<option value="">ابتدا قسمت را انتخاب کنید</option>');
+                loadZones(warehouseId, index, null, tableType, function(finalZoneId) {
+                    // بدون نیاز به loadSections اضافی، زیرا null است
+                });
+                // به‌روزرسانی هدر با مقادیر نامشخص برای zone و section
+                const warehouseText = $(this).find('option:selected').text() || 'نامشخص';
+                updateLocationHeader(index, tableType, warehouseText, 'نامشخص', 'نامشخص');
             });
-
-            // --- قسمت → بخش
+            // مدیریت تغییر قسمت (نسخه تصحیح‌شده با selectedSectionId = null)
             $(document).on('change', '.zone-select', function () {
                 const index = $(this).data('index');
+                const tableType = $(this).data('table') || 'consumed';
                 const zoneId = $(this).val();
-                const filtered = normalizedData.sections.filter(s => s.zoneId?.toString() === zoneId);
-                $(`select.section-select[data-index="${index}"]`).html(buildOptions(filtered));
+                loadSections(zoneId, index, null, tableType, function(finalSectionId) {
+                    // بدون نیاز به اقدام اضافی
+                });
+                // به‌روزرسانی هدر با section نامشخص
+                const zoneText = $(this).find('option:selected').text() || 'نامشخص';
+                const $wh = $(`select[name*='WarehouseId'][data-index="${index}"]`);
+                const warehouseText = $wh.find('option:selected').text() || 'نامشخص';
+                updateLocationHeader(index, tableType, warehouseText, zoneText, 'نامشخص');
             });
-
+            // بارگذاری اولیه برای ردیف‌های موجود (نسخه تصحیح‌شده با .val() و فراخوانی یک‌بار)
+            function initializeExistingRows() {
+                // برای ConsumedItems
+                $("#consumedItemsTable tbody tr").each(function () {
+                    let i = $(this).data("index");
+                    let warehouseId = $(`select[name='ConsumedItems[${i}].WarehouseId']`).val();
+                    let zoneSelected = $(`select[name='ConsumedItems[${i}].ZoneId']`).val();
+                    let sectionSelected = $(`select[name='ConsumedItems[${i}].SectionId']`).val();
+                    if (warehouseId) {
+                        loadZones(warehouseId, i, zoneSelected, 'consumed', function(finalZoneId) {
+                            loadSections(finalZoneId, i, sectionSelected, 'consumed');
+                        });
+                    } else {
+                        // ریست در صورت عدم وجود warehouseId
+                        const $zone = $(`select[name='ConsumedItems[${i}].ZoneId']`);
+                        const $section = $(`select[name='ConsumedItems[${i}].SectionId']`);
+                        $zone.html('<option value="">انتخاب قسمت</option>');
+                        $section.html('<option value="">انتخاب بخش</option>');
+                    }
+                });
+                // برای ProducedItems
+                $("#producedItemsTable tbody tr").each(function () {
+                    let i = $(this).data("index");
+                    let warehouseId = $(`select[name='ProducedItems[${i}].WarehouseId']`).val();
+                    let zoneSelected = $(`select[name='ProducedItems[${i}].ZoneId']`).val();
+                    let sectionSelected = $(`select[name='ProducedItems[${i}].SectionId']`).val();
+                    if (warehouseId) {
+                        loadZones(warehouseId, i, zoneSelected, 'produced', function(finalZoneId) {
+                            loadSections(finalZoneId, i, sectionSelected, 'produced');
+                        });
+                    } else {
+                        // ریست در صورت عدم وجود warehouseId
+                        const $zone = $(`select[name='ProducedItems[${i}].ZoneId']`);
+                        const $section = $(`select[name='ProducedItems[${i}].SectionId']`);
+                        $zone.html('<option value="">انتخاب قسمت</option>');
+                        $section.html('<option value="">انتخاب بخش</option>');
+                    }
+                });
+            }
+            // فراخوانی بارگذاری اولیه
+            setTimeout(() => {
+                initializeExistingRows();
+            }, 500);
+            // مدیریت انتخاب کد یکتا - نسخه تصحیح‌شده بدون trigger('change') و با لود دستی
+                   $(document).on('select2:select', '.unique-codes-select', function (e) {
+            const data = e.params.data;
+            const uniqueCodeId = data.id;
+            const $select = $(this);
+            const index = $select.data('index');
+            const $row = $(`#consumedItemsTable tr[data-index="${index}"]`);
+            console.log('Selected unique code ID:', uniqueCodeId);
+            // مقدار تعداد را ست کن
+            $row.find('input[name^="ConsumedItems"][name$=".Quantity"]').val('1');
+            $.get('/WarehouseManagement/Conversion/GetUniqueCodeDetails', { uniqueCodeId: uniqueCodeId })
+                .done(function(result) {
+                    console.log('Unique code details:', result);
+                    if (result && result.sourceWarehouseId) {
+                        const $wh = $row.find('select[name^="ConsumedItems"][name$=".WarehouseId"]');
+                        const $zone = $row.find('select[name^="ConsumedItems"][name$=".ZoneId"]');
+                        const $section = $row.find('select[name^="ConsumedItems"][name$=".SectionId"]');
+                        const warehouseId = result.sourceWarehouseId.toString();
+                        const zoneId = result.sourceZoneId ? result.sourceZoneId.toString() : null;
+                        const sectionId = result.sourceSectionId ? result.sourceSectionId.toString() : null;
+                        // 1. ست کردن انبار بدون trigger change (برای جلوگیری از ریست)
+                        $wh.val(warehouseId);
+                        // 2. لود zone ها و بعد section با مقادیر خاص
+                        loadZones(warehouseId, index, zoneId, 'consumed', function(loadedZoneId) {
+                            // وقتی zone لود شد، section را لود کن
+                            if (loadedZoneId) {
+                                loadSections(loadedZoneId, index, sectionId, 'consumed', function() {
+                                    // sync select2 برای section (اگر باشد)
+                                    if ($section.hasClass('select2-hidden-accessible')) $section.trigger('change.select2');
+                                });
+                            }
+                        });
+                        // به‌روزرسانی هدر (با فرض وجود نام‌ها در result؛ در غیر این صورت بر اساس select)
+                        const warehouseText = $wh.find(`option[value="${warehouseId}"]`).text() || 'نامشخص';
+                        const zoneText = zoneId ? $zone.find(`option[value="${zoneId}"]`).text() : 'نامشخص';
+                        const sectionText = sectionId ? $section.find(`option[value="${sectionId}"]`).text() : 'نامشخص';
+                        updateLocationHeader(index, 'consumed', warehouseText, zoneText, sectionText);
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Error loading unique code details:', error);
+                    alert('خطا در بارگذاری جزئیات کد یکتا: ' + error);
+                });
+        });
+            // --- مدیریت کد یکتا دستی برای اقلام تولیدی
+            $(document).on('blur', '.unique-codes-input', function() {
+                const $input = $(this);
+                const index = $input.closest('tr').data('index');
+                const val = $input.val().trim();
+                if (val && !$input.closest('tr').find('input[type="checkbox"][name^="ProducedItems"][name$=".GenerateUniqueCodes"]').is(':checked')) {
+                    $(`#producedItemsTable tr[data-index="${index}"] input[name^="ProducedItems"][name$=".Quantity"]`).val('1');
+                }
+            });
             function showClientError(message, type) {
                 const targetId = type === 'ProducedItems' ? '#producedValidationErrors' : '#consumedValidationErrors';
                 $(targetId).html(`
                     <div class="alert alert-danger" role="alert">${message}</div>
                 `);
             }
-
             function clearClientErrors(type) {
                 const targetId = type === 'ProducedItems' ? '#producedValidationErrors' : '#consumedValidationErrors';
                 $(targetId).empty();
             }
-
             $(document).on('click', '.save-item', function () {
                 const $row = $(this).closest('tr[data-index]');
                 const index = $row.data('index');
                 const prefix = $row.closest('#producedItemsTable').length > 0 ? 'ProducedItems' : 'ConsumedItems';
                 const isProduced = prefix === 'ProducedItems';
-
                 clearClientErrors(prefix);
-
                 // اطلاعات دسته‌بندی، گروه، وضعیت، کالا
                 const categoryVal = $(`select[name="${prefix}[${index}].CategoryId"]`).val();
                 const categoryText = $(`select[name="${prefix}[${index}].CategoryId"] option:selected`).text();
-
                 const groupVal = $(`select[name="${prefix}[${index}].GroupId"]`).val();
                 const groupText = $(`select[name="${prefix}[${index}].GroupId"] option:selected`).text();
-
                 const statusVal = $(`select[name="${prefix}[${index}].StatusId"]`).val();
                 const statusText = $(`select[name="${prefix}[${index}].StatusId"] option:selected`).text();
-
                 const productVal = $(`select[name="${prefix}[${index}].ProductId"]`).val();
                 const productText = $(`select[name="${prefix}[${index}].ProductId"] option:selected`).text();
-
                 const quantity = $(`input[name="${prefix}[${index}].Quantity"]`).val();
-
                 const warehouseVal = $(`select[name="${prefix}[${index}].WarehouseId"]`).val();
                 const warehouseText = $(`select[name="${prefix}[${index}].WarehouseId"] option:selected`).text();
-
                 const zoneVal = $(`select[name="${prefix}[${index}].ZoneId"]`).val();
                 const zoneText = $(`select[name="${prefix}[${index}].ZoneId"] option:selected`).text();
-
                 const sectionVal = $(`select[name="${prefix}[${index}].SectionId"]`).val();
                 const sectionText = $(`select[name="${prefix}[${index}].SectionId"] option:selected`).text();
-
                 // اعتبارسنجی
                 if (!productVal) return showClientError('لطفاً یک کالا انتخاب کنید.', prefix);
                 if (!quantity || quantity <= 0) return showClientError('لطفاً مقدار معتبر وارد کنید.', prefix);
                 if (!warehouseVal) return showClientError('لطفاً انبار را انتخاب کنید.', prefix);
                 if (!zoneVal) return showClientError('لطفاً قسمت را انتخاب کنید.', prefix);
                 if (!sectionVal) return showClientError('لطفاً بخش را انتخاب کنید.', prefix);
-
                 clearClientErrors(prefix);
-
-                // شناسه آکاردئون‌ها
+                // به‌روزرسانی هدرها
+                updateProductHeader(index, isProduced ? 'produced' : 'consumed',
+                    categoryText, groupText, statusText, productText);
+                updateLocationHeader(index, isProduced ? 'produced' : 'consumed',
+                    warehouseText, zoneText, sectionText);
+                // بستن آکاردئون‌ها
                 const productCollapsePrefix = isProduced ? 'producedProductCollapse_' : 'productCollapse_';
                 const locationCollapsePrefix = isProduced ? 'producedLocationCollapse_' : 'locationCollapse_';
-
-                // بستن آکاردئون‌ها
                 const $productCollapse = $row.find(`.accordion-collapse[id^="${productCollapsePrefix}"]`);
-                if ($productCollapse.length) bootstrap.Collapse.getOrCreateInstance($productCollapse[0]).hide();
-
+                if ($productCollapse.length) {
+                    const collapseInstance = bootstrap.Collapse.getOrCreateInstance($productCollapse[0]);
+                    collapseInstance.hide();
+                }
                 const $locationCollapse = $row.find(`.accordion-collapse[id^="${locationCollapsePrefix}"]`);
-                if ($locationCollapse.length) bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]).hide();
-
-                // متن خلاصه برای هدرها
-                const productHeaderText = `${categoryText.trim()} - ${groupText.trim()} - ${statusText.trim()} - ${productText.trim()}`;
-                const locationHeaderText = `${warehouseText.trim()} - ${zoneText.trim()} - ${sectionText.trim()}`;
-
-                // به‌روزرسانی هدر آکاردئون کالا
-                const $productHeader = $row.find(`.accordion-button[data-bs-target^="#${productCollapsePrefix}"]`);
-                $productHeader.text(productHeaderText);
-
-                // به‌روزرسانی هدر آکاردئون محل نگهداری
-                const $locationHeader = $row.find(`.accordion-button[data-bs-target^="#${locationCollapsePrefix}"]`);
-                $locationHeader.text(locationHeaderText);
+                if ($locationCollapse.length) {
+                    const collapseInstance = bootstrap.Collapse.getOrCreateInstance($locationCollapse[0]);
+                    collapseInstance.hide();
+                }
             });
-
             $(document).on('click', '.remove-item', function () {
                 const $row = $(this).closest('tr');
+                const $table = $row.closest('table');
                 $row.remove();
+                if ($table.attr('id') === 'consumedItemsTable') {
+                    renumberConsumedRows();
+                } else if ($table.attr('id') === 'producedItemsTable') {
+                    renumberProducedRows();
+                }
             });
-
-            // --- Persian Datepicker
+            // Persian Datepicker
             $(".persian-datepicker").persianDatepicker({
                 format: "YYYY/MM/DD",
                 initialValueType: "persian",
                 autoClose: true,
                 initialValue: true
             });
-        });
-
-        $("#conversionForm").submit(function (e) {
-            e.preventDefault();
-
-            $.ajax({
-                type: "POST",
-                url: $(this).attr("action"),
-                data: $(this).serialize(),
-                success: function (response) {
-                    if (response.success) {
-                        var printConfirm = confirm("سند با موفقیت ثبت شد.\nآیا مایل به چاپ سند هستید؟");
-
-                        if (printConfirm) {
-                            window.location.href = '/WarehouseManagement/Conversion/Print/' + response.documentId;
+            // Handle GenerateUniqueCodes for existing rows
+            $('#producedItemsTable tbody tr').each(function () {
+                const index = $(this).data('index');
+                const checkbox = $(`#generateUnique_${index}`);
+                const manualDiv = $(`#manualUniqueDiv_${index}`);
+                if (checkbox.length) {
+                    checkbox.on('change', function () {
+                        if (this.checked) {
+                            manualDiv.addClass('d-none');
+                            manualDiv.find('input').val('');
                         } else {
-                            window.location.href = '/WarehouseManagement/Conversion/Index';
+                            manualDiv.removeClass('d-none');
                         }
-                    } else {
-                        alert("خطا:\n" + response.errors.join("\n"));
+                    });
+                    if (checkbox.is(':checked')) {
+                        manualDiv.addClass('d-none');
                     }
-                },
-                error: function () {
-                    alert("خطا در ارسال درخواست.");
                 }
+            });
+            $("#conversionForm").submit(function (e) {
+                e.preventDefault();
+                // بررسی نهایی Section قبل از ارسال
+                let hasSectionError = false;
+                $('select[name^="ConsumedItems"][name$=".SectionId"]').each(function() {
+                    const $section = $(this);
+                    const value = $section.val();
+                    if (!value) {
+                        const index = $section.closest('tr').data('index');
+                        showClientError(`بخش برای کالای مصرفی در ردیف ${parseInt(index) + 1} الزامی است.`, 'ConsumedItems');
+                        hasSectionError = true;
+                    }
+                });
+                if (hasSectionError) {
+                    alert('لطفاً بخش را برای تمام کالاهای مصرفی انتخاب کنید.');
+                    return;
+                }
+                $.ajax({
+                    type: "POST",
+                    url: $(this).attr("action"),
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            var printConfirm = confirm("سند با موفقیت ثبت شد.\nآیا مایل به چاپ سند هستید؟");
+                            if (printConfirm) {
+                                window.location.href = '/WarehouseManagement/Conversion/Print/' + response.documentId;
+                            } else {
+                                window.location.href = '/WarehouseManagement/Conversion/Index';
+                            }
+                        } else {
+                            alert("خطا:\n" + response.errors.join("\n"));
+                        }
+                    },
+                    error: function () {
+                        alert("خطا در ارسال درخواست.");
+                    }
+                });
             });
         });
     </script>
