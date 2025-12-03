@@ -22,6 +22,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
         public async Task<List<InventoryReportResultDto>> GetInventoryReportAsync(InventoryReportFilterDto filter)
         {
+            // 1️⃣ کوئری پایه بدون Include پیچیده روی collection
             var baseQuery = _dbContext.Inventories
                 .Include(i => i.Product)
                     .ThenInclude(p => p.Status)
@@ -30,9 +31,10 @@ namespace IMS.Application.WarehouseManagement.Services
                 .Include(i => i.Warehouse)
                 .Include(i => i.Zone)
                 .Include(i => i.Section)
+                .AsSplitQuery()
                 .AsQueryable();
 
-            // فیلترهای ساده
+            // 2️⃣ فیلترهای ساده
             if (filter.CategoryId.HasValue)
                 baseQuery = baseQuery.Where(i => i.Product.Status.Group.CategoryId == filter.CategoryId.Value);
 
@@ -51,7 +53,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 baseQuery = baseQuery.Where(i => i.Product.Name.Contains(s));
             }
 
-            // فیلتر UniqueCodes
+            // 3️⃣ فیلتر UniqueCodes
             List<int> inventoryIdsFromUniqueCodes = null;
             if (filter.UniqueCodes != null && filter.UniqueCodes.Any())
             {
@@ -71,7 +73,7 @@ namespace IMS.Application.WarehouseManagement.Services
             if (inventoryIdsFromUniqueCodes != null)
                 baseQuery = baseQuery.Where(i => inventoryIdsFromUniqueCodes.Contains(i.Id));
 
-            // فیلتر Warehouses / Zone / Section
+            // 4️⃣ فیلتر Warehouses / Zone / Section
             if (filter.Warehouses != null && filter.Warehouses.Any(w => w.WarehouseId > 0))
             {
                 IQueryable<Inventory> combined = baseQuery.Where(i => false);
@@ -92,15 +94,14 @@ namespace IMS.Application.WarehouseManagement.Services
                 baseQuery = combined.Distinct();
             }
 
-            // دریافت Inventory
+            // 5️⃣ دریافت داده‌ها به حافظه
             var inventories = await baseQuery
-                .Include(i => i.InventoryItems)
                 .ToListAsync();
 
             if (!inventories.Any())
                 return new List<InventoryReportResultDto>();
 
-            // UniqueCodes lookup
+            // 6️⃣ بارگذاری UniqueCodes برای همه Inventory ها
             var inventoryIds = inventories.Select(i => i.Id).ToList();
             var inventoryItems = await _dbContext.InventoryItems
                 .Where(ii => inventoryIds.Contains(ii.InventoryId) && !string.IsNullOrWhiteSpace(ii.UniqueCode))
@@ -111,7 +112,7 @@ namespace IMS.Application.WarehouseManagement.Services
                 .GroupBy(ii => ii.InventoryId)
                 .ToDictionary(g => g.Key, g => g.Select(x => x.UniqueCode).Distinct().ToList());
 
-            // گروه‌بندی نهایی
+            // 7️⃣ گروه‌بندی نهایی روی داده‌های در حافظه
             var groupedResults = inventories
                 .GroupBy(i => new
                 {
@@ -147,9 +148,7 @@ namespace IMS.Application.WarehouseManagement.Services
                     ProductId = g.Key.ProductId,
                     ProductName = g.Key.ProductName,
                     Quantity = g.Sum(x => x.Quantity),
-                    UniqueCodes = g.Select(x => x.Id)
-                                   .Where(id => itemsLookup.ContainsKey(id))
-                                   .SelectMany(id => itemsLookup[id])
+                    UniqueCodes = g.SelectMany(x => itemsLookup.ContainsKey(x.Id) ? itemsLookup[x.Id] : new List<string>())
                                    .Distinct()
                                    .ToList()
                 })
@@ -158,6 +157,7 @@ namespace IMS.Application.WarehouseManagement.Services
 
             return groupedResults;
         }
+
 
         #region SelectListItem Methods
 

@@ -141,7 +141,7 @@
                 @(Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Receipt ? "رسید" :
                     Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Issue ? "حواله" :
                     Model.Receipt.Type == IMS.Domain.WarehouseManagement.Enums.ReceiptOrIssueType.Transfer ? "تراکنش" :
-                    "نامشخص")
+                                "نامشخص")
             </span>
         </div>
         @if (!string.IsNullOrEmpty(Model.Receipt.Description))
@@ -179,12 +179,12 @@
                         <td>
                             @{
                                 var parts = new List<string>
-                    {
-                    item.Category?.Name ?? "—",
-                    item.Group?.Name ?? "—",
-                    item.Status?.Name ?? "—",
-                    item.Product?.Name ?? "—"
-                    };
+                                        {
+                                        item.Category?.Name ?? "—",
+                                        item.Group?.Name ?? "—",
+                                        item.Status?.Name ?? "—",
+                                        item.Product?.Name ?? "—"
+                                        };
                                 if (item.UniqueCodes != null && item.UniqueCodes.Count > 0)
                                 {
                                     parts.AddRange(((List<IMS.Domain.WarehouseManagement.Entities.ReceiptOrIssueItemUniqueCode>)item.UniqueCodes)
@@ -202,10 +202,10 @@
                             @{
                                 var srcParts = new[]
                                 {
-                    item.SourceWarehouse?.Name,
-                    item.SourceZone?.Name,
-                    item.SourceSection?.Name
-                    };
+                                        item.SourceWarehouse?.Name,
+                                        item.SourceZone?.Name,
+                                        item.SourceSection?.Name
+                                        };
                                 var src = string.Join(" | ", srcParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
                             }
                             @src
@@ -214,10 +214,10 @@
                             @{
                                 var destParts = new[]
                                 {
-                    item.DestinationWarehouse?.Name,
-                    item.DestinationZone?.Name,
-                    item.DestinationSection?.Name
-                    };
+                                        item.DestinationWarehouse?.Name,
+                                        item.DestinationZone?.Name,
+                                        item.DestinationSection?.Name
+                                        };
                                 var dest = string.Join(" | ", destParts.Where(p => !string.IsNullOrEmpty(p))) ?? "—";
                             }
                             @dest

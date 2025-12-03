@@ -16,8 +16,7 @@
         var pc = new System.Globalization.PersianCalendar();
         return $"{pc.GetYear(date)}/{pc.GetMonth(date):00}/{pc.GetDayOfMonth(date):00}";
     }
-}
-@functions {
+
     public string GetDocTypeFa(string docType)
     {
         return docType switch
@@ -26,6 +25,8 @@
             "Issue" => "حواله",
             "Transfer" => "انتقال",
             "Conversion" => "تبدیل",
+            "InventoryAdjustment" => "اصلاح موجودی",
+            "AddInventory" => "ایجاد کالا",
             _ => docType
         };
     }
@@ -39,7 +40,7 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
-    <title>گزارش تراکنش‌های انبار</title>
+    <title>گزارش تراکنش‌های کالا</title>
     <style>
         * {
             margin: 0;
@@ -140,10 +141,6 @@
                 font-size: 13px;
             }
 
-            .data-table tr:nth-child(even) {
-                background-color: #f8f9fa;
-            }
-
         .summary-row {
             font-weight: bold;
             background-color: #f1f1f1 !important;
@@ -154,11 +151,15 @@
                 border-bottom: 2px solid #1a4a5a;
                 padding: 12px 8px;
             }
+
+        .small-text {
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>گزارش تراکنش‌های انبار</h1>
+        <h1>گزارش تراکنش‌های کالا</h1>
         <div class="report-info">
             <span>تاریخ استخراج گزارش: @ToPersianDate(DateTime.Now)</span>
             <span>تعداد رکوردها: @(Model.Items?.Count() ?? 0)</span>
@@ -171,73 +172,62 @@
             @* فیلتر نوع سند *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.DocumentType))
             {
-                <span class="tag">نوع سند: @GetDocTypeFa(Model.Filter.DocumentType)</span>
+                <li class="tag">نوع سند: @GetDocTypeFa(Model.Filter.DocumentType)</li>
             }
 
             @* فیلتر تاریخ‌ها *@
             @if (Model.Filter.FromDate.HasValue)
             {
-                <span class="tag"> تاریخ: @ToPersianDate(Model.Filter.FromDate.Value)</span>
+                <li class="tag">از تاریخ: @ToPersianDate(Model.Filter.FromDate.Value)</li>
             }
             @if (Model.Filter.ToDate.HasValue)
             {
-                <span class="tag"> تاریخ: @ToPersianDate(Model.Filter.ToDate.Value)</span>
+                <li class="tag">تا تاریخ: @ToPersianDate(Model.Filter.ToDate.Value)</li>
             }
 
             @* فیلتر سلسله‌مراتب انبار *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.WarehouseName))
             {
-                <span class="tag">انبار: @Model.Filter.WarehouseName</span>
+                <li class="tag">انبار: @Model.Filter.WarehouseName</li>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ZoneName))
             {
-                <span class="tag">قسمت: @Model.Filter.ZoneName</span>
+                <li class="tag">قسمت: @Model.Filter.ZoneName</li>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.SectionName))
             {
-                <span class="tag">
-                    بخش: @Model.Filter.SectionName
-                </span>
+                <li class="tag">بخش: @Model.Filter.SectionName</li>
             }
 
             @* فیلتر سلسله‌مراتب محصول *@
             @if (!string.IsNullOrWhiteSpace(Model.Filter.CategoryName))
             {
-                <span class="tag">دسته‌بندی: @Model.Filter.CategoryName</span>
+                <li class="tag">دسته‌بندی: @Model.Filter.CategoryName</li>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.GroupName))
             {
-                <span class="tag">گروه: @Model.Filter.GroupName</span>
+                <li class="tag">گروه: @Model.Filter.GroupName</li>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.StatusName))
             {
-                <span class="tag">وضعیت: @Model.Filter.StatusName</span>
+                <li class="tag">طبقه: @Model.Filter.StatusName</li>
             }
             @if (!string.IsNullOrWhiteSpace(Model.Filter.ProductName))
             {
-                <span class="tag">کالا: @Model.Filter.ProductName</span>
+                <li class="tag">کالا: @Model.Filter.ProductName</li>
             }
         </ul>
     </section>
-
 
     <table class="data-table">
         <thead>
             <tr>
                 <th>تاریخ</th>
-                <th>شماره سند</th>
-                <th>نوع سند</th>
-                <th>دسته‌بندی</th>
-                <th>گروه</th>
-                <th>وضعیت</th>
                 <th>کالا</th>
-                <th>انبار مبدأ</th>
-                <th>قسمت مبدأ</th>
-                <th>بخش مبدأ</th>
-                <th>انبار مقصد</th>
-                <th>قسمت مقصد</th>
-                <th>بخش مقصد</th>
-                <th>مقدار</th>
+                <th>مبدأ</th>
+                <th>مقصد</th>
+                <th>نوع سند</th>
+                <th>تعداد</th>
             </tr>
         </thead>
         <tbody>
@@ -247,32 +237,22 @@
                 {
                     <tr>
                         <td>@(string.IsNullOrWhiteSpace(item.Date) ? "-" : item.Date)</td>
-
-
-                        <td>@CleanString(item.DocumentNumber ?? "-")</td>
+                        <td class="small-text">@CleanString($"{(item.CategoryName ?? "-")} - {(item.GroupName ?? "-")} - {(item.StatusName ?? "-")} - {(item.ProductName ?? "-")}")</td>
+                        <td class="small-text">@CleanString($"{(item.SourceWarehouseName ?? "-")} - {(item.SourceDepartmentName ?? "-")} - {(item.SourceSectionName ?? "-")}")</td>
+                        <td class="small-text">@CleanString($"{(item.DestinationWarehouseName ?? "-")} - {(item.DestinationDepartmentName ?? "-")} - {(item.DestinationSectionName ?? "-")}")</td>
                         <td>@GetDocTypeFa(item.DocumentType)</td>
-                        <td>@CleanString(item.CategoryName ?? "-")</td>
-                        <td>@CleanString(item.GroupName ?? "-")</td>
-                        <td>@CleanString(item.StatusName ?? "-")</td>
-                        <td>@CleanString(item.ProductName ?? "-")</td>
-                        <td>@CleanString(item.SourceWarehouseName ?? "-")</td>
-                        <td>@CleanString(item.SourceDepartmentName ?? "-")</td>
-                        <td>@CleanString(item.SourceSectionName ?? "-")</td>
-                        <td>@CleanString(item.DestinationWarehouseName ?? "-")</td>
-                        <td>@CleanString(item.DestinationDepartmentName ?? "-")</td>
-                        <td>@CleanString(item.DestinationSectionName ?? "-")</td>
                         <td>@item.Quantity.ToString("N0")</td>
                     </tr>
                 }
                 <tr class="summary-row">
-                    <td colspan="13">جمع کل</td>
+                    <td colspan="5">جمع کل</td>
                     <td>@(Model.Items.Sum(i => i.Quantity).ToString("N0"))</td>
                 </tr>
             }
             else
             {
                 <tr>
-                    <td colspan="14" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
+                    <td colspan="6" style="text-align:center; padding:20px;">داده‌ای برای نمایش وجود ندارد</td>
                 </tr>
             }
         </tbody>

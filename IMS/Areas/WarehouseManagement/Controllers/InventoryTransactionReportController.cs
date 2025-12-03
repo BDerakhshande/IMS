@@ -14,15 +14,18 @@ namespace IMS.Areas.WarehouseManagement.Controllers
     {
         private readonly IInventoryTransactionReportService _reportService;
         private readonly IWarehouseService _warehouseService;
+        private readonly IWarehouseDbContext _warehouseDbContext;
         private readonly ICategoryService _categoryService;
         public InventoryTransactionReportController(
             IInventoryTransactionReportService reportService,
             IWarehouseService warehouseService,
-            ICategoryService categoryService)
+            ICategoryService categoryService,
+            IWarehouseDbContext warehouseDbContext)
         {
             _reportService = reportService;
             _warehouseService = warehouseService;
             _categoryService = categoryService;
+            _warehouseDbContext = warehouseDbContext;
         }
         public async Task<IActionResult> Index()
         {
@@ -33,6 +36,7 @@ namespace IMS.Areas.WarehouseManagement.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReport([FromQuery] InventoryTransactionReportItemDto filter)
         {
+           
             try
             {
                 // حذف MapToEnglishDocumentType زیرا Value در View انگلیسی است و مستقیماً استفاده می‌شود
