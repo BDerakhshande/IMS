@@ -1,0 +1,327 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ورود به سیستم | پنل کاربری</title>
+    <!-- اضافه کردن Font Awesome از CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <!-- استایل شخصی -->
+    <link rel="stylesheet" href="~/css/LoginStyle.css" />
+
+    <style>
+        /* فونت اضطراری */
+        * {
+            font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-wrapper">
+        <!-- پس‌زمینه دکوراتیو -->
+        <div class="background-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+
+        <!-- کانتینر اصلی -->
+        <div class="login-container">
+            <!-- کارت لاگین -->
+            <div class="login-card">
+                <!-- هدر -->
+                <div class="login-header">
+                    <div class="logo-section">
+                        <img src="~/image/logo.png" alt="Logo" class="logo">
+                    </div>
+
+                    <div class="welcome-section">
+                        <h2 class="login-title">
+                            <i class="fas fa-sign-in-alt"></i>
+                            ورود به سیستم
+                        </h2>
+                        <p class="login-subtitle">لطفاً اطلاعات کاربری خود را وارد کنید</p>
+                    </div>
+                </div>
+
+                <!-- فرم لاگین -->
+                <form action="/login" method="POST" class="login-form" id="loginForm">
+                    <!-- فیلد نام کاربری -->
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user-circle"></i>
+                            نام کاربری
+                        </label>
+                        <div class="input-container">
+                            <input type="text"
+                                   id="username"
+                                   name="username"
+                                   placeholder="نام کاربری خود را وارد کنید"
+                                   class="form-input"
+                                   required
+                                   autocomplete="username">
+                      
+                        </div>
+
+                    </div>
+
+                    <!-- فیلد رمز عبور -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            کلمه عبور
+                        </label>
+                        <div class="input-container">
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   placeholder="کلمه عبور خود را وارد کنید"
+                                   class="form-input"
+                                   required
+                                   autocomplete="current-password">
+                         
+                        </div>
+                    </div>
+
+
+                    <!-- گزینه‌های فرم -->
+                    <div class="form-options">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="remember" name="remember">
+                            <span class="checkmark"></span>
+                            <span class="checkbox-label">مرا به خاطر بسپار</span>
+                        </label>
+                    </div>
+
+                    <!-- دکمه ورود -->
+                    <button type="submit" class="cta-btn" id="loginBtn">
+                        <span class="btn-text">ورود به سیستم</span>
+                        <i class="fas fa-arrow-left btn-icon"></i>
+                    </button>
+
+                </form>
+
+                <!-- لینک ثبت‌نام -->
+                <div class="register-section">
+                    <div class="register-text">
+                        <span>حساب کاربری ندارید؟</span>
+                        <a href="/register" class="register-link">
+                            <i class="fas fa-user-plus"></i>
+                            ثبت‌نام کنید
+                        </a>
+                    </div>
+                </div>
+
+               
+            </div>
+        </div>
+
+      
+    </div>
+
+    <script>
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const submitLoader = document.getElementById('submitLoader');
+        const notification = document.getElementById('notification');
+
+        // Toggle Password Visibility
+        togglePassword.addEventListener('click', function() {
+            const icon = this.querySelector('i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+                this.setAttribute('aria-label', 'مخفی کردن رمز عبور');
+            } else {
+                passwordInput.type = 'password';
+                icon.className = 'fas fa-eye';
+                this.setAttribute('aria-label', 'نمایش رمز عبور');
+            }
+        });
+
+        // Input Focus Effects
+        document.querySelectorAll('.form-input').forEach(input => {
+            const container = input.parentElement;
+
+            input.addEventListener('focus', function() {
+                container.classList.add('focused');
+            });
+
+            input.addEventListener('blur', function() {
+                if (!this.value.trim()) {
+                    container.classList.remove('focused');
+                }
+            });
+
+            // Add initial state
+            if (input.value.trim()) {
+                container.classList.add('focused');
+            }
+        });
+
+        // Form Validation
+        function validateForm() {
+            let isValid = true;
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+            document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+
+            // Username validation
+            if (!username.value.trim()) {
+                showError(username, 'لطفاً نام کاربری را وارد کنید');
+                isValid = false;
+            } else if (username.value.trim().length < 4) {
+                showError(username, 'نام کاربری باید حداقل ۴ کاراکتر باشد');
+                isValid = false;
+            }
+
+            // Password validation
+            if (!password.value.trim()) {
+                showError(password, 'لطفاً رمز عبور را وارد کنید');
+                isValid = false;
+            } else if (password.value.trim().length < 6) {
+                showError(password, 'رمز عبور باید حداقل ۶ کاراکتر باشد');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showError(input, message) {
+            input.classList.add('error');
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+
+            input.parentElement.parentElement.appendChild(errorDiv);
+        }
+
+        // Show Notification
+        function showNotification(message, type = 'success') {
+            const icon = notification.querySelector('i');
+            const text = notification.querySelector('.notification-text');
+
+            notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
+            icon.className = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+            text.textContent = message;
+
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Form Submission
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            if (!validateForm()) {
+                return;
+            }
+
+            // Show loading state
+            loginBtn.classList.add('hidden');
+            submitLoader.style.display = 'flex';
+            submitLoader.style.opacity = '1';
+
+            // Simulate API call
+            try {
+                const formData = {
+                    username: document.getElementById('username').value,
+                    password: document.getElementById('password').value,
+                    remember: document.getElementById('remember').checked
+                };
+
+                // In a real app, you would use fetch() here
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                // Simulate successful login
+                showNotification('ورود با موفقیت انجام شد! در حال انتقال...', 'success');
+
+                // Redirect after delay
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 2000);
+
+            } catch (error) {
+                showNotification('خطا در ورود. لطفاً مجدداً تلاش کنید.', 'error');
+
+                // Reset form state
+                loginBtn.classList.remove('hidden');
+                submitLoader.style.display = 'none';
+            }
+        });
+
+        // Social Login Buttons
+        document.querySelectorAll('.social-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const provider = this.classList.contains('google-btn') ? 'Google' : 'Microsoft';
+                showNotification(`ورود با ${provider} در حال آماده‌سازی...`, 'success');
+
+                // In a real app, you would trigger OAuth flow here
+                setTimeout(() => {
+                    showNotification(`در حال انتقال به صفحه ${provider}...`, 'success');
+                }, 1000);
+            });
+        });
+
+        // Remember Me checkbox localStorage
+        const rememberCheckbox = document.getElementById('remember');
+        const usernameInput = document.getElementById('username');
+
+        // Load saved username if exists
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUsername = localStorage.getItem('rememberedUsername');
+            if (savedUsername) {
+                usernameInput.value = savedUsername;
+                rememberCheckbox.checked = true;
+            }
+        });
+
+        // Save username on checkbox change
+        rememberCheckbox.addEventListener('change', function() {
+            if (this.checked && usernameInput.value.trim()) {
+                localStorage.setItem('rememberedUsername', usernameInput.value.trim());
+            } else {
+                localStorage.removeItem('rememberedUsername');
+            }
+        });
+
+        // Auto-save username when typing
+        usernameInput.addEventListener('input', function() {
+            if (rememberCheckbox.checked && this.value.trim()) {
+                localStorage.setItem('rememberedUsername', this.value.trim());
+            }
+        });
+
+        // Add keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + Enter to submit form
+            if (e.ctrlKey && e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+
+            // Escape to clear form
+            if (e.key === 'Escape') {
+                loginForm.reset();
+                localStorage.removeItem('rememberedUsername');
+                showNotification('فرم پاک شد', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

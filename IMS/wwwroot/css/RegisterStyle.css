@@ -1,0 +1,530 @@
+﻿/* ========== RESET & BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+:root {
+    --primary-blue: #0d4e6f;
+    --secondary-blue: #1c6ea4;
+    --accent-blue: #00b4db;
+    --success-green: #28a745;
+    --dark-green: #218838;
+    --dark-blue: #003366;
+    --light-gray: #f8fafc;
+    --medium-gray: #e1e5e9;
+    --text-gray: #666;
+    --text-dark: #333;
+    --white: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-dark: rgba(0, 0, 0, 0.15);
+}
+
+/* ========== BODY & BACKGROUND ========== */
+body {
+    font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    color: var(--text-dark);
+    line-height: 1.5; /* کاهش از 1.6 به 1.5 */
+    min-height: 100vh;
+    direction: rtl;
+    overflow-x: hidden;
+}
+
+/* جلوگیری از اسکرول بی‌جا در فرم */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ========== LOGIN CONTAINER ========== */
+.login-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 450px; 
+    margin: auto;
+    animation: slideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ========== LOGIN CARD ========== */
+.login-card {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(18px); /* کاهش از 20 به 18 */
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 16px; /* کاهش از 18 به 16 */
+    padding: 22px 26px; /* کاهش از 25x30 به 22x26 */
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.1), 0 5px 20px rgba(31, 38, 135, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 16px; /* کاهش از 18 به 16 */
+    min-height: 460px; /* کاهش از 500 به 460 */
+    overflow: hidden;
+}
+
+    .login-card:hover {
+        transform: translateY(-5px); /* کاهش از 6 به 5 */
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 8px 28px rgba(31, 38, 135, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+/* ========== LOGIN HEADER ========== */
+.login-header {
+    text-align: center;
+    margin-bottom: 18px; 
+}
+
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.logo {
+    width: 50px; 
+    height: 50px;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 6px 20px rgba(0, 180, 219, 0.2); 
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 6px 20px rgba(0, 180, 219, 0.2);
+    }
+
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 10px 25px rgba(0, 180, 219, 0.25);
+    }
+}
+
+.welcome-section {
+    margin-bottom: 6px; /* کاهش از 8 به 6 */
+}
+
+.login-title {
+    color: var(--dark-blue);
+    font-size: 1.5rem; /* کاهش از 1.6 به 1.5 */
+    margin-bottom: 5px; /* کاهش از 6 به 5 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* کاهش از 8 به 6 */
+}
+
+.login-subtitle {
+    color: var(--text-gray);
+    font-size: 0.85rem; /* کاهش از 0.9 به 0.85 */
+    margin-top: 2px; /* کاهش از 3 به 2 */
+}
+
+/* ========== FORM STYLES ========== */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px; 
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+}
+
+    .form-row .form-group {
+        flex: 1;
+    }
+
+.form-group {
+    margin-bottom: 3px; 
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 5px; 
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.85rem; 
+}
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 35px 10px 12px;
+    font-size: 0.9rem; 
+    border: 1.5px solid var(--medium-gray); 
+    border-radius: 8px;
+    background: var(--light-gray);
+    color: var(--text-dark);
+    font-weight: 500;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+    .form-input:focus {
+        border-color: var(--accent-blue);
+        box-shadow: 0 0 0 2px rgba(0, 180, 219, 0.2); 
+        background: var(--white);
+    }
+
+.toggle-password {
+    position: absolute;
+    left: 10px; /* کاهش از 12 به 10 */
+    background: none;
+    border: none;
+    color: var(--text-gray);
+    cursor: pointer;
+    padding: 3px; /* کاهش از 4 به 3 */
+    font-size: 0.85rem; /* کاهش از 0.9 به 0.85 */
+    transition: color 0.3s ease;
+}
+
+    .toggle-password:hover {
+        color: var(--accent-blue);
+    }
+
+.hint-text {
+    font-size: 0.7rem; /* کاهش از 0.75 به 0.7 */
+    color: var(--text-gray);
+    margin-top: 3px; /* کاهش از 4 به 3 */
+    text-align: right;
+}
+
+/* ========== PASSWORD STRENGTH ========== */
+.password-strength {
+    margin-top: 5px; /* کاهش از 6 به 5 */
+    height: 2.5px; /* کاهش از 3 به 2.5 */
+    background: var(--medium-gray);
+    border-radius: 1.25px; /* کاهش از 1.5 به 1.25 */
+    overflow: hidden;
+    position: relative;
+}
+
+.strength-meter {
+    height: 100%;
+    width: 0;
+    border-radius: 1.25px; /* کاهش از 1.5 به 1.25 */
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-size: 0.7rem; /* کاهش از 0.75 به 0.7 */
+    margin-top: 3px; /* کاهش از 4 به 3 */
+    text-align: right;
+    font-weight: 500;
+}
+
+/* ========== BUTTON STYLES ========== */
+.cta-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--success-green) 0%, var(--dark-green) 100%);
+    color: white;
+    padding: 12px; /* کاهش از 14 به 12 */
+    border-radius: 9px; /* کاهش از 10 به 9 */
+    font-weight: 700;
+    font-size: 0.95rem; /* کاهش از 1 به 0.95 */
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* کاهش مدت زمان انیمیشن */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* کاهش از 10 به 8 */
+    margin-top: 6px; /* کاهش از 8 به 6 */
+}
+
+    .cta-btn:hover {
+        transform: translateY(-1px); /* کاهش از 2 به 1 */
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.25); /* کاهش shadow */
+    }
+
+.btn-text {
+    font-size: 0.9rem; /* کاهش از 0.95 به 0.9 */
+}
+
+.btn-icon {
+    font-size: 0.9rem; /* کاهش از 0.95 به 0.9 */
+}
+
+/* ========== LOADER ========== */
+.loader {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px; /* کاهش از 12 به 10 */
+    padding: 14px; /* کاهش از 16 به 14 */
+    text-align: center;
+}
+
+    .loader.show {
+        display: flex;
+        opacity: 1;
+    }
+
+.spinner {
+    width: 30px; /* کاهش از 35 به 30 */
+    height: 30px; /* کاهش از 35 به 30 */
+    border: 1.5px solid var(--medium-gray); /* کاهش از 2px به 1.5px */
+    border-top: 1.5px solid var(--accent-blue); /* کاهش از 2px به 1.5px */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========== LOGIN LINK SECTION ========== */
+.login-section {
+    text-align: center;
+    padding-top: 14px; /* کاهش از 16 به 14 */
+    margin-top: 6px; /* کاهش از 8 به 6 */
+    border-top: 1px solid var(--medium-gray);
+}
+
+.login-text {
+    color: var(--text-gray);
+    font-size: 0.85rem; /* کاهش از 0.9 به 0.85 */
+}
+
+.login-link {
+    color: var(--accent-blue);
+    text-decoration: none;
+    font-weight: 600;
+    margin-right: 3px; /* کاهش از 4 به 3 */
+    display: inline-flex;
+    align-items: center;
+    gap: 3px; /* کاهش از 4 به 3 */
+    transition: color 0.3s ease;
+}
+
+    .login-link:hover {
+        color: var(--secondary-blue);
+        text-decoration: underline;
+    }
+
+/* ========== NOTIFICATION ========== */
+.notification {
+    position: fixed;
+    top: 12px; /* کاهش از 15 به 12 */
+    right: 12px; /* کاهش از 15 به 12 */
+    background: var(--success-green);
+    color: white;
+    padding: 10px 18px; /* کاهش از 12x20 به 10x18 */
+    border-radius: 7px; /* کاهش از 8 به 7 */
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.12); /* کاهش shadow */
+    display: flex;
+    align-items: center;
+    gap: 8px; /* کاهش از 10 به 8 */
+    transform: translateX(150%);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* کاهش مدت زمان */
+    z-index: 1000;
+    max-width: 300px; /* کاهش از 320 به 300 */
+}
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification i {
+        font-size: 1rem; /* کاهش از 1.1 به 1 */
+    }
+
+.notification-text {
+    font-size: 0.85rem; /* کاهش از 0.9 به 0.85 */
+    font-weight: 500;
+}
+
+/* ========== ERROR STATES ========== */
+.form-input.error {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.05);
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.75rem; /* کاهش از 0.8 به 0.75 */
+    margin-top: 3px; /* کاهش از 4 به 3 */
+    display: flex;
+    align-items: center;
+    gap: 3px; /* کاهش از 4 به 3 */
+}
+
+.form-input.success {
+    border-color: var(--success-green);
+    background: rgba(40, 167, 69, 0.05);
+}
+
+/* ========== BACKGROUND SHAPES ========== */
+.background-shapes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.shape {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 6s infinite ease-in-out;
+}
+
+.shape-1 {
+    width: 220px; /* کاهش از 250 به 220 */
+    height: 220px; /* کاهش از 250 به 220 */
+    top: -100px; /* کاهش از -120 به -100 */
+    right: -70px; /* کاهش از -80 به -70 */
+    animation-delay: 0s;
+}
+
+.shape-2 {
+    width: 140px; /* کاهش از 160 به 140 */
+    height: 140px; /* کاهش از 160 به 140 */
+    bottom: -50px; /* کاهش از -60 به -50 */
+    left: -50px; /* کاهش از -60 به -50 */
+    animation-delay: 2s;
+}
+
+.shape-3 {
+    width: 100px; /* کاهش از 120 به 100 */
+    height: 100px; /* کاهش از 120 به 100 */
+    top: 40%;
+    left: 10%;
+    animation-delay: 4s;
+}
+
+.shape-4 {
+    width: 70px; /* کاهش از 80 به 70 */
+    height: 70px; /* کاهش از 80 به 70 */
+    bottom: 20%;
+    right: 15%;
+    animation-delay: 6s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(6px); /* کاهش حرکت */
+    }
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    .login-container {
+        max-width: 90%;
+    }
+
+    .login-card {
+        padding: 18px 20px; /* کاهش از 20x22 به 18x20 */
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 10px; /* کاهش از 12 به 10 */
+    }
+
+    .login-title {
+        font-size: 1.35rem; /* کاهش از 1.45 به 1.35 */
+    }
+
+    .notification {
+        right: 8px; /* کاهش از 10 به 8 */
+        left: 8px; /* کاهش از 10 به 8 */
+        max-width: calc(100% - 16px);
+    }
+}
+
+@media (max-width: 480px) {
+    .login-wrapper {
+        padding: 8px; /* کاهش از 10 به 8 */
+    }
+
+    .login-card {
+        padding: 15px 14px; /* کاهش از 18x16 به 15x14 */
+        min-height: auto;
+        border-radius: 14px; /* کاهش از 16 به 14 */
+    }
+
+    .login-title {
+        font-size: 1.2rem; /* کاهش از 1.3 به 1.2 */
+    }
+
+    .form-input {
+        padding: 9px 30px 9px 10px; /* کاهش بیشتر */
+        font-size: 0.85rem; /* کاهش از 0.9 به 0.85 */
+        border-radius: 7px; /* کاهش از 8 به 7 */
+    }
+
+    .cta-btn {
+        padding: 10px; /* کاهش از 12 به 10 */
+        font-size: 0.9rem; /* کاهش از 0.95 به 0.9 */
+        border-radius: 8px; /* کاهش از 9 به 8 */
+    }
+
+    .toggle-password {
+        left: 8px; /* کاهش از 10 به 8 */
+        font-size: 0.8rem; /* کاهش از 0.85 به 0.8 */
+    }
+
+    .background-shapes .shape {
+        display: none;
+    }
+}
+
+/* استایل برای صفحات کوچک */
+@media (max-width: 480px) {
+    .form-row {
+        flex-direction: column;
+    }
+
+    .login-card {
+        padding: 14px 12px; /* کاهش بیشتر */
+    }
+
+    .logo {
+        width: 44px; /* کاهش از 48 به 44 */
+        height: 44px;
+    }
+}

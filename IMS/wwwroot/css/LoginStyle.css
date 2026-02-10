@@ -1,0 +1,221 @@
+﻿/* ========== RESET & BASE ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+:root {
+    --primary-blue: #0d4e6f;
+    --secondary-blue: #1c6ea4;
+    --accent-blue: #00b4db;
+    --success-green: #28a745;
+    --dark-green: #218838;
+    --dark-blue: #003366;
+    --light-gray: #f8fafc;
+    --medium-gray: #e1e5e9;
+    --text-gray: #666;
+    --text-dark: #333;
+    --white: #ffffff;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --shadow-dark: rgba(0, 0, 0, 0.15);
+}
+
+/* ========== BODY & BACKGROUND ========== */
+body {
+    font-family: Vazirmatn, Tahoma, Arial, sans-serif;
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+    color: var(--text-dark);
+    line-height: 1.6;
+    min-height: 100vh;
+    direction: rtl;
+    overflow-x: hidden;
+}
+
+/* جلوگیری از اسکرول بی‌جا در فرم */
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ========== LOGIN CONTAINER ========== */
+.login-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 450px; /* کاهش عرض کادر لاگین */
+    margin: auto; /* این ویژگی باعث می‌شود کادر در وسط صفحه قرار بگیرد */
+    animation: slideUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ========== LOGIN CARD ========== */
+.login-card {
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px; /* کمی کاهش شعاع گوشه‌ها */
+    padding: 20px 25px; /* کاهش padding */
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15), 0 8px 32px rgba(31, 38, 135, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px; /* کاهش فاصله بین المان‌ها */
+    min-height: 350px; /* کاهش ارتفاع کلی کادر */
+    overflow: hidden; /* جلوگیری از نمایش المان‌های بیرون زده */
+}
+
+    /* Hover Effect */
+    .login-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 35px 100px rgba(0, 0, 0, 0.25), 0 12px 40px rgba(31, 38, 135, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+/* ========== LOGIN HEADER ========== */
+.login-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* استایل برای بخش لوگو */
+.logo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px; /* کاهش فضای بین لوگو و عنوان */
+}
+
+/* استایل برای لوگو */
+.logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 50%;
+    box-shadow: 0 10px 30px rgba(0, 180, 219, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 10px 30px rgba(0, 180, 219, 0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 15px 40px rgba(0, 180, 219, 0.4);
+    }
+}
+
+/* ========== FORM STYLES ========== */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* کاهش فاصله بین فیلدها */
+}
+
+/* فیلد‌های ورودی */
+.form-group {
+    margin-bottom: 10px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1rem;
+    border: 2px solid var(--medium-gray);
+    border-radius: 10px;
+    background: var(--light-gray);
+    color: var(--text-dark);
+    font-weight: 500;
+    outline: none;
+}
+
+/* دکمه ورود */
+.cta-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--success-green) 0%, var(--dark-green) 100%);
+    color: white;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+}
+
+    .cta-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(40, 167, 69, 0.4);
+    }
+
+/* ========== RESPONSIVE DESIGN ========== */
+@media (max-width: 768px) {
+    .login-container {
+        max-width: 90%;
+    }
+
+    .login-card {
+        padding: 15px 20px;
+    }
+
+    .system-name {
+        font-size: 1.6rem;
+    }
+
+    .login-title {
+        font-size: 1.5rem;
+    }
+
+    .form-options {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .footer-links {
+        gap: 15px;
+    }
+
+    .footer-info {
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-card {
+        padding: 15px;
+        min-height: 300px; /* کاهش بیشتر ارتفاع */
+    }
+
+    .form-input {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+
+    .cta-btn {
+        padding: 10px;
+        font-size: 1rem;
+    }
+}

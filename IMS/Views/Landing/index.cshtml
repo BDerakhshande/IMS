@@ -1,121 +1,296 @@
-﻿
-@{
+﻿@{
     Layout = null;
 }
 
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <title>سیستم مدیریت یکپارچه - صدرا تجهیز مهرگان</title>
     <link rel="stylesheet" href="~/css/landingpage.css" />
-    <title> نرم‌افزار حسابداری اختصاصی شرکت</title>
+   
 </head>
 <body>
-
-    <header>
-        <a href="/Home/Index" class="cta-btn">
-            <i class="fas fa-sign-in-alt"></i> ورود به سیستم
-        </a>
-        <h1>نرم افزار یکپارچه صدرا تجهیز مهرگان</h1>
-        <img src="~/image/logo.png" alt="Logo" class="login-logo">
-
-    </header>
-    <main class="page-content">
-        <section class="hero">
-            <div class="hero-text">
-                <h1>سیستم جامع حسابداری و کنترل مالی</h1>
-                <p>سامانه مدیریت مالی صدرا تجهیز مهرگان برای افزایش دقت، سرعت و امنیت در فرآیندهای حسابداری شرکت طراحی و توسعه داده شده است</p>
+    <div class="app-container">
+        <!-- هدر -->
+        <header class="app-header">
+            <div class="app-brand">
+                <img src="~/image/logo.png" alt="Logo" class="app-logo">
+                <div class="brand-info">
+                    <h1>صدرا تجهیز مهرگان</h1>
+                    <p>سیستم مدیریت یکپارچه</p>
+                </div>
             </div>
-        </section>
-        <section class="features-about-container">
-            <section class="features">
-                <h2>ویژگی‌های اصلی سیستم</h2>
+            <div class="app-actions">
+                <div class="version-badge">نسخه ۱.۱.۰</div>
+                <a href="/Login/Index" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>ورود به سامانه</span>
+                </a>
+            </div>
+        </header>
 
-                <div class="slider">
-                    <div class="slide-track">
-                        <div class="card">
-                            <h3>💡 یکپارچگی کامل سیستم‌ها</h3>
-                            <p>اتصال هوشمند بین بخش‌های حسابداری، انبار، تدارکات و مدیریت پروژه برای جلوگیری از خطا و دوباره‌کاری</p>
-                        </div>
-                        <div class="card">
-                            <h3>⚙️ اتوماسیون فرآیندها</h3>
-                            <p>ثبت، تأیید و گزارش‌دهی خودکار عملیات مالی و انباری با کاهش خطای انسانی و افزایش سرعت</p>
-                        </div>
-                        <div class="card">
-                            <h3>📊 گزارش‌گیری تحلیلی</h3>
-                            <p>نمایش بلادرنگ اطلاعات مالی، موجودی و وضعیت پروژه‌ها در قالب نمودار و داشبورد مدیریتی</p>
-                        </div>
+        <!-- بخش اصلی -->
+        <main class="app-main">
+            <!-- نوار کناری -->
+            <aside class="app-sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">ماژول‌های سیستم</h3>
+                    <ul class="module-list">
+                        <li class="module-item">
+                            <a href="#overview" class="module-link active" data-section="overview">
+                                <div class="module-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="module-info">
+                                    <h4>نمای کلی</h4>
+                                    <p>آشنایی با سیستم</p>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="module-item">
+                            <a href="#modules" class="module-link" data-section="modules">
+                                <div class="module-icon">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <div class="module-info">
+                                    <h4>ماژول‌ها</h4>
+                                    <p>بخش‌های مختلف سیستم</p>
+                                </div>
+                            </a>
+                        </li>
+                      
+                        <li class="module-item">
+                            <a href="#guide" class="module-link" data-section="guide">
+                                <div class="module-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div class="module-info">
+                                    <h4>راهنما</h4>
+                                    <p>آموزش استفاده</p>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-                        <!-- 👇 برای حرکت بی‌نهایت دوباره تکرار کن -->
-                        <div class="card">
-                            <h3>💡 یکپارچگی کامل سیستم‌ها</h3>
-                            <p>اتصال هوشمند بین بخش‌های حسابداری، انبار، تدارکات و مدیریت پروژه برای جلوگیری از خطا و دوباره‌کاری</p>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">وضعیت سیستم</h3>
+                    <div class="quick-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">۴</div>
+                            <div class="stat-label">ماژول</div>
                         </div>
-                        <div class="card">
-                            <h3>⚙️ اتوماسیون فرآیندها</h3>
-                            <p>ثبت، تأیید و گزارش‌دهی خودکار عملیات مالی و انباری با کاهش خطای انسانی و افزایش سرعت</p>
+                        <div class="stat-item">
+                            <div class="stat-value">۲۴/۷</div>
+                            <div class="stat-label">دسترسی</div>
                         </div>
-                        <div class="card">
-                            <h3>📊 گزارش‌گیری تحلیلی</h3>
-                            <p>نمایش بلادرنگ اطلاعات مالی، موجودی و وضعیت پروژه‌ها در قالب نمودار و داشبورد مدیریتی</p>
+                        <div class="stat-item">
+                            <div class="stat-value">۱۰۰٪</div>
+                            <div class="stat-label">پشتیبانی</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">۱.۱.۰</div>
+                            <div class="stat-label">نسخه</div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </aside>
 
-
-            <section class="about-company">
-                <h2>درباره سیستم و امکانات داخلی</h2>
-
-                <div class="slider about-slider">
-                    <div class="slide-track">
-                        <div class="internal-feature">
-                            <h4>📦 سیستم انبارداری</h4>
-                            <p>مدیریت کالا ها و انبار، کنترل موجودی، گزارش های موجودی، تراکنش کالا و پروژه و ارتباط مستقیم با بخش حسابداری و تدارکات</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>📋 مدیریت پروژه</h4>
-                            <p>برنامه‌ریزی، پایش و تحلیل پروژه‌ها با امکان ثبت هزینه‌ها، زمان‌بندی فعالیت‌ها و گزارش پیشرفت لحظه‌ای</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>🚚 سیستم تدارکات</h4>
-                            <p>ثبت درخواست خرید، سفارش‌گذاری و مدیریت فرآیند تأمین کالا با اتصال کامل به انبار و حسابداری</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>🧾 سیستم حسابداری</h4>
-                            <p>ثبت، کنترل و تحلیل تمامی تراکنش‌های مالی، صدور اسناد، ترازنامه‌ها و گزارش‌های مدیریتی به‌صورت دقیق و خودکار</p>
-                        </div>
-
-                        <!-- 👇 تکرار برای حرکت بی‌نهایت -->
-                        <div class="internal-feature">
-                            <h4>📦 سیستم انبارداری</h4>
-                            <p>مدیریت کالا ها و انبار، کنترل موجودی، گزارش های موجودی، تراکنش کالا و پروژه و ارتباط مستقیم با بخش حسابداری و تدارکات</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>📋 مدیریت پروژه</h4>
-                            <p>برنامه‌ریزی، پایش و تحلیل پروژه‌ها با امکان ثبت هزینه‌ها، زمان‌بندی فعالیت‌ها و گزارش پیشرفت لحظه‌ای</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>🚚 سیستم تدارکات</h4>
-                            <p>ثبت درخواست خرید، سفارش‌گذاری و مدیریت فرآیند تأمین کالا با اتصال کامل به انبار و حسابداری</p>
-                        </div>
-                        <div class="internal-feature">
-                            <h4>🧾 سیستم حسابداری</h4>
-                            <p>ثبت، کنترل و تحلیل تمامی تراکنش‌های مالی، صدور اسناد، ترازنامه‌ها و گزارش‌های مدیریتی به‌صورت دقیق و خودکار</p>
+            <!-- محتوای اصلی -->
+            <div class="app-content">
+                <!-- بخش نمای کلی -->
+                <section id="overview" class="content-section active-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">سیستم مدیریت یکپارچه</h2>
+                            <p class="section-subtitle">سامانه تخصصی تدارکات، حسابداری، انبارداری و پروژه‌های شرکت</p>
                         </div>
                     </div>
-                </div>
-            </section>
-        </section>
-    </main>
-    <footer>
-        <div class="footer-info">
-            <span>نسخه ۱.۱.۰</span>
-            <span>© ۱۴۰۴ کلیه حقوق محفوظ است</span>
-        </div>
-    </footer>
 
+                    <div class="system-overview">
+                        <div class="overview-text">
+                            <p>سیستم مدیریت مالی صدرا تجهیز مهرگان، یک پلتفرم یکپارچه برای مدیریت تمامی فرآیندهای مالی، حسابداری، انبارداری و پروژه‌های شرکت است. این سیستم به صورت اختصاصی برای نیازهای شرکت طراحی و توسعه داده شده است.</p>
+
+                            <div class="features-grid">
+                                <div class="feature-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>یکپارچگی کامل با فرآیندهای شرکت</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>امنیت بالا و دسترسی سطح‌بندی شده</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>گزارش‌گیری پیشرفته و تحلیل داده‌ها</span>
+                                </div>
+                                <div class="feature-item">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>پشتیبانی فنی و به‌روزرسانی مستمر</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="login-prompt">
+                            <h3>آماده شروع هستید؟</h3>
+                            <p>برای دسترسی به تمامی امکانات سیستم، وارد حساب کاربری خود شوید.</p>
+                            <a href="/Login/Index" class="primary-btn">
+                                <i class="fas fa-sign-in-alt"></i>
+                                ورود به سیستم
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- بخش ماژول‌ها -->
+                <section id="modules" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">ماژول‌های سیستم</h2>
+                            <p class="section-subtitle">آشنایی با بخش‌های مختلف سیستم</p>
+                        </div>
+                    </div>
+
+                    <div class="modules-display">
+                        <div class="module-card">
+                            <i class="fas fa-calculator"></i>
+                            <h3>حسابداری مالی</h3>
+                            <p>سیستم جامع حسابداری برای ثبت، کنترل و تحلیل تمامی تراکنش‌های مالی شرکت</p>
+                        </div>
+
+                        <div class="module-card">
+                            <i class="fas fa-warehouse"></i>
+                            <h3>انبارداری</h3>
+                            <p>مدیریت کامل انبار و موجودی کالاها با قابلیت پیگیری دقیق</p>
+                        </div>
+
+                        <div class="module-card">
+                            <i class="fas fa-project-diagram"></i>
+                            <h3>مدیریت پروژه</h3>
+                            <p>پیگیری و مدیریت پروژه‌های شرکت با قابلیت کنترل هزینه و زمان</p>
+                        </div>
+
+                        <div class="module-card">
+                            <i class="fas fa-truck"></i>
+                            <h3>تدارکات</h3>
+                            <p>سیستم مدیریت فرآیند خرید و تأمین کالا و خدمات</p>
+                        </div>
+                    </div>
+                </section>
+
+        
+
+                <!-- بخش راهنما -->
+                <section id="guide" class="content-section" style="display: none;">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">راهنمای استفاده</h2>
+                            <p class="section-subtitle">دستورالعمل‌ها و آموزش‌های ضروری</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <i class="fas fa-user-shield"></i>
+                            <h4>امنیت و دسترسی</h4>
+                            <p>هر کاربر با نام کاربری و رمز عبور منحصر به فرد به سیستم دسترسی دارد.</p>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <i class="fas fa-file-export"></i>
+                            <h4>گزارش‌گیری</h4>
+                            <p>گزارش‌ها به صورت PDF و Excel قابل دریافت هستند.</p>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <i class="fas fa-headset"></i>
+                            <h4>پشتیبانی فنی</h4>
+                            <p>در صورت بروز مشکل با واحد فناوری اطلاعات تماس بگیرید.</p>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <i class="fas fa-download"></i>
+                            <h4>نصب و راه‌اندازی</h4>
+                            <p>سیستم نیاز به نصب خاصی ندارد و از طریق مرورگر قابل دسترسی است.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- فوتر -->
+        <footer class="app-footer">
+            <div class="footer-info">
+                <span>© ۱۴۰۴ - استفاده داخلی شرکت صدرا تجهیز مهرگان</span>
+                <span class="footer-contact">
+                    <i class="fas fa-phone"></i>
+                    پشتیبانی: داخلی ۱۰۲
+                </span>
+            </div>
+            <div>
+                <span>it-support@sedratezh.com</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // مدیریت کلیک روی منوها
+            const menuLinks = document.querySelectorAll('.module-link');
+            const sections = document.querySelectorAll('.content-section');
+
+            menuLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // حذف کلاس active از همه لینک‌ها
+                    menuLinks.forEach(l => l.classList.remove('active'));
+
+                    // اضافه کردن کلاس active به لینک فعلی
+                    this.classList.add('active');
+
+                    // مخفی کردن همه بخش‌ها
+                    sections.forEach(section => {
+                        section.style.display = 'none';
+                        section.classList.remove('active-section');
+                    });
+
+                    // نمایش بخش مربوطه
+                    const targetId = this.getAttribute('href').substring(1);
+                    const targetSection = document.getElementById(targetId);
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                        setTimeout(() => {
+                            targetSection.classList.add('active-section');
+                        }, 10);
+                    }
+                });
+            });
+
+            // تنظیمات لوگو
+            const logo = document.querySelector('.app-logo');
+            if (logo) {
+                logo.style.maxHeight = '40px';
+                logo.style.width = 'auto';
+            }
+
+            // اسکرول نرم برای محتوای اصلی
+            const contentArea = document.querySelector('.app-content');
+            if (contentArea) {
+                contentArea.addEventListener('wheel', function(e) {
+                    this.scrollTop += e.deltaY;
+                });
+            }
+
+            // نمایش اولیه
+            const activeSection = document.querySelector('.active-section');
+            if (activeSection) {
+                activeSection.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>
