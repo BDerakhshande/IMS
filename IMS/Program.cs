@@ -7,13 +7,44 @@ using IMS.Areas.AccountManagement.Data;
 
 using IMS.Domain.ProjectManagement.Validator;
 using IMS.Domain.WarehouseManagement.Validator;
+using IMS.Infrastructure.Persistence.Identity;
 using IMS.Infrastructure.Persistence.ProcurementManagement;
 using IMS.Infrastructure.Persistence.ProjectManagement;
 using IMS.Infrastructure.Persistence.WarehouseManagement;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Rotativa.AspNetCore;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+
+
+builder.Services.AddDbContext<AppIdentityDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("AppIdentityDb")));
+
+
+// ???????? Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+{
+    // ??????? ?????? Identity (??? ??????? ????? ? ...)
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+.AddEntityFrameworkStores<AppIdentityDbContext>()  // ????? DbContext ?? Identity
+.AddDefaultTokenProviders();  // ???? ?????? ??????? ? ????? ?????
+
+// ???????? ???????? Identity
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/login"; // ???? ???? ???? ????
+    options.AccessDeniedPath = "/access-denied";  // ???? ???? ?????? ??????
+    options.ExpireTimeSpan = TimeSpan.FromDays(7);  // ????? ???? ?????? ???????
+    options.SlidingExpiration = true;
+});
 
 
 
@@ -99,6 +130,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 

@@ -1,0 +1,100 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | پنل کاربری</title>
+
+    <!-- فونت awesome برای آیکون‌ها -->
+    <link rel="stylesheet" href="~/fontawesome/css/all.min.css" />
+    <!-- استایل اصلی -->
+    <link rel="stylesheet" href="~/css/LoginStyle.css" />
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="background-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+            <div class="shape shape-4"></div>
+        </div>
+
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="logo-section">
+                        <img src="~/image/logo.png" alt="Logo" class="logo">
+                    </div>
+                    <div class="welcome-section">
+                        <h2 class="login-title">
+                            @if (ViewData["Title"]?.ToString() == "ورود به سیستم")
+                            {
+                                <i class="fas fa-sign-in-alt"></i>
+                            }
+                            else
+                            {
+                                <i class="fas fa-user-plus"></i>
+                            }
+                            @ViewData["Title"]
+                        </h2>
+                        <p class="login-subtitle">
+                            @if (ViewData["Title"]?.ToString() == "ورود به سیستم")
+                            {
+                                <span>لطفاً اطلاعات کاربری خود را وارد کنید</span>
+                            }
+                            else
+                            {
+                                <span>لطفاً اطلاعات خود را برای ایجاد حساب کاربری وارد کنید</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="error-container">
+                        @foreach (var modelState in ViewData.ModelState.Values)
+                        {
+                            foreach (var error in modelState.Errors)
+                            {
+                                <div class="error-item">@error.ErrorMessage</div>
+                            }
+                        }
+                    </div>
+                }
+
+                @RenderBody()
+
+                <div class="auth-switch-section">
+                    <div class="auth-switch-text">
+                        @if (ViewData["Title"]?.ToString() == "ورود به سیستم")
+                        {
+                            <span>حساب کاربری ندارید؟</span>
+                            <a href="/register" class="auth-switch-link">
+                                <i class="fas fa-user-plus"></i>
+                                ثبت‌نام کنید
+                            </a>
+                        }
+                        else
+                        {
+                            <span>قبلاً حساب کاربری دارید؟</span>
+                            <a href="/login" class="auth-switch-link">
+                                <i class="fas fa-sign-in-alt"></i>
+                                وارد شوید
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

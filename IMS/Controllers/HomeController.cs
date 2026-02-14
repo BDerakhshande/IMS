@@ -1,20 +1,30 @@
-using System.Diagnostics;
+﻿using IMS.Infrastructure.Persistence.Identity;
 using IMS.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace IMS.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly UserManager<ApplicationUser> _userManager;
+        public HomeController(ILogger<HomeController> logger, UserManager<ApplicationUser> userManager)
         {
             _logger = logger;
+            _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await _userManager.GetUserAsync(User); // دریافت کاربر فعلی
+
+            if (user != null)
+            {
+                ViewData["Username"] = user.UserName; // نام کاربری را به ViewData اضافه می‌کنیم
+            }
+
             return View();
         }
 
