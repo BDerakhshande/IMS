@@ -10,22 +10,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <title>سیستم مدیریت یکپارچه - صدرا تجهیز مهرگان</title>
     <link rel="stylesheet" href="~/css/landingpage.css" />
-   
+
 </head>
 <body>
     <div class="app-container">
-        <!-- هدر -->
-        <header class="app-header">
+        <!-- هدر با رنگ primary-color -->
+        <header class="app-header system-header" style="background-color: #1a4a5a;">
             <div class="app-brand">
-                <img src="~/image/logo.png" alt="Logo" class="app-logo">
+                <img src="~/image/logo.png" alt="Logo" class="app-logo system-logo">
                 <div class="brand-info">
-                    <h1>صدرا تجهیز مهرگان</h1>
-                    <p>سیستم مدیریت یکپارچه</p>
+                    <h1 style="color: white; font-size: 1.3rem; margin: 0; background: none;">صدرا تجهیز مهرگان</h1>
+                    <p style="color: #e0f7fa; font-size: 0.8rem; margin: 0;">سیستم مدیریت یکپارچه</p>
                 </div>
             </div>
             <div class="app-actions">
-                <div class="version-badge">نسخه ۱.۱.۰</div>
-                <a href="/Login/Index" class="login-btn">
+                <div class="version-badge" style="background-color: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.1);">نسخه ۱.۱.۰</div>
+                <a href="/Login/Index" class="login-btn access-btn" style="background-color: #1aada2; color: white;">
                     <i class="fas fa-sign-in-alt"></i>
                     <span>ورود به سامانه</span>
                 </a>
@@ -61,7 +61,7 @@
                                 </div>
                             </a>
                         </li>
-                      
+
                         <li class="module-item">
                             <a href="#guide" class="module-link" data-section="guide">
                                 <div class="module-icon">
@@ -137,7 +137,7 @@
                         <div class="login-prompt">
                             <h3>آماده شروع هستید؟</h3>
                             <p>برای دسترسی به تمامی امکانات سیستم، وارد حساب کاربری خود شوید.</p>
-                            <a href="/Login/Index" class="primary-btn">
+                            <a href="/Login/Index" class="primary-btn access-btn">
                                 <i class="fas fa-sign-in-alt"></i>
                                 ورود به سیستم
                             </a>
@@ -155,33 +155,31 @@
                     </div>
 
                     <div class="modules-display">
-                        <div class="module-card">
+                        <div class="module-card accounting">
                             <i class="fas fa-calculator"></i>
                             <h3>حسابداری مالی</h3>
                             <p>سیستم جامع حسابداری برای ثبت، کنترل و تحلیل تمامی تراکنش‌های مالی شرکت</p>
                         </div>
 
-                        <div class="module-card">
+                        <div class="module-card inventory">
                             <i class="fas fa-warehouse"></i>
                             <h3>انبارداری</h3>
                             <p>مدیریت کامل انبار و موجودی کالاها با قابلیت پیگیری دقیق</p>
                         </div>
 
-                        <div class="module-card">
+                        <div class="module-card projects">
                             <i class="fas fa-project-diagram"></i>
                             <h3>مدیریت پروژه</h3>
                             <p>پیگیری و مدیریت پروژه‌های شرکت با قابلیت کنترل هزینه و زمان</p>
                         </div>
 
-                        <div class="module-card">
+                        <div class="module-card procurement">
                             <i class="fas fa-truck"></i>
                             <h3>تدارکات</h3>
                             <p>سیستم مدیریت فرآیند خرید و تأمین کالا و خدمات</p>
                         </div>
                     </div>
                 </section>
-
-        
 
                 <!-- بخش راهنما -->
                 <section id="guide" class="content-section" style="display: none;">
@@ -221,8 +219,8 @@
             </div>
         </main>
 
-        <!-- فوتر -->
-        <footer class="app-footer">
+        <!-- فوتر با رنگ primary-color -->
+        <footer class="app-footer system-footer">
             <div class="footer-info">
                 <span>© ۱۴۰۴ - استفاده داخلی شرکت صدرا تجهیز مهرگان</span>
                 <span class="footer-contact">
@@ -234,6 +232,13 @@
                 <span>it-support@sedratezh.com</span>
             </div>
         </footer>
+    </div>
+
+    <!-- دکمه تغییر تم (جهت هماهنگی با استایل دوم) -->
+    <div class="theme-toggle">
+        <i class="fas fa-sun"></i>
+        <i class="fas fa-moon"></i>
+        <div class="toggle-thumb"></div>
     </div>
 
     <script>
@@ -273,7 +278,7 @@
             // تنظیمات لوگو
             const logo = document.querySelector('.app-logo');
             if (logo) {
-                logo.style.maxHeight = '40px';
+                logo.style.maxHeight = '50px';
                 logo.style.width = 'auto';
             }
 
@@ -290,6 +295,14 @@
             if (activeSection) {
                 activeSection.style.display = 'block';
             }
+
+            // مدیریت تغییر تم
+            const themeToggle = document.querySelector('.theme-toggle');
+            const body = document.body;
+
+            themeToggle.addEventListener('click', function() {
+                body.classList.toggle('dark-mode');
+            });
         });
     </script>
 </body>
