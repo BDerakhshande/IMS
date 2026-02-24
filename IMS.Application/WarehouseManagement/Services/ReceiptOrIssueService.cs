@@ -625,13 +625,22 @@ namespace IMS.Application.WarehouseManagement.Services
             return (resultDto, new List<string>());
         }
 
-        public async Task<(ReceiptOrIssue? entity, List<string> errors)> UpdateAsync(int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken)
+        public async Task<(ReceiptOrIssue? entity, List<string> errors)> UpdateAsync(
+     int id, ReceiptOrIssueDto dto, CancellationToken cancellationToken)
         {
-            var dbContext = _dbContext as DbContext ?? throw new InvalidOperationException("DbContext required for transaction");
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+            if (dto.Items == null || !dto.Items.Any())
+                throw new ArgumentException("Items collection cannot be empty.");
+
+            var dbContext = _dbContext as DbContext
+                ?? throw new InvalidOperationException("DbContext required for transaction");
+
             using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
             var errors = new List<string>();
 
+            // 1) Load old document (برای برگشت اثر)
             var entity = await _dbContext.ReceiptOrIssues
                 .Include(r => r.Items)
                     .ThenInclude(i => i.UniqueCodes)
@@ -640,150 +649,296 @@ namespace IMS.Application.WarehouseManagement.Services
             if (entity == null)
                 return (null, new List<string> { "سند مورد نظر یافت نشد." });
 
-            // بارگذاری داده‌های مورد نیاز مشابه CreateAsync
-            var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
-            var requestIds = dto.Items.Select(i => i.PurchaseRequestId).Distinct().ToList();
+            var oldType = entity.Type;
 
-            var productNames = await _dbContext.Products
-                .Where(p => productIds.Contains(p.Id))
-                .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
-
-            var purchaseRequestItems = await _procurementContext.PurchaseRequestItems
-                .Include(pri => pri.PurchaseRequest)
-                .Where(pri => productIds.Contains(pri.ProductId) && requestIds.Contains(pri.PurchaseRequestId))
-                .ToListAsync(cancellationToken);
-
-            var requestNumbers = purchaseRequestItems
-                .Select(pri => pri.PurchaseRequest?.RequestNumber)
-                .Where(rn => !string.IsNullOrWhiteSpace(rn))
-                .Distinct()
-                .ToList();
-
-            var flatItems = await _procurementContext.PurchaseRequestFlatItems
-                .Where(f => productIds.Contains(f.ProductId) && requestNumbers.Contains(f.RequestNumber))
-                .ToListAsync(cancellationToken);
-
-            var inventoryItems = await _dbContext.InventoryItems
-                .Include(ii => ii.Inventory)
-                .Where(ii => productIds.Contains(ii.Inventory.ProductId))
-                .ToListAsync(cancellationToken);
-
-            var inventories = inventoryItems.Select(ii => ii.Inventory).Distinct().ToList();
-            var inventoryItemsMap = inventoryItems
-                .GroupBy(ii => new
-                {
-                    ii.Inventory.WarehouseId,
-                    ii.Inventory.ZoneId,
-                    ii.Inventory.SectionId,
-                    ii.Inventory.ProductId
-                })
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            // اعتبارسنجی مشابه CreateAsync
-            var stoppedProducts = new HashSet<int>();
-            foreach (var item in dto.Items)
+            try
             {
-                var productName = productNames.GetValueOrDefault(item.ProductId, "نامشخص");
+                // =========================================================
+                // 2) REVERT OLD EFFECT (کپی از DeleteAsync - بدون حذف سند)
+                // =========================================================
+                var oldWarehouseIds = entity.Items
+                    .SelectMany(i => new[] { i.SourceWarehouseId, i.DestinationWarehouseId })
+                    .Where(x => x.HasValue).Select(x => x!.Value).Distinct().ToList();
 
-                if (item.ProductId <= 0)
-                    errors.Add($"شناسه کالا معتبر نیست.");
+                var oldProductIds = entity.Items.Select(i => i.ProductId).Distinct().ToList();
 
-                var pri = purchaseRequestItems.FirstOrDefault(pr => pr.ProductId == item.ProductId && pr.PurchaseRequestId == item.PurchaseRequestId);
-                var requestNumber = pri?.PurchaseRequest?.RequestNumber;
+                var oldZoneIds = entity.Items
+                    .SelectMany(i => new[] { i.SourceZoneId, i.DestinationZoneId })
+                    .Where(x => x.HasValue).Select(x => x!.Value).Distinct().ToList();
 
-                if (pri != null && pri.IsSupplyStopped && dto.Type == ReceiptOrIssueType.Receipt)
+                var oldSectionIds = entity.Items
+                    .SelectMany(i => new[] { i.SourceSectionId, i.DestinationSectionId })
+                    .Where(x => x.HasValue).Select(x => x!.Value).Distinct().ToList();
+
+                var oldInventories = await _dbContext.Inventories
+                    .Where(inv => oldWarehouseIds.Contains(inv.WarehouseId) &&
+                                  oldProductIds.Contains(inv.ProductId) &&
+                                  (inv.ZoneId == null || oldZoneIds.Contains(inv.ZoneId.Value)) &&
+                                  (inv.SectionId == null || oldSectionIds.Contains(inv.SectionId.Value)))
+                    .ToListAsync(cancellationToken);
+
+                var oldInventoryItems = await _dbContext.InventoryItems
+                    .Where(ii => oldProductIds.Contains(ii.Inventory.ProductId) &&
+                                 oldWarehouseIds.Contains(ii.Inventory.WarehouseId))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var item in entity.Items)
                 {
-                    if (!stoppedProducts.Contains(item.ProductId))
+                    var sourceInventory = oldInventories.FirstOrDefault(i =>
+                        i.WarehouseId == item.SourceWarehouseId &&
+                        i.ZoneId == item.SourceZoneId &&
+                        i.SectionId == item.SourceSectionId &&
+                        i.ProductId == item.ProductId);
+
+                    var destinationInventory = oldInventories.FirstOrDefault(i =>
+                        i.WarehouseId == item.DestinationWarehouseId &&
+                        i.ZoneId == item.DestinationZoneId &&
+                        i.SectionId == item.DestinationSectionId &&
+                        i.ProductId == item.ProductId);
+
+                    switch (oldType)
                     {
-                        stoppedProducts.Add(item.ProductId);
-                        errors.Add($"آیتم {productName} متوقف شده است و امکان رسید ندارد.");
+                        case ReceiptOrIssueType.Receipt:
+                        case ReceiptOrIssueType.Transfer:
+                            if (destinationInventory != null)
+                            {
+                                destinationInventory.Quantity -= item.Quantity;
+                                if (destinationInventory.Quantity < 0)
+                                    errors.Add($"موجودی کالا {item.ProductId} در انبار مقصد نمی‌تواند منفی شود (Revert).");
+                            }
+                            if (sourceInventory != null)
+                                sourceInventory.Quantity += item.Quantity;
+                            break;
+
+                        case ReceiptOrIssueType.Issue:
+                            if (sourceInventory != null)
+                                sourceInventory.Quantity += item.Quantity;
+
+                            if (destinationInventory != null)
+                            {
+                                destinationInventory.Quantity -= item.Quantity;
+                                if (destinationInventory.Quantity < 0)
+                                    errors.Add($"موجودی کالا {item.ProductId} در انبار مقصد نمی‌تواند منفی شود (Revert).");
+                            }
+                            break;
+                    }
+
+                    // برگرداندن کدهای یکتا به انبار مبدأ
+                    foreach (var uc in item.UniqueCodes)
+                    {
+                        var invItem = oldInventoryItems.FirstOrDefault(ii => ii.UniqueCode == uc.UniqueCode);
+                        if (invItem != null && sourceInventory != null)
+                        {
+                            invItem.InventoryId = sourceInventory.Id;
+                            _dbContext.InventoryItems.Update(invItem);
+                        }
                     }
                 }
 
-                if (dto.Type == ReceiptOrIssueType.Receipt && pri != null)
+                if (errors.Any())
                 {
-                    if (!flatItems.Any(f => f.ProductId == item.ProductId && f.RequestNumber == requestNumber))
-                        errors.Add($"برای {productName} هیچ درخواست خریدی ثبت نشده است.");
+                    await transaction.RollbackAsync(cancellationToken);
+                    return (null, errors);
                 }
 
-                var hasUniqueInInventory = inventoryItems.Any(ii =>
-                    ii.Inventory.WarehouseId == item.SourceWarehouseId &&
-                    ii.Inventory.ZoneId == item.SourceZoneId &&
-                    ii.Inventory.SectionId == item.SourceSectionId &&
-                    ii.Inventory.ProductId == item.ProductId &&
-                    !string.IsNullOrEmpty(ii.UniqueCode));
+                // =========================================================
+                // 3) REMOVE OLD ITEMS (حذف آیتم‌های قدیمی و ساخت مجدد)
+                // =========================================================
+                _dbContext.ReceiptOrIssueItems.RemoveRange(entity.Items);
+                entity.Items = new List<ReceiptOrIssueItem>();
 
-                if ((item.UniqueCodes == null || !item.UniqueCodes.Any()) && item.Quantity <= 0 && !hasUniqueInInventory)
-                    errors.Add($"تعداد برای کالا {productName} باید بیشتر از صفر باشد.");
-            }
+                // آپدیت سربرگ
+                entity.Date = dto.Date;
+                entity.DocumentNumber = dto.DocumentNumber;
+                entity.Description = dto.Description;
+                entity.Type = dto.Type;
 
-            if (errors.Any())
-                return (null, errors);
+                // =========================================================
+                // 4) APPLY NEW EFFECT (همان منطق CreateAsync شما - با entity موجود)
+                // =========================================================
+                var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
+                var requestIds = dto.Items.Select(i => i.PurchaseRequestId).Distinct().ToList();
 
-            // ------------------ مدیریت آیتم‌ها ------------------
-            var existingItemsMap = entity.Items.ToDictionary(i => i.Id);
+                var productNames = await _dbContext.Products
+                    .Where(p => productIds.Contains(p.Id))
+                    .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
 
-            foreach (var dtoItem in dto.Items)
-            {
-                ReceiptOrIssueItem? item;
-                bool isNew = false;
+                var purchaseRequestItems = await _procurementContext.PurchaseRequestItems
+                    .Include(pri => pri.PurchaseRequest)
+                    .Where(pri => productIds.Contains(pri.ProductId) && requestIds.Contains(pri.PurchaseRequestId))
+                    .ToListAsync(cancellationToken);
 
-                if (dtoItem.Id > 0 && existingItemsMap.TryGetValue(dtoItem.Id, out item))
+                var requestNumbers = purchaseRequestItems
+                    .Select(pri => pri.PurchaseRequest?.RequestNumber)
+                    .Where(rn => !string.IsNullOrWhiteSpace(rn))
+                    .Distinct()
+                    .ToList();
+
+                var flatItems = await _procurementContext.PurchaseRequestFlatItems
+                    .Where(f => productIds.Contains(f.ProductId) && requestNumbers.Contains(f.RequestNumber))
+                    .ToListAsync(cancellationToken);
+
+                var stoppedProducts = new HashSet<int>();
+
+                foreach (var item in dto.Items)
                 {
-                    // آیتم موجود → بروزرسانی
-                    item.Quantity = dtoItem.Quantity; // مقدار اصلی حفظ می‌شود
-                    item.SourceWarehouseId = dtoItem.SourceWarehouseId;
-                    item.SourceZoneId = dtoItem.SourceZoneId;
-                    item.SourceSectionId = dtoItem.SourceSectionId;
-                    item.DestinationWarehouseId = dtoItem.DestinationWarehouseId;
-                    item.DestinationZoneId = dtoItem.DestinationZoneId;
-                    item.DestinationSectionId = dtoItem.DestinationSectionId;
-                    item.ProjectId = dtoItem.ProjectId;
-                    item.PurchaseRequestId = dtoItem.PurchaseRequestId;
-                }
-                else
-                {
-                    // آیتم جدید → ایجاد
-                    item = new ReceiptOrIssueItem
+                    var productName = productNames.GetValueOrDefault(item.ProductId, "نامشخص");
+
+                    if (item.ProductId <= 0)
+                        errors.Add($"شناسه کالا معتبر نیست.");
+
+                    if ((item.UniqueCodes == null || !item.UniqueCodes.Any()) && item.Quantity <= 0)
+                        errors.Add($"تعداد برای کالا {productName} باید بیشتر از صفر باشد.");
+
+                    var purchaseRequestItem = purchaseRequestItems
+                        .FirstOrDefault(pri => pri.ProductId == item.ProductId && pri.PurchaseRequestId == item.PurchaseRequestId);
+
+                    string? requestNumber = purchaseRequestItem?.PurchaseRequest?.RequestNumber;
+
+                    if (purchaseRequestItem != null && purchaseRequestItem.IsSupplyStopped && dto.Type == ReceiptOrIssueType.Receipt)
                     {
-                        CategoryId = dtoItem.CategoryId,
-                        GroupId = dtoItem.GroupId,
-                        StatusId = dtoItem.StatusId,
-                        ProductId = dtoItem.ProductId,
-                        Quantity = dtoItem.Quantity, // مقدار اصلی DTO
-                        SourceWarehouseId = dtoItem.SourceWarehouseId,
-                        SourceZoneId = dtoItem.SourceZoneId,
-                        SourceSectionId = dtoItem.SourceSectionId,
-                        DestinationWarehouseId = dtoItem.DestinationWarehouseId,
-                        DestinationZoneId = dtoItem.DestinationZoneId,
-                        DestinationSectionId = dtoItem.DestinationSectionId,
-                        ProjectId = dtoItem.ProjectId,
-                        PurchaseRequestId = dtoItem.PurchaseRequestId,
+                        if (!stoppedProducts.Contains(item.ProductId))
+                        {
+                            stoppedProducts.Add(item.ProductId);
+                            errors.Add($"آیتم {productName} متوقف شده است و امکان رسید ندارد.");
+                        }
+                    }
+
+                    if (dto.Type == ReceiptOrIssueType.Receipt && purchaseRequestItem != null)
+                    {
+                        var isInFlatItems = flatItems.Any(f => f.ProductId == item.ProductId && f.RequestNumber == requestNumber);
+                        if (!isInFlatItems)
+                            errors.Add($"برای {productName} کالا هیچ درخواست خریدی ثبت نشده است.");
+                    }
+                }
+
+                if (errors.Any())
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return (null, errors);
+                }
+
+                var sourceSectionIds = dto.Items.Where(i => i.SourceSectionId.HasValue)
+                    .Select(i => i.SourceSectionId!.Value).Distinct().ToList();
+                var sourceZoneIds = dto.Items.Where(i => !i.SourceSectionId.HasValue && i.SourceZoneId.HasValue)
+                    .Select(i => i.SourceZoneId!.Value).Distinct().ToList();
+
+                var destinationSectionIds = dto.Items.Where(i => i.DestinationSectionId.HasValue)
+                    .Select(i => i.DestinationSectionId!.Value).Distinct().ToList();
+                var destinationZoneIds = dto.Items.Where(i => !i.DestinationSectionId.HasValue && i.DestinationZoneId.HasValue)
+                    .Select(i => i.DestinationZoneId!.Value).Distinct().ToList();
+
+                var sourceSections = await _dbContext.StorageSections
+                    .Include(s => s.Zone).ThenInclude(z => z!.Warehouse)
+                    .Where(s => sourceSectionIds.Contains(s.Id) || sourceZoneIds.Contains(s.ZoneId))
+                    .ToListAsync(cancellationToken);
+
+                var destinationSections = await _dbContext.StorageSections
+                    .Include(s => s.Zone).ThenInclude(z => z!.Warehouse)
+                    .Where(s => destinationSectionIds.Contains(s.Id) || destinationZoneIds.Contains(s.ZoneId))
+                    .ToListAsync(cancellationToken);
+
+                var entityItemMap = new Dictionary<int, ReceiptOrIssueItem>();
+
+                for (int idx = 0; idx < dto.Items.Count; idx++)
+                {
+                    var itemDto = dto.Items[idx];
+
+
+                    // این شرط را اینجا اضافه کنید
+                    if (itemDto.ProductId > 0 && string.IsNullOrWhiteSpace(itemDto.SelectedUniqueCode) && itemDto.UniqueCodes == null)
+                    {
+                        // کالا عمومی است و نباید کد یکتا داشته باشد
+                        itemDto.UniqueCodes = null;
+                    }
+
+
+                    var sourceSection = itemDto.SourceSectionId.HasValue
+                        ? sourceSections.FirstOrDefault(s => s.Id == itemDto.SourceSectionId.Value)
+                        : sourceSections.FirstOrDefault(s => s.ZoneId == itemDto.SourceZoneId);
+
+                    var destinationSection = itemDto.DestinationSectionId.HasValue
+                        ? destinationSections.FirstOrDefault(s => s.Id == itemDto.DestinationSectionId.Value)
+                        : destinationSections.FirstOrDefault(s => s.ZoneId == itemDto.DestinationZoneId);
+
+                    var newItem = new ReceiptOrIssueItem
+                    {
+                        CategoryId = itemDto.CategoryId,
+                        GroupId = itemDto.GroupId,
+                        StatusId = itemDto.StatusId,
+                        ProductId = itemDto.ProductId,
+                        Quantity = itemDto.Quantity,
+                        SourceWarehouseId = itemDto.SourceWarehouseId,
+                        SourceZoneId = itemDto.SourceZoneId,
+                        SourceSectionId = sourceSection?.Id,
+                        DestinationWarehouseId = itemDto.DestinationWarehouseId,
+                        DestinationZoneId = itemDto.DestinationZoneId,
+                        DestinationSectionId = destinationSection?.Id,
+                        ProjectId = itemDto.ProjectId,
+                        PurchaseRequestId = itemDto.PurchaseRequestId,
                         UniqueCodes = new List<ReceiptOrIssueItemUniqueCode>()
                     };
-                    entity.Items.Add(item);
-                    isNew = true;
+
+                    entity.Items.Add(newItem);
+                    entityItemMap[idx] = newItem;
                 }
 
-                // مدیریت کدهای یکتا
-                if (dtoItem.UniqueCodes != null && dtoItem.UniqueCodes.Any(uc => !string.IsNullOrWhiteSpace(uc)))
-                {
-                    var key = new
+                var allWarehouseIds = dto.Items
+                    .SelectMany(i => new[] { i.SourceWarehouseId, i.DestinationWarehouseId })
+                    .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+
+                var allProductIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
+
+                var allZoneIds = dto.Items
+                    .SelectMany(i => new[] { i.SourceZoneId, i.DestinationZoneId })
+                    .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+
+                var allSectionIds = dto.Items
+                    .SelectMany(i => new[] { i.SourceSectionId, i.DestinationSectionId })
+                    .Where(id => id.HasValue).Select(id => id!.Value).Distinct().ToList();
+
+                var inventories = await _dbContext.Inventories
+                    .Where(inv => allWarehouseIds.Contains(inv.WarehouseId)
+                                  && allProductIds.Contains(inv.ProductId)
+                                  && (inv.ZoneId == null || allZoneIds.Contains(inv.ZoneId.Value))
+                                  && (inv.SectionId == null || allSectionIds.Contains(inv.SectionId.Value)))
+                    .ToListAsync(cancellationToken);
+
+                var inventoryItems = await _dbContext.InventoryItems
+                    .Include(ii => ii.Inventory)
+                    .Where(ii => allWarehouseIds.Contains(ii.Inventory.WarehouseId)
+                                 && allProductIds.Contains(ii.Inventory.ProductId)
+                                 && (ii.Inventory.ZoneId == null || allZoneIds.Contains(ii.Inventory.ZoneId.Value))
+                                 && (ii.Inventory.SectionId == null || allSectionIds.Contains(ii.Inventory.SectionId.Value)))
+                    .ToListAsync(cancellationToken);
+
+                var inventoryItemsMap = inventoryItems
+                    .GroupBy(ii => new
                     {
-                        WarehouseId = item.SourceWarehouseId!.Value,
-                        ZoneId = item.SourceZoneId,
-                        SectionId = item.SourceSectionId,
-                        ProductId = item.ProductId
-                    };
+                        ii.Inventory.WarehouseId,
+                        ii.Inventory.ZoneId,
+                        ii.Inventory.SectionId,
+                        ii.Inventory.ProductId
+                    })
+                    .ToDictionary(g => g.Key, g => g.ToList());
 
-                    var availableUniqueItems = inventoryItemsMap.ContainsKey(key) ? inventoryItemsMap[key] : new List<InventoryItem>();
+                for (int idx = 0; idx < dto.Items.Count; idx++)
+                {
+                    var dtoItem = dto.Items[idx];
+                    var item = entityItemMap[idx];
+                    var productName = productNames.GetValueOrDefault(item.ProductId, "نامشخص");
 
-                    // پیدا کردن یا ایجاد انبار مقصد
-                    var destinationInventory = inventories.FirstOrDefault(inv =>
-                        inv.WarehouseId == item.DestinationWarehouseId &&
-                        inv.ZoneId == item.DestinationZoneId &&
-                        inv.SectionId == item.DestinationSectionId &&
-                        inv.ProductId == item.ProductId);
+                    var sourceInventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == item.SourceWarehouseId &&
+                        i.ZoneId == item.SourceZoneId &&
+                        i.SectionId == item.SourceSectionId &&
+                        i.ProductId == item.ProductId);
+
+                    var destinationInventory = inventories.FirstOrDefault(i =>
+                        i.WarehouseId == item.DestinationWarehouseId &&
+                        i.ZoneId == item.DestinationZoneId &&
+                        i.SectionId == item.DestinationSectionId &&
+                        i.ProductId == item.ProductId);
 
                     if (destinationInventory == null)
                     {
@@ -793,101 +948,146 @@ namespace IMS.Application.WarehouseManagement.Services
                             ZoneId = item.DestinationZoneId,
                             SectionId = item.DestinationSectionId,
                             ProductId = item.ProductId,
-                            Quantity = 0 // موجودی اولیه صفر است، فقط کد یکتا‌ها اضافه می‌شوند
+                            Quantity = 0
                         };
                         _dbContext.Inventories.Add(destinationInventory);
-                        await _dbContext.SaveChangesAsync(CancellationToken.None);
                         inventories.Add(destinationInventory);
                     }
 
-                    foreach (var uniqueCode in dtoItem.UniqueCodes)
+                    decimal quantityToMove = 0;
+
+                    if (dtoItem.UniqueCodes != null && dtoItem.UniqueCodes.Any(uc => !string.IsNullOrWhiteSpace(uc)))
                     {
-                        var matchingInvItem = availableUniqueItems.FirstOrDefault(ii => ii.UniqueCode == uniqueCode);
-                        if (matchingInvItem == null)
+                        var key = new
                         {
-                            errors.Add($"کد یکتا '{uniqueCode}' برای کالا {productNames.GetValueOrDefault(item.ProductId, "نامشخص")} در انبار مبدأ یافت نشد.");
+                            WarehouseId = item.SourceWarehouseId!.Value,
+                            ZoneId = item.SourceZoneId,
+                            SectionId = item.SourceSectionId,
+                            ProductId = item.ProductId
+                        };
+
+                        var availableUniqueItems = inventoryItemsMap.ContainsKey(key)
+                            ? inventoryItemsMap[key]
+                            : new List<InventoryItem>();
+
+                        foreach (var uniqueCode in dtoItem.UniqueCodes)
+                        {
+                            var matchingInvItem = availableUniqueItems.FirstOrDefault(ii => ii.UniqueCode == uniqueCode);
+                            if (matchingInvItem == null)
+                            {
+                                errors.Add($"کد یکتا '{uniqueCode}' برای کالا {productName} در انبار مبدأ یافت نشد.");
+                                continue;
+                            }
+
+                            item.UniqueCodes.Add(new ReceiptOrIssueItemUniqueCode { UniqueCode = uniqueCode });
+                            availableUniqueItems.Remove(matchingInvItem);
+
+                            matchingInvItem.InventoryId = destinationInventory.Id;
+                            _dbContext.InventoryItems.Update(matchingInvItem);
+
+                            if (sourceInventory != null)
+                                sourceInventory.Quantity -= 1;
+
+                            destinationInventory.Quantity += 1;
+
+                            var productItem = await _dbContext.ProductItems
+                                .FirstOrDefaultAsync(pi => pi.UniqueCode == uniqueCode, cancellationToken);
+
+                            if (productItem != null && productItem.ProjectId.HasValue)
+                                item.ProjectId = productItem.ProjectId;
+                        }
+
+                        quantityToMove = item.UniqueCodes.Count;
+                    }
+                    else
+                    {
+                        var warehouseId = item.SourceWarehouseId ?? -1;
+                        var zoneId = item.SourceZoneId;
+                        var sectionId = item.SourceSectionId;
+                        var productId = item.ProductId;
+
+                        var inventoriesInSource = await _dbContext.Inventories
+                            .Where(inv => inv.WarehouseId == warehouseId &&
+                                          inv.ZoneId == zoneId &&
+                                          inv.SectionId == sectionId &&
+                                          inv.ProductId == productId)
+                            .ToListAsync(cancellationToken);
+
+                        if (!inventoriesInSource.Any())
+                        {
+                            errors.Add($"کالای {productName} در انبار مبدأ موجود نیست.");
                             continue;
                         }
 
-                        if (!item.UniqueCodes.Any(uc => uc.UniqueCode == uniqueCode))
-                            item.UniqueCodes.Add(new ReceiptOrIssueItemUniqueCode { UniqueCode = uniqueCode });
+                        decimal totalNonUniqueQuantity = inventoriesInSource
+                            .Sum(inv => inv.Quantity - inv.InventoryItems.Count);
 
-                        // انتقال واقعی به انبار مقصد
-                        matchingInvItem.InventoryId = destinationInventory.Id;
-                        _dbContext.InventoryItems.Update(matchingInvItem);
-
-                        // کاهش موجودی انبار مبدأ
-                        var sourceInventory = inventories.FirstOrDefault(inv =>
-                            inv.WarehouseId == item.SourceWarehouseId &&
-                            inv.ZoneId == item.SourceZoneId &&
-                            inv.SectionId == item.SourceSectionId &&
-                            inv.ProductId == item.ProductId);
-
-                        if (sourceInventory != null)
-                            sourceInventory.Quantity -= 1;
-
-                        // افزایش موجودی انبار مقصد
-                        destinationInventory.Quantity += 1;
-
-                        availableUniqueItems.Remove(matchingInvItem);
-                    }
-                }
-                else
-                {
-                    // اگر هیچ کد یکتایی نبود و انبار مقصد وجود نداشت، مقدار Quantity آیتم را به عنوان موجودی اولیه انبار مقصد هم ست کنید
-                    var destinationInventory = inventories.FirstOrDefault(inv =>
-                        inv.WarehouseId == item.DestinationWarehouseId &&
-                        inv.ZoneId == item.DestinationZoneId &&
-                        inv.SectionId == item.DestinationSectionId &&
-                        inv.ProductId == item.ProductId);
-
-                    if (destinationInventory == null && item.DestinationWarehouseId.HasValue)
-                    {
-                        destinationInventory = new Inventory
+                        if (totalNonUniqueQuantity <= 0)
                         {
-                            WarehouseId = item.DestinationWarehouseId.Value,
-                            ZoneId = item.DestinationZoneId,
-                            SectionId = item.DestinationSectionId,
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity // موجودی اولیه برابر Quantity آیتم
-                        };
-                        _dbContext.Inventories.Add(destinationInventory);
-                        await _dbContext.SaveChangesAsync(CancellationToken.None);
-                        inventories.Add(destinationInventory);
+                            errors.Add($"کالای {productName} فقط به‌صورت کد یکتا در انبار مبدأ موجود است. انتقال بدون انتخاب کد یکتا ممکن نیست.");
+                            continue;
+                        }
+
+                        if (totalNonUniqueQuantity < dtoItem.Quantity)
+                        {
+                            errors.Add($"موجودی کالای عمومی {productName} کافی نیست (موجودی عمومی: {totalNonUniqueQuantity}). بخشی از موجودی این کالا دارای کد یکتا است و باید انتخاب شود.");
+                            continue;
+                        }
+
+                        var remainingToTransfer = dtoItem.Quantity;
+
+                        foreach (var inv in inventoriesInSource)
+                        {
+                            var nonUniqueInInventory = inv.Quantity - inv.InventoryItems.Count;
+                            if (nonUniqueInInventory <= 0) continue;
+
+                            var transferable = Math.Min(nonUniqueInInventory, remainingToTransfer);
+
+                            inv.Quantity -= transferable;
+                            destinationInventory.Quantity += transferable;
+
+                            _dbContext.Inventories.Update(inv);
+
+                            remainingToTransfer -= transferable;
+                            if (remainingToTransfer <= 0) break;
+                        }
+
+                        quantityToMove = dtoItem.Quantity;
+                        _dbContext.Inventories.Update(destinationInventory);
+
+                        dtoItem.Quantity = quantityToMove;
                     }
+
+                    item.Quantity = quantityToMove;
+
+                    if (sourceInventory != null && sourceInventory.Quantity < 0)
+                        errors.Add($"موجودی کالا {productName} در انبار مبدأ کافی نیست.");
+                    if (destinationInventory.Quantity < 0)
+                        errors.Add($"موجودی کالا {productName} در انبار مقصد به کمتر از صفر رسید.");
                 }
-            }
 
-            // حذف آیتم‌های حذف شده
-            var dtoItemIds = dto.Items.Where(i => i.Id > 0).Select(i => i.Id).ToHashSet();
-            var itemsToRemove = entity.Items.Where(i => i.Id > 0 && !dtoItemIds.Contains(i.Id)).ToList();
+                if (errors.Any())
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return (null, errors);
+                }
 
-            foreach (var rem in itemsToRemove)
-            {
-                entity.Items.Remove(rem);
-                _dbContext.ReceiptOrIssueItems.Remove(rem);
-            }
-
-            if (errors.Any())
-                return (null, errors);
-
-            // ذخیره تغییرات در تراکنش
-            try
-            {
+                // =========================================================
+                // 5) SAVE + COMMIT
+                // =========================================================
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 await _procurementContext.SaveChangesAsync(cancellationToken);
+
                 await transaction.CommitAsync(cancellationToken);
+
+                return (entity, new List<string>());
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                errors.Add($"خطا در ذخیره تغییرات: {ex.Message}");
-                return (null, errors);
+                return (null, new List<string> { $"خطا در ویرایش سند: {ex.Message}" });
             }
-
-            return (entity, errors);
         }
-
 
         public async Task<List<StorageSectionDto>> GetSectionsByWarehouseAsync(int warehouseId)
         {

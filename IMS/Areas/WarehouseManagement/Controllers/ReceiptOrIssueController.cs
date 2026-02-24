@@ -744,16 +744,16 @@ namespace IMS.Areas.WarehouseManagement.Controllers
             if (!model.Type.HasValue)
                 ModelState.AddModelError(nameof(model.Type), "نوع سند را وارد کنید.");
 
-            if (!ModelState.IsValid)
-            {
-                return Json(new
-                {
-                    success = false,
-                    errors = ModelState.Values
-                                .SelectMany(v => v.Errors)
-                                .Select(e => e.ErrorMessage)
-                });
-            }
+            //if (!ModelState.IsValid)
+            //{
+            //    return Json(new
+            //    {
+            //        success = false,
+            //        errors = ModelState.Values
+            //                    .SelectMany(v => v.Errors)
+            //                    .Select(e => e.ErrorMessage)
+            //    });
+            //}
 
             try
             {
